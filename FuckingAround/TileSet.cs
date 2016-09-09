@@ -52,7 +52,7 @@ namespace FuckingAround {
 			else return null;
 		}
 
-		public IEnumerable<Tile> GetShit(Tile start, int mp) {
+		public IEnumerable<Tile> GetShit(Tile start, Being being, int mp) {
 			var accumTravCost = new Dictionary<Tile, int>();	//dictionary for accumulated traversal cost
 			var tils = new LinkedList<Tile>();
 			accumTravCost.Add(start, 0);
@@ -61,7 +61,7 @@ namespace FuckingAround {
 			Action<LinkedListNode<Tile>> fun = (node) => {
 				foreach (var adjT in node.Value.Adjacent)
 					if (accumTravCost.ContainsKey(adjT) == false) {
-						int _accumTravCost = accumTravCost[node.Value] + adjT.TraverseCost;
+						int _accumTravCost = being.MovementCost(adjT) >= 0 ? accumTravCost[node.Value] + being.MovementCost(adjT) : int.MaxValue;
 						if (_accumTravCost <= mp) {
 							accumTravCost.Add(adjT, _accumTravCost);
 							var added = false;
@@ -83,9 +83,9 @@ namespace FuckingAround {
 			}
 		}
 
-		public IEnumerable<Tile> GetShit(int mp) {
+		public IEnumerable<Tile> GetShit(Being b, int mp) {
 			return ClickedTile != null
-				? GetShit(ClickedTile, mp)
+				? GetShit(ClickedTile, b, mp)
 				: new Tile[0];
 		}
 

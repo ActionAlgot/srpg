@@ -25,8 +25,8 @@ namespace FuckingAround {
 		public int TraverseCost;
 		public SolidBrush Brush;
 		private TileSet Owner;
-		public Func<int, IEnumerable<Tile>> GetShit {
-			get { return n => Owner.GetShit(this, n); }
+		public Func<Being, int, IEnumerable<Tile>> GetShit {
+			get { return (b, n) => Owner.GetShit(this, b, n); }
 		}
 		public Action<Graphics> Draw;
 		public Rectangle Rectangle {

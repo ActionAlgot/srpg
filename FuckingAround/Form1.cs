@@ -21,9 +21,9 @@ namespace FuckingAround {
 
 			tileSet = new TileSet(30, 30);
 			Beings = new Queue<Being>();
-			Beings.Enqueue(new Being(5) { Place = tileSet[5, 5] });
-			Beings.Enqueue(new Being(6) { Place = tileSet[10, 10] });
-			Beings.Enqueue(new Being(7) { Place = tileSet[20, 17] });
+			Beings.Enqueue(new Being(1, 5) { Place = tileSet[5, 5] });
+			Beings.Enqueue(new Being(1, 6) { Place = tileSet[10, 10] });
+			Beings.Enqueue(new Being(2, 7) { Place = tileSet[20, 17] });
 
 			foreach (var b in Beings)
 				b.TurnFinished += (s, e) => Beings.Enqueue(Beings.Dequeue());
@@ -51,7 +51,7 @@ namespace FuckingAround {
 			Graphics graphics = this.CreateGraphics();
 
 			SolidBrush fuckyoubrush = new SolidBrush(Color.Blue);
-			foreach (var tile in tileSet.GetShit(activeBeing.Place, activeBeing.MovementPoints))
+			foreach (var tile in tileSet.GetShit(activeBeing.Place, activeBeing, activeBeing.MovementPoints))
 				graphics.FillRectangle(fuckyoubrush, tile.Rectangle);
 			fuckyoubrush.Dispose();
 			if (tileSet.ClickedTile != null)

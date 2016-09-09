@@ -13,6 +13,18 @@ namespace FuckingAround {
 		public event EventHandler TurnFinished;
 		private event EventHandler<TileClickedEventArgs> _command;
 
+		private int _team;
+		public int Team { get { return _team; } }
+
+		public int MovementCost(Tile t) {
+			if (t.Inhabitant != null) {
+				if (t.Inhabitant.Team == this.Team)
+					return t.TraverseCost;
+				return -1;
+			}
+			return t.TraverseCost;
+		}
+
 		private Tile _place;
 		public Tile Place {
 			get { return _place; }
@@ -26,7 +38,7 @@ namespace FuckingAround {
 			}
 		}
 		private IEnumerable<Tile> movementArea {
-			get { return Place.GetShit(MovementPoints); }
+			get { return Place.GetShit(this, MovementPoints); }
 		}
 		public void Command(Object s, TileClickedEventArgs e) {
 			if(_command != null)
@@ -43,8 +55,9 @@ namespace FuckingAround {
 		public int MovementPoints;
 		public Action<Graphics> Draw;
 
-		public Being(int mp) {
+		public Being(int team, int mp) {
 			MovementPoints = mp;
+			_team = team;
 			Draw = g => {
 				var b = new SolidBrush(Color.Green);
 				g.FillEllipse(b, Place.Rectangle);
