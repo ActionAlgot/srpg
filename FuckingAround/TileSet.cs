@@ -54,35 +54,45 @@ namespace FuckingAround {
 			else return null;
 		}
 
-		public IEnumerable<Tile> GetShit(Tile start, Being being, int mp) {
-			var accumTravCost = new Dictionary<Tile, int>();	//dictionary for accumulated traversal cost
+		public IEnumerable<Tile> GetShit(Tile start, Func<Tile, int> travCostCalc, int mp) {
+			var accumTravCost = new Dictionary<Tile, int>();    //dictionary for accumulated traversal cost
 			var tils = new LinkedList<Tile>();
 			accumTravCost.Add(start, 0);
 			tils.AddFirst(start);
-
 			Action<LinkedListNode<Tile>> fun = (node) => {
 				foreach (var adjT in node.Value.Adjacent)
 					if (accumTravCost.ContainsKey(adjT) == false) {
-						int _accumTravCost = being.MovementCost(adjT) >= 0 ? accumTravCost[node.Value] + being.MovementCost(adjT) : int.MaxValue;
-						if (_accumTravCost <= mp) {
-							accumTravCost.Add(adjT, _accumTravCost);
-							var added = false;
-							for (var node2 = node.Next; node2 != null; node2 = node2.Next)
-								if (accumTravCost[node2.Value] >= accumTravCost[adjT]) {
-									added = true;
-									tils.AddBefore(node2, adjT);
-									break;
-								}
-							if (!added) tils.AddLast(adjT);
+						int adjTravCost = travCostCalc(adjT);
+						if (adjTravCost >= 0) {
+							int _accumTravCost = accumTravCost[node.Value] + adjTravCost;
+							if (_accumTravCost <= mp) {
+								accumTravCost.Add(adjT, _accumTravCost);
+								var added = false;
+								for (var node2 = node.Next; node2 != null; node2 = node2.Next)
+									if (accumTravCost[node2.Value] >= accumTravCost[adjT]) {
+										added = true;
+										tils.AddBefore(node2, adjT);
+										break;
+									}
+								if (!added) tils.AddLast(adjT);
+							}
 						}
 					}
 			};
 
-			fun(tils.First);	//skip 'start'
+			fun(tils.First);    //skip 'start'
 			for (var node = tils.First.Next; node != null; node = node.Next) {
 				yield return node.Value;
 				fun(node);
 			}
+		}
+
+		public IEnumerable<Tile> GetShit(Tile start, Being being, int mp) {
+			return GetShit(start, (t) => being.MovementCost(t), mp);
+		}
+
+		public IEnumerable<Tile> GetShit(Tile start, int range) {
+			return GetShit(start, (t) => 1, range);
 		}
 
 		public IEnumerable<Tile> GetShit(Being b, int mp) {

@@ -13,9 +13,18 @@ namespace FuckingAround {
 		public event EventHandler TurnFinished;
 		private event EventHandler<TileClickedEventArgs> _command;
 
+		public Weapon Unarmed = new Weapon { Range = 1, Damage = 1 };
+
 		private int _team;
 		public int Team { get { return _team; } }
 		public object SelectedAction;
+
+		private Weapon _weapon;
+		public Weapon Weapon {
+			get { return _weapon ?? Unarmed; }
+			set { _weapon = value; }
+		}
+		public Armour Armour;
 
 		public int MovementCost(Tile t) {
 			if (t.Inhabitant != null) {
@@ -33,8 +42,10 @@ namespace FuckingAround {
 			Moved = false;
 			TurnFinished(this, EventArgs.Empty);
 		}
-		public void DoSomething(object sender, TileClickedEventArgs e) {
-
+		public void StandardAttack (object sender, TileClickedEventArgs e) {
+			if(Place.GetArea(Weapon.Range).Any(t => t == e.Tile)){
+				Debug.WriteLine(Place.X + ", " + Place.Y + " attacked " + e.Tile.X + ", " + e.Tile.Y);
+			}
 		}
 
 		private Tile _place;
@@ -67,8 +78,8 @@ namespace FuckingAround {
 			else if (SelectedAction == null && e.Tile.Inhabitant == null && !Moved) {
 				Move(sender, e);
 			}
-			else {
-
+			else if(e.Tile.Inhabitant != null){
+				StandardAttack(this, e);
 			}
 		}
 
