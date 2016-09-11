@@ -15,6 +15,7 @@ namespace FuckingAround {
 
 		private int _team;
 		public int Team { get { return _team; } }
+		public object SelectedAction;
 
 		public int MovementCost(Tile t) {
 			if (t.Inhabitant != null) {
@@ -23,6 +24,17 @@ namespace FuckingAround {
 				return -1;
 			}
 			return t.TraverseCost;
+		}
+
+		private bool ActionTaken;
+		private bool Moved;
+		public void EndTurn() {
+			ActionTaken = false;
+			Moved = false;
+			TurnFinished(this, EventArgs.Empty);
+		}
+		public void DoSomething(object sender, TileClickedEventArgs e) {
+
 		}
 
 		private Tile _place;
@@ -46,10 +58,26 @@ namespace FuckingAround {
 		}
 
 		public void OnCommand(object sender, TileClickedEventArgs e) {
+
+			ActionTaken = true;
+
+			if(SelectedAction != null) {
+
+			}
+			else if (SelectedAction == null && e.Tile.Inhabitant == null && !Moved) {
+				Move(sender, e);
+			}
+			else {
+
+			}
+		}
+
+		public void Move(object sender, TileClickedEventArgs e) {
 			if (movementArea.Any(t => t == e.Tile))
 				if (e.Tile.Inhabitant == null) {
 					Place = e.Tile;
-					TurnFinished(this, EventArgs.Empty);
+					Moved = true;
+					if (ActionTaken && Moved) EndTurn();
 				}
 		}
 		public int MovementPoints;

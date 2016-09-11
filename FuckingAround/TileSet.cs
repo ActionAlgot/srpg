@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace FuckingAround {
-
 	public class TileClickedEventArgs : EventArgs {
 		public MouseEventArgs MouseEventArgs;
 		public Tile Tile;
@@ -22,7 +21,8 @@ namespace FuckingAround {
 		public Tile this[int x, int y]{
 			get { return Tiles[x, y]; }
 		}
-
+		public int XOffset = 0;
+		public int YOffset = 0;
 		public Tile ClickedTile;
 		public int XLength { get { return Tiles.GetLength(0); } }
 		public int YLength { get { return Tiles.GetLength(1); } }
@@ -47,6 +47,8 @@ namespace FuckingAround {
 		}
 
 		public Tile SelectTile(int x, int y) {
+			x = x - XOffset;
+			y = y - YOffset;
 			if (x >= 0 && x <= Tiles.GetLength(0) * Tile.Size && y >= 0 && y <= Tiles.GetLength(1) * Tile.Size)	//within tileset area
 				return Tiles[x / Tile.Size, y / Tile.Size];
 			else return null;
