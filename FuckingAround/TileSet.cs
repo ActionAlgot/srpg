@@ -72,14 +72,9 @@ namespace FuckingAround {
 									if (accumTravCost[node2.Value] >= accumTravCost[adjT]) {
 										added = true;
 										tils.AddBefore(node2, adjT);
-										break;
-									}
+										break; }
 								if (!added) tils.AddLast(adjT);
-							}
-						}
-					}
-			};
-
+			} } } };
 			fun(tils.First);    //skip 'start'
 			for (var node = tils.First.Next; node != null; node = node.Next) {
 				yield return node.Value;

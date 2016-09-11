@@ -44,6 +44,7 @@ namespace FuckingAround {
 		}
 		public void StandardAttack (object sender, TileClickedEventArgs e) {
 			if(Place.GetArea(Weapon.Range).Any(t => t == e.Tile)){
+				e.Tile.Brush = new SolidBrush(Color.DarkRed);
 				Debug.WriteLine(Place.X + ", " + Place.Y + " attacked " + e.Tile.X + ", " + e.Tile.Y);
 			}
 		}

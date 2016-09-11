@@ -59,7 +59,7 @@ namespace FuckingAround {
 		private void DrawShit() {
 			Graphics graphics = this.CreateGraphics();
 
-			SolidBrush fuckyoubrush = new SolidBrush(Color.Blue);
+			SolidBrush fuckyoubrush = new SolidBrush(Color.FromArgb(128, 0, 0, 255));
 			foreach (var tile in tileSet.GetShit(activeBeing.Place, activeBeing, activeBeing.MovementPoints))
 				graphics.FillRectangle(fuckyoubrush, tile.Rectangle);
 			fuckyoubrush.Dispose();
