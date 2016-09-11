@@ -46,6 +46,7 @@ namespace FuckingAround {
 			if(Place.GetArea(Weapon.Range).Any(t => t == e.Tile)){
 				e.Tile.Brush = new SolidBrush(Color.DarkRed);
 				Debug.WriteLine(Place.X + ", " + Place.Y + " attacked " + e.Tile.X + ", " + e.Tile.Y);
+				ActionTaken = true;
 			}
 		}
 
@@ -70,18 +71,17 @@ namespace FuckingAround {
 		}
 
 		public void OnCommand(object sender, TileClickedEventArgs e) {
-
-			ActionTaken = true;
-
-			if(SelectedAction != null) {
+			if(!ActionTaken && SelectedAction != null) {
 
 			}
 			else if (SelectedAction == null && e.Tile.Inhabitant == null && !Moved) {
 				Move(sender, e);
 			}
-			else if(e.Tile.Inhabitant != null){
+			else if(!ActionTaken && e.Tile.Inhabitant != null){
 				StandardAttack(this, e);
 			}
+			if (ActionTaken && Moved)
+				EndTurn();
 		}
 
 		public void Move(object sender, TileClickedEventArgs e) {
@@ -89,7 +89,6 @@ namespace FuckingAround {
 				if (e.Tile.Inhabitant == null) {
 					Place = e.Tile;
 					Moved = true;
-					if (ActionTaken && Moved) EndTurn();
 				}
 		}
 		public int MovementPoints;

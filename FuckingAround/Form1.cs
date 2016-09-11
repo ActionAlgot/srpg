@@ -41,7 +41,10 @@ namespace FuckingAround {
 					tile.Draw(((PaintEventArgs)e).Graphics); };
 
 			BeingMenu = new MainMenu();
-			BeingMenu.MenuItems.Add(new MenuItem("asdf"));
+			BeingMenu.MenuItems.Add(new MenuItem("End turn", (s, e) => {
+				activeBeing.EndTurn();
+				this.Refresh();
+				}));
 			BeingMenu.MenuItems.Add(new MenuItem("asdf2"));
 			Menu = (MainMenu)BeingMenu;
 		}

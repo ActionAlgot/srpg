@@ -83,7 +83,7 @@ namespace FuckingAround {
 		}
 
 		public IEnumerable<Tile> GetShit(Tile start, Being being, int mp) {
-			return GetShit(start, (t) => being.MovementCost(t), mp);
+			return GetShit(start, being.MovementCost, mp);
 		}
 
 		public IEnumerable<Tile> GetShit(Tile start, int range) {
