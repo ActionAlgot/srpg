@@ -10,6 +10,19 @@ using System.Windows.Forms;
 namespace FuckingAround {
 	public class Being {
 
+		private int _strength;
+		public int Strength { get { return _strength; } }
+		private int _maxHP;
+		public int MaxHP { get { return _maxHP; } }
+		private int _HP;
+		public int HP { get { return _HP; } }
+
+		private IEnumerable<Skill> _skills;
+		public IEnumerable<Skill> Skills {
+			get { return _skills; }
+			set { _skills = value; }	//For debugging only
+		}
+
 		public event EventHandler TurnFinished;
 		private event EventHandler<TileClickedEventArgs> _command;
 
@@ -17,7 +30,7 @@ namespace FuckingAround {
 
 		private int _team;
 		public int Team { get { return _team; } }
-		public object SelectedAction;
+		public Skill SelectedAction;
 
 		private Weapon _weapon;
 		public Weapon Weapon {
@@ -35,9 +48,10 @@ namespace FuckingAround {
 			return t.TraverseCost;
 		}
 
-		private bool ActionTaken;
-		private bool Moved;
+		public bool ActionTaken { get; protected set; }
+		public bool Moved { get; protected set; }
 		public void EndTurn() {
+			SelectedAction = null;
 			ActionTaken = false;
 			Moved = false;
 			TurnFinished(this, EventArgs.Empty);
@@ -72,14 +86,19 @@ namespace FuckingAround {
 
 		public void OnCommand(object sender, TileClickedEventArgs e) {
 			if(!ActionTaken && SelectedAction != null) {
-
+				if (Place.GetArea(SelectedAction.Range).Any(t => t == e.Tile)) {
+					if (SelectedAction.Apply(e.Tile))
+						ActionTaken = true;
+					else Debug.WriteLine("Skill apply failed");
+				}
+				SelectedAction = null;
 			}
 			else if (SelectedAction == null && e.Tile.Inhabitant == null && !Moved)
 				Move(sender, e);
 			else if(!ActionTaken && e.Tile.Inhabitant != null)
 				StandardAttack(this, e);
 			if (ActionTaken && Moved)
-				EndTurn();
+				this.EndTurn();
 		}
 
 		public void Move(object sender, TileClickedEventArgs e) {
@@ -91,14 +110,14 @@ namespace FuckingAround {
 		}
 		public int MovementPoints;
 		public Action<Graphics> Draw;
+		public SolidBrush Brush;
 
 		public Being(int team, int mp) {
+			Skills = new Skill[0];
 			MovementPoints = mp;
 			_team = team;
-			Draw = g => {
-				var b = new SolidBrush(Color.Green);
-				g.FillEllipse(b, Place.Rectangle);
-			};
+			Brush = new SolidBrush(Color.Green);
+			Draw = g => g.FillEllipse(Brush, Place.Rectangle);
 			_command += OnCommand;
 		}
 	}

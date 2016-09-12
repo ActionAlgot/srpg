@@ -16,9 +16,11 @@ namespace FuckingAround {
 		private Queue<Being> Beings;
 		private Being activeBeing { get { return Beings.Peek(); } }
 		private Menu BeingMenu;
+		private MenuItem SkillMenu;
 
 		private int TileSetOffsetX = 0;
 		private int TileSetOffsetY = 0;
+
 
 		public Form1() {
 			InitializeComponent();
@@ -26,26 +28,34 @@ namespace FuckingAround {
 			tileSet = new TileSet(30, 30);
 			Beings = new Queue<Being>();
 			Beings.Enqueue(new Being(1, 5) { Place = tileSet[5, 5], Weapon = new Weapon { Damage = 2, Range = 5 } });
-			Beings.Enqueue(new Being(1, 6) { Place = tileSet[10, 10] });
+			Beings.Enqueue(new Being(1, 6) { Place = tileSet[10, 10], Skills = new List<Skill> { new Blackify() } });
 			Beings.Enqueue(new Being(2, 7) { Place = tileSet[20, 17] });
 
 			foreach (var b in Beings)
-				b.TurnFinished += (s, e) => Beings.Enqueue(Beings.Dequeue());
+				b.TurnFinished += (s, e) => {
+					Beings.Enqueue(Beings.Dequeue());
+					SkillMenu.MenuItems.Clear();
+					foreach (var sm in activeBeing.Skills.Select(skill => new MenuItem(skill.Name, (EventHandler)((se, es) => { if(!activeBeing.ActionTaken)activeBeing.SelectedAction = skill; })))) {
+						SkillMenu.MenuItems.Add(sm);
+					}
+				};
 
 			tileSet.TileClicked += (o, e) => this.activeBeing.Command(this, e);
 
 			this.MouseClick += (s, e) => {
-				var ne = new MouseEventArgs(e.Button, e.Clicks, e.X - TileSetOffsetX, e.Y - TileSetOffsetY , e.Delta);
-				tileSet.ClickTile(ne/*((MouseEventArgs)(e.MemberwiseClone()))*//*{X += TileSetOffsetX, Y += TileSetOffsetY }*/);
+				//modify e.X and Y for grpahic offset
+				tileSet.ClickTile(new MouseEventArgs(e.Button, e.Clicks, e.X - TileSetOffsetX, e.Y - TileSetOffsetY , e.Delta));
 				this.Refresh();
 			};
 
+			SkillMenu = new MenuItem("Skills");
 			BeingMenu = new MainMenu();
 			BeingMenu.MenuItems.Add(new MenuItem("End turn", (s, e) => {
 				activeBeing.EndTurn();
 				this.Refresh();
 				}));
-			BeingMenu.MenuItems.Add(new MenuItem("asdf2"));
+			BeingMenu.MenuItems.Add(SkillMenu);
+			
 			Menu = (MainMenu)BeingMenu;
 		}
 
