@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Armour.cs" />
+    <Compile Include="ConsoleLoggerHandlerOrWhatever.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

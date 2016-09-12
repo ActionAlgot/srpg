@@ -39,7 +39,7 @@ namespace FuckingAround {
 					foreach (var skill in activeBeing.Skills)
 						SkillMenu.MenuItems.Add(
 							new MenuItem(skill.Name,
-								(s2, e2) => { if(!activeBeing.ActionTaken) activeBeing.SelectedAction = skill; }));
+								(s2, e2) => { if(!activeBeing.ActionTaken) activeBeing.SelectedAction = skill; Refresh(); }));
 				};
 
 			tileSet.TileClicked += (o, e) => this.activeBeing.Command(this, e);
@@ -61,10 +61,11 @@ namespace FuckingAround {
 			Menu = (MainMenu)BeingMenu;
 
 			this.Controls.Add(txtbx);
+			txtbx.Multiline = true;
+			txtbx.ScrollBars = ScrollBars.Vertical;
+			txtbx.Size = new Size(300, 400);
 			txtbx.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-			//txtbx.Visible = true;
-			txtbx.Text += "asdfdasf \r\n";
-			txtbx.Text += "asdfdasf \r\n";
+			ConsoleLoggerHandlerOrWhatever.OnLog += (sender, s) => txtbx.Text += s + "\r\n";
 		}
 
 		protected override void OnPaint(PaintEventArgs e) {
@@ -81,7 +82,7 @@ namespace FuckingAround {
 				tile.Draw(graphics);
 
 			SolidBrush fuckyoubrush = new SolidBrush(Color.FromArgb(128, 0, 0, 255));
-			foreach (var tile in tileSet.GetShit(activeBeing.Place, activeBeing, activeBeing.MovementPoints))
+			foreach (var tile in activeBeing.SelectedAction == null ? tileSet.GetShit(activeBeing.Place, activeBeing, activeBeing.MovementPoints) : activeBeing.Place.GetArea(activeBeing.SelectedAction.Range))
 				graphics.FillRectangle(fuckyoubrush, tile.Rectangle);
 			fuckyoubrush.Dispose();
 			if (tileSet.ClickedTile != null)

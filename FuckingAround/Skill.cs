@@ -24,10 +24,17 @@ namespace FuckingAround {
 				l.Add(Target.Inhabitant);
 			l.AddRange(Target.Adjacent.Where(t => t.Inhabitant != null).Select(t => t.Inhabitant));
 			if (l.Any()) {
-				foreach (var b in l)
+				var ls = new List<string>();
+				foreach (var b in l) {
+					ls.Add(" X: " + b.Place.X + ", Y: " + b.Place.Y);
 					b.Brush = new System.Drawing.SolidBrush(System.Drawing.Color.Black);
+				}
+				ConsoleLoggerHandlerOrWhatever.Log("Blackify was cast on:" + string.Join(",", ls));
 				return true;
-			} else return false;
+			}
+
+			ConsoleLoggerHandlerOrWhatever.Log("No target in area.");
+			return false;
 		}
 	}
 }

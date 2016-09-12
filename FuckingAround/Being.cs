@@ -59,7 +59,7 @@ namespace FuckingAround {
 		public void StandardAttack (object sender, TileClickedEventArgs e) {
 			if(Place.GetArea(Weapon.Range).Any(t => t == e.Tile)){
 				e.Tile.Brush = new SolidBrush(Color.DarkRed);
-				Debug.WriteLine(Place.X + ", " + Place.Y + " attacked " + e.Tile.X + ", " + e.Tile.Y);
+				ConsoleLoggerHandlerOrWhatever.Log(Place.X + ", " + Place.Y + " attacked " + e.Tile.X + ", " + e.Tile.Y);
 				ActionTaken = true;
 			}
 		}
@@ -89,7 +89,7 @@ namespace FuckingAround {
 				if (Place.GetArea(SelectedAction.Range).Any(t => t == e.Tile)) {
 					if (SelectedAction.Apply(e.Tile))
 						ActionTaken = true;
-					else Debug.WriteLine("Skill apply failed");
+					else ConsoleLoggerHandlerOrWhatever.Log("Skill apply failed");
 				}
 				SelectedAction = null;
 			}
