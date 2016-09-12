@@ -17,6 +17,7 @@ namespace FuckingAround {
 		private Being activeBeing { get { return Beings.Peek(); } }
 		private Menu BeingMenu;
 		private MenuItem SkillMenu;
+		private TextBox txtbx= new TextBox();
 
 		private int TileSetOffsetX = 0;
 		private int TileSetOffsetY = 0;
@@ -35,9 +36,10 @@ namespace FuckingAround {
 				b.TurnFinished += (s, e) => {
 					Beings.Enqueue(Beings.Dequeue());
 					SkillMenu.MenuItems.Clear();
-					foreach (var sm in activeBeing.Skills.Select(skill => new MenuItem(skill.Name, (EventHandler)((se, es) => { if(!activeBeing.ActionTaken)activeBeing.SelectedAction = skill; })))) {
-						SkillMenu.MenuItems.Add(sm);
-					}
+					foreach (var skill in activeBeing.Skills)
+						SkillMenu.MenuItems.Add(
+							new MenuItem(skill.Name,
+								(s2, e2) => { if(!activeBeing.ActionTaken) activeBeing.SelectedAction = skill; }));
 				};
 
 			tileSet.TileClicked += (o, e) => this.activeBeing.Command(this, e);
@@ -57,6 +59,12 @@ namespace FuckingAround {
 			BeingMenu.MenuItems.Add(SkillMenu);
 			
 			Menu = (MainMenu)BeingMenu;
+
+			this.Controls.Add(txtbx);
+			txtbx.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+			//txtbx.Visible = true;
+			txtbx.Text += "asdfdasf \r\n";
+			txtbx.Text += "asdfdasf \r\n";
 		}
 
 		protected override void OnPaint(PaintEventArgs e) {
