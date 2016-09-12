@@ -26,7 +26,7 @@ namespace FuckingAround {
 		}
 		public Armour Armour;
 
-		public int MovementCost(Tile t) {
+		public int GetTraversalCost(Tile t) {
 			if (t.Inhabitant != null) {
 				if (t.Inhabitant.Team == this.Team)
 					return t.TraverseCost;
@@ -74,12 +74,10 @@ namespace FuckingAround {
 			if(!ActionTaken && SelectedAction != null) {
 
 			}
-			else if (SelectedAction == null && e.Tile.Inhabitant == null && !Moved) {
+			else if (SelectedAction == null && e.Tile.Inhabitant == null && !Moved)
 				Move(sender, e);
-			}
-			else if(!ActionTaken && e.Tile.Inhabitant != null){
+			else if(!ActionTaken && e.Tile.Inhabitant != null)
 				StandardAttack(this, e);
-			}
 			if (ActionTaken && Moved)
 				EndTurn();
 		}

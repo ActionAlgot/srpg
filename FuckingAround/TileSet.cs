@@ -16,13 +16,11 @@ namespace FuckingAround {
 		}
 	}
 
-	public partial class TileSet {
+	public class TileSet {
 		private Tile[,] Tiles;
 		public Tile this[int x, int y]{
 			get { return Tiles[x, y]; }
 		}
-		public int XOffset = 0;
-		public int YOffset = 0;
 		public Tile ClickedTile;
 		public int XLength { get { return Tiles.GetLength(0); } }
 		public int YLength { get { return Tiles.GetLength(1); } }
@@ -47,8 +45,6 @@ namespace FuckingAround {
 		}
 
 		public Tile SelectTile(int x, int y) {
-			x = x - XOffset;
-			y = y - YOffset;
 			if (x >= 0 && x <= Tiles.GetLength(0) * Tile.Size && y >= 0 && y <= Tiles.GetLength(1) * Tile.Size)	//within tileset area
 				return Tiles[x / Tile.Size, y / Tile.Size];
 			else return null;
@@ -59,7 +55,7 @@ namespace FuckingAround {
 			var tils = new LinkedList<Tile>();
 			accumTravCost.Add(start, 0);
 			tils.AddFirst(start);
-			Action<LinkedListNode<Tile>> fun = (node) => {
+			Action<LinkedListNode<Tile>> AddAdjTiles = (node) => {
 				foreach (var adjT in node.Value.Adjacent)
 					if (accumTravCost.ContainsKey(adjT) == false) {
 						int adjTravCost = travCostCalc(adjT);
@@ -75,15 +71,15 @@ namespace FuckingAround {
 										break; }
 								if (!added) tils.AddLast(adjT);
 			} } } };
-			fun(tils.First);    //skip 'start'
+			AddAdjTiles(tils.First);    //skip 'start'
 			for (var node = tils.First.Next; node != null; node = node.Next) {
 				yield return node.Value;
-				fun(node);
+				AddAdjTiles(node);
 			}
 		}
 
 		public IEnumerable<Tile> GetShit(Tile start, Being being, int mp) {
-			return GetShit(start, being.MovementCost, mp);
+			return GetShit(start, being.GetTraversalCost, mp);
 		}
 
 		public IEnumerable<Tile> GetShit(Tile start, int range) {

@@ -33,7 +33,7 @@ namespace FuckingAround {
 		}
 		public Action<Graphics> Draw;
 		public Rectangle Rectangle {
-			get { return new Rectangle(X * Size + Owner.XOffset, Y * Size + Owner.YOffset, Size, Size); }
+			get { return new Rectangle(X * Size, Y * Size, Size, Size); }
 		}
 		public IEnumerable<Tile> Adjacent {
 			get {
