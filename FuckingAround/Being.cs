@@ -56,12 +56,9 @@ namespace FuckingAround {
 			Moved = false;
 			TurnFinished(this, EventArgs.Empty);
 		}
-		public void StandardAttack (object sender, TileClickedEventArgs e) {
-			if(Place.GetArea(Weapon.Range).Any(t => t == e.Tile)){
-				e.Tile.Brush = new SolidBrush(Color.DarkRed);
-				ConsoleLoggerHandlerOrWhatever.Log(Place.X + ", " + Place.Y + " attacked " + e.Tile.X + ", " + e.Tile.Y);
-				ActionTaken = true;
-			}
+
+		public override string ToString(){
+			return "(X: " + Place.X + ", Y: " + Place.Y + ")";
 		}
 
 		private Tile _place;
@@ -85,18 +82,18 @@ namespace FuckingAround {
 		}
 
 		public void OnCommand(object sender, TileClickedEventArgs e) {
-			if(!ActionTaken && SelectedAction != null) {
+			if (!ActionTaken && SelectedAction != null) {
 				if (Place.GetArea(SelectedAction.Range).Any(t => t == e.Tile)) {
-					if (SelectedAction.Apply(e.Tile))
+					if (SelectedAction.Do(e.Tile))//Apply(this, e.Tile))
 						ActionTaken = true;
 					else ConsoleLoggerHandlerOrWhatever.Log("Skill apply failed");
 				}
 				SelectedAction = null;
-			}
-			else if (SelectedAction == null && e.Tile.Inhabitant == null && !Moved)
+			} else if (SelectedAction == null && e.Tile.Inhabitant == null && !Moved)
 				Move(sender, e);
-			else if(!ActionTaken && e.Tile.Inhabitant != null)
-				StandardAttack(this, e);
+			else if (!ActionTaken && e.Tile.Inhabitant != null)
+				if (new DefaultAttack(this).Do(e.Tile))
+					ActionTaken = true;
 			if (ActionTaken && Moved)
 				this.EndTurn();
 		}

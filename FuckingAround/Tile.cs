@@ -26,10 +26,10 @@ namespace FuckingAround {
 		public SolidBrush Brush;
 		private TileSet Owner;
 		public IEnumerable<Tile> GetArea(int range) {
-			return Owner.GetShit(this, range);
+			return Owner.GetArea(this, range);
 		}
 		public Func<Being, int, IEnumerable<Tile>> GetShit {
-			get { return (b, n) => Owner.GetShit(this, b, n); }
+			get { return (b, n) => Owner.GetTraversalArea(this, b, n); }
 		}
 		public Action<Graphics> Draw;
 		public Rectangle Rectangle {
@@ -42,6 +42,10 @@ namespace FuckingAround {
 				if (Y - 1 >= 0) yield return Owner[X, Y - 1];
 				if (Y + 1 < Owner.YLength) yield return Owner[X, Y + 1];
 			}
+		}
+
+		public string ToString() {
+			return "(X: " + X + ", Y: " + Y + ")";
 		}
 
 		public Tile(int x, int y, TileSet owner, SolidBrush brush) {

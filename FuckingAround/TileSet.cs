@@ -50,7 +50,7 @@ namespace FuckingAround {
 			else return null;
 		}
 
-		public IEnumerable<Tile> GetShit(Tile start, Func<Tile, int> travCostCalc, int mp) {
+		public IEnumerable<Tile> GetTraversalArea(Tile start, Func<Tile, int> travCostCalc, int mp) {
 			var accumTravCost = new Dictionary<Tile, int>();    //dictionary for accumulated traversal cost
 			var tils = new LinkedList<Tile>();
 			accumTravCost.Add(start, 0);
@@ -78,17 +78,32 @@ namespace FuckingAround {
 			}
 		}
 
-		public IEnumerable<Tile> GetShit(Tile start, Being being, int mp) {
-			return GetShit(start, being.GetTraversalCost, mp);
+		public IEnumerable<Tile> GetTraversalArea(Tile start, Being being, int mp) {
+			return GetTraversalArea(start, being.GetTraversalCost, mp);
 		}
 
-		public IEnumerable<Tile> GetShit(Tile start, int range) {
-			return GetShit(start, (t) => 1, range);
+		public IEnumerable<Tile> GetArea(Tile start, int range) {
+			
+			range++;	//account for start
+
+			int RightCut =	start.X + range < XLength	? start.X + range : (XLength-1);
+			int LeftCut =	start.X - range > 0			? start.X - range : 0;
+			int TopCut =	start.Y + range < YLength	? start.Y + range : (YLength-1);
+			int BottomCut = start.Y - range > 0			? start.Y - range : 0;
+			BottomCut++;	//idk, it's 16:10 but shit works
+
+			for (int x = LeftCut; x < RightCut; x++) {
+				for (int y = BottomCut + Math.Abs(start.X - x); y < TopCut - Math.Abs(start.X - x); y++) {
+					yield return Tiles[x, y];
+				}
+			}
+
+			//return GetTraversalArea(start, (t) => 1, range);
 		}
 
-		public IEnumerable<Tile> GetShit(Being b, int mp) {
+		public IEnumerable<Tile> GetTraversalArea(Being b, int mp) {
 			return ClickedTile != null
-				? GetShit(ClickedTile, b, mp)
+				? GetTraversalArea(ClickedTile, b, mp)
 				: new Tile[0];
 		}
 

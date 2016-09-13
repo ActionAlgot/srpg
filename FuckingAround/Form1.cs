@@ -29,7 +29,9 @@ namespace FuckingAround {
 			tileSet = new TileSet(30, 30);
 			Beings = new Queue<Being>();
 			Beings.Enqueue(new Being(1, 5) { Place = tileSet[5, 5], Weapon = new Weapon { Damage = 2, Range = 5 } });
-			Beings.Enqueue(new Being(1, 6) { Place = tileSet[10, 10], Skills = new List<Skill> { new Blackify() } });
+			var b1 = new Being(1, 6) { Place = tileSet[10, 10] };
+			b1.Skills = new Skill[] { new Blackify(b1) };
+			Beings.Enqueue(b1);
 			Beings.Enqueue(new Being(2, 7) { Place = tileSet[20, 17] });
 
 			foreach (var b in Beings)
@@ -66,6 +68,7 @@ namespace FuckingAround {
 			txtbx.Size = new Size(300, 400);
 			txtbx.Anchor = AnchorStyles.Top | AnchorStyles.Right;
 			ConsoleLoggerHandlerOrWhatever.OnLog += (sender, s) => txtbx.Text += s + "\r\n";
+			GameEventLogger.OnNewLog += (s, ge) => txtbx.Text += ge.ToString();
 		}
 
 		protected override void OnPaint(PaintEventArgs e) {
@@ -82,7 +85,7 @@ namespace FuckingAround {
 				tile.Draw(graphics);
 
 			SolidBrush fuckyoubrush = new SolidBrush(Color.FromArgb(128, 0, 0, 255));
-			foreach (var tile in activeBeing.SelectedAction == null ? tileSet.GetShit(activeBeing.Place, activeBeing, activeBeing.MovementPoints) : activeBeing.Place.GetArea(activeBeing.SelectedAction.Range))
+			foreach (var tile in activeBeing.SelectedAction == null ? tileSet.GetTraversalArea(activeBeing.Place, activeBeing, activeBeing.MovementPoints) : activeBeing.Place.GetArea(activeBeing.SelectedAction.Range))
 				graphics.FillRectangle(fuckyoubrush, tile.Rectangle);
 			fuckyoubrush.Dispose();
 			if (tileSet.ClickedTile != null)
