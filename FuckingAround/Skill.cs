@@ -45,8 +45,20 @@ namespace FuckingAround {
 					) return false;
 				foreach (var t in AoE) {
 					TileEffect(t);
-					if (t.Inhabitant != null) BeingEffect(t.Inhabitant);
+					if (t.Inhabitant != null && (!TargetSelfAllowed ? t.Inhabitant != Doer : true))
+						BeingEffect(t.Inhabitant);
 				}
+
+				GameEventLogger.Log(new GameEvent {
+					Source = Doer,
+					skill = this,
+					Target = target,
+					Targets = (TargetSelfAllowed
+						? AoE.Where(t => t.Inhabitant != null)
+						: AoE.Where(t => t.Inhabitant != null && t.Inhabitant != Doer))
+						.Select(t => t.Inhabitant)
+				});
+
 				return true;
 			}
 			return false;
@@ -54,12 +66,11 @@ namespace FuckingAround {
 	}
 
 	public class DefaultAttack : Skill {
-
 		protected override void TileEffect(Tile t) {
 			t.Brush = new System.Drawing.SolidBrush(System.Drawing.Color.DarkRed);
 		}
 		protected override void BeingEffect(Being b) {
-			ConsoleLoggerHandlerOrWhatever.Log(Doer.ToString() + " attacked " + b.ToString());
+			//ConsoleLoggerHandlerOrWhatever.Log(Doer.ToString() + " attacked " + b.ToString());
 		}
 
 		public DefaultAttack(Being doer) : base(doer, "Standard attack"){
@@ -68,15 +79,6 @@ namespace FuckingAround {
 			TargetSelfAllowed = false;
 			GetAreaOfEffect = GetGetAreOfEffect(1);
 		}
-		/*
-		public override bool Apply(Being source, Tile target) {
-			if (source.Place.GetArea(source.Weapon.Range).Any(t => t == target) && target.Inhabitant != null) {
-				target.Brush = new System.Drawing.SolidBrush(System.Drawing.Color.DarkRed);
-				ConsoleLoggerHandlerOrWhatever.Log(source.ToString() + " attacked " + target.Inhabitant.ToString());
-				return true;
-			}
-			else return false;
-		}*/
 	}
 
 	public class Blackify : Skill {
@@ -90,24 +92,5 @@ namespace FuckingAround {
 			TargetSelfAllowed = true;
 			GetAreaOfEffect = GetGetAreOfEffect(2);
 		}
-		/*
-		public override bool Apply(Being source, Tile target) {
-			var l = new List<Being>();
-			if (target.Inhabitant != null)
-				l.Add(target.Inhabitant);
-			l.AddRange(target.Adjacent.Where(t => t.Inhabitant != null).Select(t => t.Inhabitant));
-			if (l.Any()) {
-				var ls = new List<string>();
-				foreach (var b in l) {
-					ls.Add(b.ToString());
-					b.Brush = new System.Drawing.SolidBrush(System.Drawing.Color.Black);
-				}
-				GameEventLogger.Log(new GameEvent { Source = source, Target = target, skill = this, Targets = l });
-				return true;
-			} else {
-				ConsoleLoggerHandlerOrWhatever.Log("No target in area.");
-				return false;
-			}
-		}*/
 	}
 }

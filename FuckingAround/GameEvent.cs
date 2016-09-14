@@ -12,7 +12,7 @@ namespace FuckingAround {
 		public Skill skill;
 
 		public override string ToString() {
-			return Source.ToString() + " used " + skill.Name + " on Tile:" + Target.ToString() + " affecting " + string.Join(", ", Targets);
+			return Source.ToString() + " used " + skill.Name + " on Tile:" + Target.ToString() + (Targets.Any() ? " affecting " + string.Join(", ", Targets) : "");
 		}
 	}
 }

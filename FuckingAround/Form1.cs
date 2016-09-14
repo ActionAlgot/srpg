@@ -28,7 +28,7 @@ namespace FuckingAround {
 
 			tileSet = new TileSet(30, 30);
 			Beings = new Queue<Being>();
-			Beings.Enqueue(new Being(1, 5) { Place = tileSet[5, 5], Weapon = new Weapon { Damage = 2, Range = 5 } });
+			Beings.Enqueue(new Being(1, 5) { Place = tileSet[5, 6], Weapon = new Weapon { Damage = 2, Range = 5 } });
 			var b1 = new Being(1, 6) { Place = tileSet[10, 10] };
 			b1.Skills = new Skill[] { new Blackify(b1) };
 			Beings.Enqueue(b1);
@@ -68,7 +68,7 @@ namespace FuckingAround {
 			txtbx.Size = new Size(300, 400);
 			txtbx.Anchor = AnchorStyles.Top | AnchorStyles.Right;
 			ConsoleLoggerHandlerOrWhatever.OnLog += (sender, s) => txtbx.Text += s + "\r\n";
-			GameEventLogger.OnNewLog += (s, ge) => txtbx.Text += ge.ToString();
+			GameEventLogger.OnNewLog += (s, ge) => txtbx.Text += ge.ToString() + "\r\n";
 		}
 
 		protected override void OnPaint(PaintEventArgs e) {
