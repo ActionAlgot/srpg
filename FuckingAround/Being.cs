@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace FuckingAround {
-	public class Being {
+	public class Being :ITurnHaver {
 
 		private int _strength;
 		public int Strength { get { return _strength; } }
@@ -16,6 +16,17 @@ namespace FuckingAround {
 		public int MaxHP { get { return _maxHP; } }
 		private int _HP;
 		public int HP { get { return _HP; } }
+
+		protected double _speed;
+		protected double _awaited;
+		
+		public double Speed { get { return _speed; } }
+		public double Awaited { get { return _awaited; } }
+		public double TimeToWait { get { return (100 - Awaited) / Speed; } }
+
+		public void Await(double time) {
+			_awaited += Speed * time;
+		}
 
 		private IEnumerable<Skill> _skills;
 		public IEnumerable<Skill> Skills {
@@ -51,6 +62,7 @@ namespace FuckingAround {
 		public bool ActionTaken { get; protected set; }
 		public bool Moved { get; protected set; }
 		public void EndTurn() {
+			_awaited = 0;
 			SelectedAction = null;
 			ActionTaken = false;
 			Moved = false;
@@ -83,11 +95,9 @@ namespace FuckingAround {
 
 		public void OnCommand(object sender, TileClickedEventArgs e) {
 			if (!ActionTaken && SelectedAction != null) {
-				if (Place.GetArea(SelectedAction.Range).Any(t => t == e.Tile)) {
-					if (SelectedAction.Do(e.Tile))//Apply(this, e.Tile))
-						ActionTaken = true;
-					else ConsoleLoggerHandlerOrWhatever.Log("Skill apply failed");
-				}
+				if (SelectedAction.Do(e.Tile))
+					ActionTaken = true;
+				else ConsoleLoggerHandlerOrWhatever.Log("Skill apply failed");
 				SelectedAction = null;
 			} else if (SelectedAction == null && e.Tile.Inhabitant == null && !Moved)
 				Move(sender, e);
@@ -109,7 +119,8 @@ namespace FuckingAround {
 		public Action<Graphics> Draw;
 		public SolidBrush Brush;
 
-		public Being(int team, int mp) {
+		public Being(int team, double speed, int mp) {
+			_speed = speed;
 			Skills = new Skill[0];
 			MovementPoints = mp;
 			_team = team;

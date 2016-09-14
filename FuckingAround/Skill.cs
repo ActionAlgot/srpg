@@ -39,13 +39,11 @@ namespace FuckingAround {
 			if (Doer.Place.GetArea(Range).Any(t => t == target)) {
 				var AoE = GetAreaOfEffect(target);
 				if (!TargetTilesOnlyAllowed
-					&& TargetSelfAllowed
-						? AoE.All(t => t.Inhabitant == null)
-						: AoE.All(t => t.Inhabitant == null || t.Inhabitant == Doer)
+					&& AoE.All(t => t.Inhabitant == null && !(TargetSelfAllowed || t.Inhabitant != Doer))
 					) return false;
 				foreach (var t in AoE) {
 					TileEffect(t);
-					if (t.Inhabitant != null && (!TargetSelfAllowed ? t.Inhabitant != Doer : true))
+					if (t.Inhabitant != null && (TargetSelfAllowed || t.Inhabitant != Doer))
 						BeingEffect(t.Inhabitant);
 				}
 
@@ -53,9 +51,8 @@ namespace FuckingAround {
 					Source = Doer,
 					skill = this,
 					Target = target,
-					Targets = (TargetSelfAllowed
-						? AoE.Where(t => t.Inhabitant != null)
-						: AoE.Where(t => t.Inhabitant != null && t.Inhabitant != Doer))
+					Targets = AoE
+						.Where(t => t.Inhabitant != null && (TargetSelfAllowed || t.Inhabitant != Doer))
 						.Select(t => t.Inhabitant)
 				});
 

@@ -13,8 +13,19 @@ namespace FuckingAround {
 	public partial class Form1 : Form {
 
 		private TileSet tileSet;
-		private Queue<Being> Beings;
-		private Being activeBeing { get { return Beings.Peek(); } }
+		private List<ITurnHaver> Turners;
+		private ITurnHaver _currentTurnHaver;
+		private ITurnHaver CurrentTurnHaver {
+			get {
+				if (_currentTurnHaver == null || _currentTurnHaver.TimeToWait != 0) {
+					_currentTurnHaver = Turners.Aggregate((t1, t2) => t1.TimeToWait <= t2.TimeToWait ? t1 : t2);
+					foreach (var t in Turners) t.Await(_currentTurnHaver.TimeToWait);
+				}
+				return _currentTurnHaver;
+			}
+		}
+		private Being activeBeing { get { return CurrentTurnHaver as Being; } }
+		private IEnumerable<Being> Beings { get { return Turners.Where(t => t is Being).Cast<Being>(); } }
 		private Menu BeingMenu;
 		private MenuItem SkillMenu;
 		private TextBox txtbx= new TextBox();
@@ -27,24 +38,26 @@ namespace FuckingAround {
 			InitializeComponent();
 
 			tileSet = new TileSet(30, 30);
-			Beings = new Queue<Being>();
-			Beings.Enqueue(new Being(1, 5) { Place = tileSet[5, 6], Weapon = new Weapon { Damage = 2, Range = 5 } });
-			var b1 = new Being(1, 6) { Place = tileSet[10, 10] };
+			Turners = new List<ITurnHaver>();
+			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6], Weapon = new Weapon { Damage = 2, Range = 5 } });
+			var b1 = new Being(1, 4, 6) { Place = tileSet[10, 10] };
 			b1.Skills = new Skill[] { new Blackify(b1) };
-			Beings.Enqueue(b1);
-			Beings.Enqueue(new Being(2, 7) { Place = tileSet[20, 17] });
+			Turners.Add(b1);
+			Turners.Add(new Being(2, 7, 7) { Place = tileSet[20, 17] });
 
-			foreach (var b in Beings)
-				b.TurnFinished += (s, e) => {
-					Beings.Enqueue(Beings.Dequeue());
-					SkillMenu.MenuItems.Clear();
-					foreach (var skill in activeBeing.Skills)
-						SkillMenu.MenuItems.Add(
-							new MenuItem(skill.Name,
-								(s2, e2) => { if(!activeBeing.ActionTaken) activeBeing.SelectedAction = skill; Refresh(); }));
+			foreach (var t in Turners)
+				t.TurnFinished += (s, e) => {
+					//if(CurrentTurnHaver acts on its own) do stuff
+					if (activeBeing != null) {
+						SkillMenu.MenuItems.Clear();
+						foreach (var skill in activeBeing.Skills)
+							SkillMenu.MenuItems.Add(
+								new MenuItem(skill.Name,
+									(s2, e2) => { if (!activeBeing.ActionTaken) activeBeing.SelectedAction = skill; Refresh(); }));
+					}
 				};
 
-			tileSet.TileClicked += (o, e) => this.activeBeing.Command(this, e);
+			tileSet.TileClicked += (o, e) => { if (activeBeing != null) activeBeing.Command(this, e); };
 
 			this.MouseClick += (s, e) => {
 				//modify e.X and Y for grpahic offset
@@ -85,9 +98,11 @@ namespace FuckingAround {
 				tile.Draw(graphics);
 
 			SolidBrush fuckyoubrush = new SolidBrush(Color.FromArgb(128, 0, 0, 255));
-			foreach (var tile in activeBeing.SelectedAction == null ? tileSet.GetTraversalArea(activeBeing.Place, activeBeing, activeBeing.MovementPoints) : activeBeing.Place.GetArea(activeBeing.SelectedAction.Range))
-				graphics.FillRectangle(fuckyoubrush, tile.Rectangle);
-			fuckyoubrush.Dispose();
+			if (activeBeing != null) {
+				foreach (var tile in activeBeing.SelectedAction == null ? tileSet.GetTraversalArea(activeBeing.Place, activeBeing, activeBeing.MovementPoints) : activeBeing.Place.GetArea(activeBeing.SelectedAction.Range))
+					graphics.FillRectangle(fuckyoubrush, tile.Rectangle);
+				fuckyoubrush.Dispose();
+			}
 			if (tileSet.ClickedTile != null)
 				graphics.FillRectangle(tileSet.SelectedBrush, tileSet.ClickedTile.Rectangle);
 
