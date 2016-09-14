@@ -26,7 +26,7 @@ namespace FuckingAround {
 		public event EventHandler TurnFinished;
 		private event EventHandler<TileClickedEventArgs> _command;
 
-		public Weapon Unarmed = new Weapon { Range = 1, Damage = 1 };
+		public Weapon Unarmed = new Weapon { Range = 2, Damage = 1 };
 
 		private int _team;
 		public int Team { get { return _team; } }

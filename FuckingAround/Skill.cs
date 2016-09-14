@@ -47,8 +47,9 @@ namespace FuckingAround {
 					TileEffect(t);
 					if (t.Inhabitant != null) BeingEffect(t.Inhabitant);
 				}
+				return true;
 			}
-			return true;
+			return false;
 		}
 	}
 
@@ -65,7 +66,7 @@ namespace FuckingAround {
 			TargetTileAllowed = false;
 			TargetTilesOnlyAllowed = false;
 			TargetSelfAllowed = false;
-			GetAreaOfEffect = GetGetAreOfEffect(0);
+			GetAreaOfEffect = GetGetAreOfEffect(1);
 		}
 		/*
 		public override bool Apply(Being source, Tile target) {
@@ -87,7 +88,7 @@ namespace FuckingAround {
 			TargetTileAllowed = true;
 			TargetTilesOnlyAllowed = false;
 			TargetSelfAllowed = true;
-			GetAreaOfEffect = GetGetAreOfEffect(1);
+			GetAreaOfEffect = GetGetAreOfEffect(2);
 		}
 		/*
 		public override bool Apply(Being source, Tile target) {
