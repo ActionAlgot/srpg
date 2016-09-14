@@ -17,9 +17,9 @@ namespace FuckingAround {
 		private ITurnHaver _currentTurnHaver;
 		private ITurnHaver CurrentTurnHaver {
 			get {
-				if (_currentTurnHaver == null || _currentTurnHaver.TimeToWait != 0) {
-					_currentTurnHaver = Turners.Aggregate((t1, t2) => t1.TimeToWait <= t2.TimeToWait ? t1 : t2);
-					foreach (var t in Turners) t.Await(_currentTurnHaver.TimeToWait);
+				if (_currentTurnHaver == null || _currentTurnHaver.GetTimeToWait() != 0) {
+					_currentTurnHaver = Turners.Aggregate((t1, t2) => t1.GetTimeToWait() <= t2.GetTimeToWait() ? t1 : t2);
+					foreach (var t in Turners) t.Await(_currentTurnHaver.GetTimeToWait());
 				}
 				return _currentTurnHaver;
 			}

@@ -38,7 +38,7 @@ namespace FuckingAround {
 			if(!TargetTileAllowed && target.Inhabitant == null) return false;
 			if (Doer.Place.GetArea(Range).Any(t => t == target)) {
 				var AoE = GetAreaOfEffect(target);
-				if (!TargetTilesOnlyAllowed
+				if (!TargetTilesOnlyAllowed	//also (correctly) returns if AoE is empty
 					&& AoE.All(t => t.Inhabitant == null && !(TargetSelfAllowed || t.Inhabitant != Doer))
 					) return false;
 				foreach (var t in AoE) {
@@ -78,7 +78,43 @@ namespace FuckingAround {
 		}
 	}
 
-	public class Blackify : Skill {
+	public class Spell : Skill {
+		public Spell(Being doer, int range, string name) : base(doer, 5, name) { }
+	}
+
+	public class ChannelingInstance : ITurnHaver {
+		#region ITurnHaver
+		public event EventHandler TurnFinished;
+		protected double _speed;
+		protected double _awaited;
+		public double Speed { get { return _speed; } }
+		public double Awaited { get { return _awaited; } }
+		public void Await(double time) {
+			_awaited += Speed * time;
+		}
+		#endregion
+		protected Tile Place;
+		protected Spell Spell;
+		protected Func<Tile> TargetSelector;
+		public void Do() {
+			Spell.Do(TargetSelector());
+		}
+
+		public ChannelingInstance(Spell spell, Tile place) {
+			Spell = spell;
+			Place = place;
+		}
+	}
+
+	public class ChannelingSpell : Spell {
+		protected Spell Spell;
+
+		protected override void TileEffect(Tile t) {
+			new ChannelingInstance(Spell, t);
+		}
+	}
+
+	public class Blackify : Spell {
 		protected override void BeingEffect(Being b) {
 			b.Brush = new System.Drawing.SolidBrush(System.Drawing.Color.Black);
 		}

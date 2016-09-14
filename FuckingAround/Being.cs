@@ -22,7 +22,6 @@ namespace FuckingAround {
 		
 		public double Speed { get { return _speed; } }
 		public double Awaited { get { return _awaited; } }
-		public double TimeToWait { get { return (100 - Awaited) / Speed; } }
 
 		public void Await(double time) {
 			_awaited += Speed * time;

@@ -9,7 +9,11 @@ namespace FuckingAround {
 		event EventHandler TurnFinished;
 		double Speed { get; }
 		double Awaited { get; }
-		double TimeToWait { get; }
 		void Await(double time);
+	}
+	public static class ITurnHaverExtensions {
+		public static double GetTimeToWait(this ITurnHaver ith) {
+			return (100 - ith.Awaited) / ith.Speed;
+		}
 	}
 }
