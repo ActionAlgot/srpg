@@ -84,21 +84,19 @@ namespace FuckingAround {
 
 		public IEnumerable<Tile> GetArea(Tile start, int range) {
 			
-			range++;	//account for start
-
-			int RightCut =	start.X + range < XLength	? start.X + range : (XLength-1);
-			int LeftCut =	start.X - range > 0			? start.X - range : 0;
-			int TopCut =	start.Y + range < YLength	? start.Y + range : (YLength-1);
-			int BottomCut = start.Y - range > 0			? start.Y - range : 0;
-			BottomCut++;	//idk, it's 16:10 but shit works
+			int RightCut = start.X + range < XLength ? start.X + range : (XLength - 1);
+			int LeftCut = start.X - range > 0 ? start.X - range : 0;
+			int TopCut = start.Y + range;	//out of range for y is handled in loop
+			int BottomCut = start.Y - range + 1;
 
 			for (int x = LeftCut; x < RightCut; x++) {
-				for (int y = BottomCut + Math.Abs(start.X - x); y < TopCut - Math.Abs(start.X - x); y++) {
+				int xoff = Math.Abs(start.X - x);
+				for (int y = BottomCut + xoff > 0 ? BottomCut + xoff : 0;
+						 y < (TopCut - xoff < YLength ? TopCut - xoff: YLength);
+						 y++) {
 					yield return Tiles[x, y];
 				}
 			}
-
-			//return GetTraversalArea(start, (t) => 1, range);
 		}
 
 		public IEnumerable<Tile> GetTraversalArea(Being b, int mp) {
