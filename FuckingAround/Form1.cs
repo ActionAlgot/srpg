@@ -14,17 +14,21 @@ namespace FuckingAround {
 
 		private TileSet tileSet;
 		private List<ITurnHaver> Turners;
-		private ITurnHaver _currentTurnHaver;
+		private TurnFuckYouFuckThatFuckEverything fuckpiss;
+		//private ITurnHaver _currentTurnHaver;
 		private ITurnHaver CurrentTurnHaver {
-			get {
-				if (_currentTurnHaver == null || _currentTurnHaver.GetTimeToWait() != 0) {
+			get { return fuckpiss.CurrentTurnHaver; }
+			/*
+			get {	//automatically forward time if time to do so
+				if (_currentTurnHaver == null || _currentTurnHaver.GetTimeToWait() > 0) {
 					_currentTurnHaver = Turners.Aggregate((t1, t2) => t1.GetTimeToWait() <= t2.GetTimeToWait() ? t1 : t2);
-					foreach (var t in Turners) t.Await(_currentTurnHaver.GetTimeToWait());
+					TickTocker.TockTicks(_currentTurnHaver.GetTimeToWait());
+					//foreach (var t in Turners) t.Await(_currentTurnHaver.GetTimeToWait()); 
 				}
 				return _currentTurnHaver;
-			}
+			}*/
 		}
-		private Being activeBeing { get { return CurrentTurnHaver as Being; } }
+		private Being activeBeing { get { return CurrentTurnHaver as Being; } }	//return null if current turn does not belong to a being
 		private IEnumerable<Being> Beings { get { return Turners.Where(t => t is Being).Cast<Being>(); } }
 		private Menu BeingMenu;
 		private MenuItem SkillMenu;
@@ -38,16 +42,24 @@ namespace FuckingAround {
 			InitializeComponent();
 
 			tileSet = new TileSet(30, 30);
+
+			fuckpiss = new TurnFuckYouFuckThatFuckEverything();
+
 			Turners = new List<ITurnHaver>();
 			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6], Weapon = new Weapon { Damage = 2, Range = 5 } });
 			var b1 = new Being(1, 4, 6) { Place = tileSet[10, 10] };
 			b1.Skills = new Skill[] { new Blackify(b1) };
 			Turners.Add(b1);
-			Turners.Add(new Being(2, 7, 7) { Place = tileSet[20, 17] });
+			var b2 = new Being(2, 7, 7) { Place = tileSet[20, 17] };
+			b2.Skills = new Skill[] { new ChannelingSpell(b2, su => new Blackify(su), t => () => t, fuckpiss) };
+			Turners.Add(b2);
 
+			fuckpiss.AddRange(Turners);
+			
 			foreach (var t in Turners)
 				t.TurnFinished += (s, e) => {
-					//if(CurrentTurnHaver acts on its own) do stuff
+					if (CurrentTurnHaver is ChannelingInstance)
+						((ChannelingInstance)CurrentTurnHaver).Do();
 					if (activeBeing != null) {
 						SkillMenu.MenuItems.Clear();
 						foreach (var skill in activeBeing.Skills)
@@ -68,7 +80,7 @@ namespace FuckingAround {
 			SkillMenu = new MenuItem("Skills");
 			BeingMenu = new MainMenu();
 			BeingMenu.MenuItems.Add(new MenuItem("End turn", (s, e) => {
-				activeBeing.EndTurn();
+				if(activeBeing != null) activeBeing.EndTurn();
 				this.Refresh();
 				}));
 			BeingMenu.MenuItems.Add(SkillMenu);
@@ -78,7 +90,7 @@ namespace FuckingAround {
 			this.Controls.Add(txtbx);
 			txtbx.Multiline = true;
 			txtbx.ScrollBars = ScrollBars.Vertical;
-			txtbx.Size = new Size(300, 400);
+			txtbx.Size = new Size(500, 400);
 			txtbx.Anchor = AnchorStyles.Top | AnchorStyles.Right;
 			ConsoleLoggerHandlerOrWhatever.OnLog += (sender, s) => txtbx.Text += s + "\r\n";
 			GameEventLogger.OnNewLog += (s, ge) => txtbx.Text += ge.ToString() + "\r\n";
@@ -99,7 +111,9 @@ namespace FuckingAround {
 
 			SolidBrush fuckyoubrush = new SolidBrush(Color.FromArgb(128, 0, 0, 255));
 			if (activeBeing != null) {
-				foreach (var tile in activeBeing.SelectedAction == null ? tileSet.GetTraversalArea(activeBeing.Place, activeBeing, activeBeing.MovementPoints) : activeBeing.Place.GetArea(activeBeing.SelectedAction.Range))
+				foreach (var tile in activeBeing.SelectedAction == null
+						? tileSet.GetTraversalArea(activeBeing.Place, activeBeing, activeBeing.MovementPoints)
+						: activeBeing.Place.GetArea(activeBeing.SelectedAction.Range))
 					graphics.FillRectangle(fuckyoubrush, tile.Rectangle);
 				fuckyoubrush.Dispose();
 			}

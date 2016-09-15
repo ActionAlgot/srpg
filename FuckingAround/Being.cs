@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace FuckingAround {
-	public class Being :ITurnHaver {
+	public class Being :ITurnHaver, SkillUser {
 
 		private int _strength;
 		public int Strength { get { return _strength; } }
@@ -65,7 +65,7 @@ namespace FuckingAround {
 			SelectedAction = null;
 			ActionTaken = false;
 			Moved = false;
-			TurnFinished(this, EventArgs.Empty);
+			if(TurnFinished != null) TurnFinished(this, EventArgs.Empty);
 		}
 
 		public override string ToString(){

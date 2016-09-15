@@ -44,7 +44,7 @@ namespace FuckingAround {
 			}
 		}
 
-		public string ToString() {
+		public override string ToString() {
 			return "(X: " + X + ", Y: " + Y + ")";
 		}
 
@@ -54,9 +54,7 @@ namespace FuckingAround {
 			Y = y;
 			Owner = owner;
 			Brush = brush;
-			Draw = g => {
-				g.FillRectangle(Brush, Rectangle);
-			};
+			Draw = g => g.FillRectangle(Brush, Rectangle);
 		}
 	}
 }

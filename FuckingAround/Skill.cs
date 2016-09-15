@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 namespace FuckingAround {
 	public abstract class Skill {
 
-		public Skill(Being doer, int range, string name) {
+		public Skill(SkillUser doer, int range, string name) {
 			_name = name;
 			Doer = doer;
 			__range = range;
 		}
-		public Skill(Being doer, string name) : this(doer, 0, name) {
+		public Skill(SkillUser doer, string name) : this(doer, 0, name) {
 			UseWeaponRange = true;
 		}
 
@@ -20,7 +20,7 @@ namespace FuckingAround {
 			return t => t.GetArea(AoERange);
 		}
 		protected Func<Tile, IEnumerable<Tile>> GetAreaOfEffect;
-		protected Being Doer;
+		protected SkillUser Doer;
 		protected bool TargetTileAllowed;
 		protected bool TargetTilesOnlyAllowed;
 		protected bool TargetSelfAllowed;
@@ -70,7 +70,7 @@ namespace FuckingAround {
 			//ConsoleLoggerHandlerOrWhatever.Log(Doer.ToString() + " attacked " + b.ToString());
 		}
 
-		public DefaultAttack(Being doer) : base(doer, "Standard attack"){
+		public DefaultAttack(SkillUser doer) : base(doer, "Standard attack"){
 			TargetTileAllowed = false;
 			TargetTilesOnlyAllowed = false;
 			TargetSelfAllowed = false;
@@ -79,10 +79,10 @@ namespace FuckingAround {
 	}
 
 	public class Spell : Skill {
-		public Spell(Being doer, int range, string name) : base(doer, 5, name) { }
+		public Spell(SkillUser doer, int range, string name) : base(doer, 5, name) { }
 	}
 
-	public class ChannelingInstance : ITurnHaver {
+	public class ChannelingInstance : ITurnHaver, SkillUser {
 		#region ITurnHaver
 		public event EventHandler TurnFinished;
 		protected double _speed;
@@ -93,24 +93,61 @@ namespace FuckingAround {
 			_awaited += Speed * time;
 		}
 		#endregion
-		protected Tile Place;
+		public Weapon Weapon { get { return null; } }	//Kill me
+		public Tile Place { get; protected set; }
 		protected Spell Spell;
 		protected Func<Tile> TargetSelector;
+
 		public void Do() {
 			Spell.Do(TargetSelector());
+			_awaited = 0;	//should just kill self
+			_speed = 0;
+			if(TurnFinished != null) TurnFinished(this, EventArgs.Empty);
 		}
 
-		public ChannelingInstance(Spell spell, Tile place) {
-			Spell = spell;
+		public ChannelingInstance(Func<SkillUser, Spell> spellMaker, Tile place, Func<Tile> targetSelector) {
+
+			_speed = 10;
+			Spell = spellMaker(this);
 			Place = place;
+			TargetSelector = targetSelector;
 		}
 	}
 
 	public class ChannelingSpell : Spell {
 		protected Spell Spell;
+		protected Func<SkillUser, Spell> SpellMaker;
+		protected Func<Tile, Func<Tile>> TargetSelector;
+		private TurnFuckYouFuckThatFuckEverything ShitTracker;
 
 		protected override void TileEffect(Tile t) {
-			new ChannelingInstance(Spell, t);
+			var piss = new ChannelingInstance(SpellMaker, t, TargetSelector(t));
+			piss.TurnFinished += (s, e) => ShitTracker.Remove(piss);
+			ShitTracker.Add(piss);
+		}
+		/*
+		public ChannelingSpell(Being doer, Spell spell, Func<Tile, Func<Tile>> targetSelector, TurnFuckYouFuckThatFuckEverything shitTracker) 
+			: base(doer, spell.Range, spell.Name + " channeling") {
+			ShitTracker = shitTracker;
+			Spell = spell;
+			//pell.Doer = this;
+			TargetSelector = targetSelector;
+			TargetTileAllowed = true;
+			TargetTilesOnlyAllowed = true;
+
+			GetAreaOfEffect = GetGetAreOfEffect(1);
+		}*/
+
+		public ChannelingSpell(SkillUser doer, Func<SkillUser, Spell> spellMaker, Func<Tile, Func<Tile>> targetSelector, TurnFuckYouFuckThatFuckEverything shitTracker)
+			: base(doer, 6, "Channel" + " channeling") {
+			ShitTracker = shitTracker;
+			SpellMaker = spellMaker;
+			//Spell.Doer = this;
+			TargetSelector = targetSelector;
+			TargetTileAllowed = true;
+			TargetTilesOnlyAllowed = true;
+
+			GetAreaOfEffect = GetGetAreOfEffect(1);
 		}
 	}
 
@@ -119,11 +156,16 @@ namespace FuckingAround {
 			b.Brush = new System.Drawing.SolidBrush(System.Drawing.Color.Black);
 		}
 
-		public Blackify(Being doer) : base(doer, 5, "Blackify"){
+		public Blackify(SkillUser doer) : base(doer, 5, "Blackify"){
 			TargetTileAllowed = true;
 			TargetTilesOnlyAllowed = false;
 			TargetSelfAllowed = true;
 			GetAreaOfEffect = GetGetAreOfEffect(2);
 		}
+	}
+
+	public interface SkillUser {
+		Tile Place { get; }
+		Weapon Weapon { get; }	//I'm a dumb fuck
 	}
 }

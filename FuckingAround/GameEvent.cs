@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FuckingAround {
 	public class GameEvent {
-		public Being Source;
+		public SkillUser Source;
 		public Tile Target;
 		public IEnumerable<Being> Targets;
 		public Skill skill;
