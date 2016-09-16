@@ -16,18 +16,7 @@ namespace FuckingAround {
 		private List<ITurnHaver> Turners;
 		private TurnFuckYouFuckThatFuckEverything fuckpiss;
 		//private ITurnHaver _currentTurnHaver;
-		private ITurnHaver CurrentTurnHaver {
-			get { return fuckpiss.CurrentTurnHaver; }
-			/*
-			get {	//automatically forward time if time to do so
-				if (_currentTurnHaver == null || _currentTurnHaver.GetTimeToWait() > 0) {
-					_currentTurnHaver = Turners.Aggregate((t1, t2) => t1.GetTimeToWait() <= t2.GetTimeToWait() ? t1 : t2);
-					TickTocker.TockTicks(_currentTurnHaver.GetTimeToWait());
-					//foreach (var t in Turners) t.Await(_currentTurnHaver.GetTimeToWait()); 
-				}
-				return _currentTurnHaver;
-			}*/
-		}
+		private ITurnHaver CurrentTurnHaver { get { return fuckpiss.CurrentTurnHaver; } }
 		private Being activeBeing { get { return CurrentTurnHaver as Being; } }	//return null if current turn does not belong to a being
 		private IEnumerable<Being> Beings { get { return Turners.Where(t => t is Being).Cast<Being>(); } }
 		private Menu BeingMenu;

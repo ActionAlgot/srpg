@@ -40,8 +40,8 @@ namespace FuckingAround {
 			if (Doer.Place.GetArea(Range).Any(t => t == target)) {
 				var AoE = GetAreaOfEffect(target);
 				if (!TargetTilesOnlyAllowed	//also (correctly) returns if AoE is empty
-					&& AoE.All(t => t.Inhabitant == null || (!TargetSelfAllowed && t.Inhabitant == Doer))
-					) return false;
+					&& AoE.All(t => t.Inhabitant == null || (!TargetSelfAllowed && t.Inhabitant == Doer)))
+					return false;
 				foreach (var t in AoE) {
 					TileEffect(t);
 					if (t.Inhabitant != null && (TargetSelfAllowed || t.Inhabitant != Doer))
@@ -90,7 +90,6 @@ namespace FuckingAround {
 			}
 
 			copy.Doer = CI;
-
 			return copy;
 		}
 	}
