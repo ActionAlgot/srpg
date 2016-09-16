@@ -12,6 +12,7 @@ namespace FuckingAround {
 			Doer = doer;
 			__range = range;
 		}
+
 		public Skill(SkillUser doer, string name) : this(doer, 0, name) {
 			UseWeaponRange = true;
 		}
@@ -39,7 +40,7 @@ namespace FuckingAround {
 			if (Doer.Place.GetArea(Range).Any(t => t == target)) {
 				var AoE = GetAreaOfEffect(target);
 				if (!TargetTilesOnlyAllowed	//also (correctly) returns if AoE is empty
-					&& AoE.All(t => t.Inhabitant == null && !(TargetSelfAllowed || t.Inhabitant != Doer))
+					&& AoE.All(t => t.Inhabitant == null || (!TargetSelfAllowed && t.Inhabitant == Doer))
 					) return false;
 				foreach (var t in AoE) {
 					TileEffect(t);
@@ -78,78 +79,22 @@ namespace FuckingAround {
 		}
 	}
 
-	public class Spell : Skill {
-		public Spell(SkillUser doer, int range, string name) : base(doer, 5, name) { }
-	}
+	public abstract class Spell : Skill {
+		public Spell(SkillUser doer, int range, string name) : base(doer, range, name) { }
+		public Spell GetAsChanneled(ChannelingInstance CI) {
+			Spell copy = (Spell)this.MemberwiseClone();	//new this(CI, _range, Name);
 
-	public class ChannelingInstance : ITurnHaver, SkillUser {
-		#region ITurnHaver
-		public event EventHandler TurnFinished;
-		protected double _speed;
-		protected double _awaited;
-		public double Speed { get { return _speed; } }
-		public double Awaited { get { return _awaited; } }
-		public void Await(double time) {
-			_awaited += Speed * time;
-		}
-		#endregion
-		public Weapon Weapon { get { return null; } }	//Kill me
-		public Tile Place { get; protected set; }
-		protected Spell Spell;
-		protected Func<Tile> TargetSelector;
+			foreach (var fuck in Doer.Mods) {
+				if (!CI.Mods.ContainsKey(fuck.Key)) CI.Mods[fuck.Key] = new List<Func<double, double>>();
+				CI.Mods[fuck.Key].AddRange(fuck.Value);
+			}
 
-		public void Do() {
-			Spell.Do(TargetSelector());
-			_awaited = 0;	//should just kill self
-			_speed = 0;
-			if(TurnFinished != null) TurnFinished(this, EventArgs.Empty);
-		}
+			copy.Doer = CI;
 
-		public ChannelingInstance(Func<SkillUser, Spell> spellMaker, Tile place, Func<Tile> targetSelector) {
-
-			_speed = 10;
-			Spell = spellMaker(this);
-			Place = place;
-			TargetSelector = targetSelector;
+			return copy;
 		}
 	}
 
-	public class ChannelingSpell : Spell {
-		protected Spell Spell;
-		protected Func<SkillUser, Spell> SpellMaker;
-		protected Func<Tile, Func<Tile>> TargetSelector;
-		private TurnFuckYouFuckThatFuckEverything ShitTracker;
-
-		protected override void TileEffect(Tile t) {
-			var piss = new ChannelingInstance(SpellMaker, t, TargetSelector(t));
-			piss.TurnFinished += (s, e) => ShitTracker.Remove(piss);
-			ShitTracker.Add(piss);
-		}
-		/*
-		public ChannelingSpell(Being doer, Spell spell, Func<Tile, Func<Tile>> targetSelector, TurnFuckYouFuckThatFuckEverything shitTracker) 
-			: base(doer, spell.Range, spell.Name + " channeling") {
-			ShitTracker = shitTracker;
-			Spell = spell;
-			//pell.Doer = this;
-			TargetSelector = targetSelector;
-			TargetTileAllowed = true;
-			TargetTilesOnlyAllowed = true;
-
-			GetAreaOfEffect = GetGetAreOfEffect(1);
-		}*/
-
-		public ChannelingSpell(SkillUser doer, Func<SkillUser, Spell> spellMaker, Func<Tile, Func<Tile>> targetSelector, TurnFuckYouFuckThatFuckEverything shitTracker)
-			: base(doer, 6, "Channel" + " channeling") {
-			ShitTracker = shitTracker;
-			SpellMaker = spellMaker;
-			//Spell.Doer = this;
-			TargetSelector = targetSelector;
-			TargetTileAllowed = true;
-			TargetTilesOnlyAllowed = true;
-
-			GetAreaOfEffect = GetGetAreOfEffect(1);
-		}
-	}
 
 	public class Blackify : Spell {
 		protected override void BeingEffect(Being b) {
@@ -167,5 +112,9 @@ namespace FuckingAround {
 	public interface SkillUser {
 		Tile Place { get; }
 		Weapon Weapon { get; }	//I'm a dumb fuck
+
+		//take base value and return double to be added on top of it 
+		//Funcs must not use internal ref values
+		Dictionary<string, List<Func<double, double>>> Mods { get; }	
 	}
 }

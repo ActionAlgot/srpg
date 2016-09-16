@@ -46,12 +46,16 @@ namespace FuckingAround {
 					var dsgfsdf = _currentTurnHaver.GetTimeToWait();
 					foreach (var t in turnfyuckers) t.Await(dsgfsdf);
 
-					foreach (var t in turnfyuckers) ConsoleLoggerHandlerOrWhatever.Log(t.ToString() + " " + t.Awaited);
 					ConsoleLoggerHandlerOrWhatever.Log("_____________");
+					foreach (var t in turnfyuckers) ConsoleLoggerHandlerOrWhatever.Log(t.ToString() + " " + t.Awaited + " + " + t.Speed);
 
 				}
 				return _currentTurnHaver;
 			}
+		}
+
+		public IEnumerable<ChannelingInstance> GETCHANNELINGINSTANCES() {
+				return turnfyuckers.Where(t => t is ChannelingInstance).Cast<ChannelingInstance>();
 		}
 	}
 }

@@ -20,6 +20,18 @@ namespace FuckingAround {
 				if(value != null) value.Place = this;
 			}
 		}
+		private ChannelingInstance _channelingInstance;
+		public ChannelingInstance ChannelingInstance {
+			get { return _channelingInstance; }
+			set {
+				if (_channelingInstance != null && value != null) {
+					if (_channelingInstance == value) return;
+					else throw new ArgumentException("Tile is occupied.");
+				}
+				_channelingInstance = value;
+				if (value != null) value.Place = this;
+			}
+		}
 		public int X;
 		public int Y;
 		public int TraverseCost;

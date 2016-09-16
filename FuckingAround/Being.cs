@@ -10,6 +10,9 @@ using System.Windows.Forms;
 namespace FuckingAround {
 	public class Being :ITurnHaver, SkillUser {
 
+		private Dictionary<string, List<Func<double, double>>> _mods;
+		public Dictionary<string, List<Func<double, double>>> Mods { get { return _mods; } }
+
 		private int _strength;
 		public int Strength { get { return _strength; } }
 		private int _maxHP;
@@ -119,6 +122,7 @@ namespace FuckingAround {
 		public SolidBrush Brush;
 
 		public Being(int team, double speed, int mp) {
+			_mods = new Dictionary<string, List<Func<double, double>>>();
 			_speed = speed;
 			Skills = new Skill[0];
 			MovementPoints = mp;

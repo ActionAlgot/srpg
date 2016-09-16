@@ -41,6 +41,8 @@ namespace FuckingAround {
 		public Form1() {
 			InitializeComponent();
 
+			this.Width = 550;
+
 			tileSet = new TileSet(30, 30);
 
 			fuckpiss = new TurnFuckYouFuckThatFuckEverything();
@@ -48,10 +50,10 @@ namespace FuckingAround {
 			Turners = new List<ITurnHaver>();
 			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6], Weapon = new Weapon { Damage = 2, Range = 5 } });
 			var b1 = new Being(1, 4, 6) { Place = tileSet[10, 10] };
-			b1.Skills = new Skill[] { new Blackify(b1) };
+			b1.Skills = new Skill[] { new Blackify(b1), new SpeedupChanneling(b1) };
 			Turners.Add(b1);
 			var b2 = new Being(2, 7, 7) { Place = tileSet[20, 17] };
-			b2.Skills = new Skill[] { new ChannelingSpell(b2, su => new Blackify(su), t => () => t, fuckpiss) };
+			b2.Skills = new Skill[] { new ChannelingSpell(b2, new Blackify(b2), t => () => t, fuckpiss) };
 			Turners.Add(b2);
 
 			fuckpiss.AddRange(Turners);
@@ -137,6 +139,9 @@ namespace FuckingAround {
 
 			foreach (var t in Beings)
 				t.Draw(graphics);
+
+			foreach (var fuck in fuckpiss.GETCHANNELINGINSTANCES())
+				fuck.Draw(graphics);
 
 			graphics.EndContainer(grafconatber);
 
