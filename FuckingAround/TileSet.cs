@@ -50,6 +50,46 @@ namespace FuckingAround {
 			else return null;
 		}
 
+		public IEnumerable<Tile> GetPath(Tile start, Tile destination, Func<Tile, int> travCostCalc) {	//TODO properly reuse code from 'GetTraversalArea' rather than copypasta
+
+			var accumTravCost = new Dictionary<Tile, int>();    //dictionary for accumulated traversal cost
+			var prev = new Dictionary<Tile, Tile>();
+			var tils = new LinkedList<Tile>();
+			accumTravCost.Add(start, 0);
+			tils.AddFirst(start);
+			Action<LinkedListNode<Tile>> AddAdjTiles = (node) => {
+				foreach (var adjT in node.Value.Adjacent)
+					if (accumTravCost.ContainsKey(adjT) == false) {
+						int adjTravCost = travCostCalc(adjT);
+						if (adjTravCost >= 0) {
+							accumTravCost.Add(adjT, accumTravCost[node.Value] + adjTravCost);
+							var added = false;
+							for (var node2 = node.Next; node2 != null; node2 = node2.Next)
+								if (accumTravCost[node2.Value] >= accumTravCost[adjT]) {
+									added = true;
+									tils.AddBefore(node2, adjT);
+									break;
+								}
+							if (!added) tils.AddLast(adjT);
+							prev[adjT] = node.Value;
+						}
+					}
+			};
+
+			for (var node = tils.First; node != null; node = node.Next) {
+				if (node.Value == destination) break;
+				AddAdjTiles(node);
+			}
+			var tindex = destination;
+			var rList = new List<Tile>();
+			while (prev.ContainsKey(tindex)) {
+				rList.Add(tindex);
+				tindex = prev[tindex];
+			}
+			rList.Reverse();
+			return rList;
+		}
+
 		public IEnumerable<Tile> GetTraversalArea(Tile start, Func<Tile, int> travCostCalc, int mp) {
 			var accumTravCost = new Dictionary<Tile, int>();    //dictionary for accumulated traversal cost
 			var tils = new LinkedList<Tile>();

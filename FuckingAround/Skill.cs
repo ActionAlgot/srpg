@@ -22,9 +22,6 @@ namespace FuckingAround {
 		}
 		protected Func<Tile, IEnumerable<Tile>> GetAreaOfEffect;
 		protected SkillUser Doer;
-		protected bool TargetTileAllowed;
-		protected bool TargetTilesOnlyAllowed;
-		protected bool TargetSelfAllowed;
 		protected string _name;
 		private bool UseWeaponRange;
 		private int __range;
@@ -32,23 +29,31 @@ namespace FuckingAround {
 		public virtual int Range { get { return _range; } }
 		public string Name { get { return _name; } }
 
-		protected virtual void TileEffect(Tile t){}
-		protected virtual void BeingEffect(Being b){}
+		protected bool TargetTileAllowed;
+		protected bool TargetSelfAllowed;
+		protected bool MustTargetChannelingInstance;
+		protected bool MustTargetBeing;
+
+		protected virtual void TileEffect(Tile t) { }
+		protected virtual void BeingEffect(Being b) { }
+		protected virtual void ChannelingEffect(ChannelingInstance ci) { }
 
 		public virtual bool Do(Tile target) {
-			if(!TargetTileAllowed && target.Inhabitant == null) return false;
+			if(!TargetTileAllowed && target.Inhabitant == null && target.ChannelingInstance == null) return false;
 			if (Doer.Place.GetArea(Range).Any(t => t == target)) {
-				var AoE = GetAreaOfEffect(target);
-				if (!TargetTilesOnlyAllowed	//also (correctly) returns if AoE is empty
-					&& AoE.All(t => t.Inhabitant == null || (!TargetSelfAllowed && t.Inhabitant == Doer)))
+				IEnumerable<Tile> AoE = GetAreaOfEffect(target);
+				if (   (MustTargetChannelingInstance ? AoE.All(t => t.ChannelingInstance == null) : false)	//also (correctly) returns if AoE is empty
+					|| (MustTargetBeing ? AoE.All(t => (t.Inhabitant == null || (!TargetSelfAllowed && t.Inhabitant == Doer))) : false))
 					return false;
-				foreach (var t in AoE) {
+				foreach (Tile t in AoE) {
 					TileEffect(t);
 					if (t.Inhabitant != null && (TargetSelfAllowed || t.Inhabitant != Doer))
 						BeingEffect(t.Inhabitant);
+					if (t.ChannelingInstance != null)
+						ChannelingEffect(t.ChannelingInstance);
 				}
 
-				GameEventLogger.Log(new GameEvent {
+				GameEventLogger.Log( new GameEvent {
 					Source = Doer,
 					skill = this,
 					Target = target,
@@ -73,7 +78,7 @@ namespace FuckingAround {
 
 		public DefaultAttack(SkillUser doer) : base(doer, "Standard attack"){
 			TargetTileAllowed = false;
-			TargetTilesOnlyAllowed = false;
+			MustTargetBeing = false;
 			TargetSelfAllowed = false;
 			GetAreaOfEffect = GetGetAreOfEffect(1);
 		}
@@ -102,7 +107,7 @@ namespace FuckingAround {
 
 		public Blackify(SkillUser doer) : base(doer, 5, "Blackify"){
 			TargetTileAllowed = true;
-			TargetTilesOnlyAllowed = false;
+			MustTargetBeing = true;
 			TargetSelfAllowed = true;
 			GetAreaOfEffect = GetGetAreOfEffect(2);
 		}

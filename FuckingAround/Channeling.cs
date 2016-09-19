@@ -88,34 +88,24 @@ namespace FuckingAround {
 			//Spell.Doer = this;
 			TargetSelector = targetSelector;
 			TargetTileAllowed = true;
-			TargetTilesOnlyAllowed = true;
 
 			GetAreaOfEffect = GetGetAreOfEffect(1);
 		}
 	}
 
 	public class SpeedupChanneling : Spell {
-		private bool EverythingIDoIsAwfulRegardlessOfThisVariableValue;
-		protected override void TileEffect(Tile t) {
-			if (t.ChannelingInstance != null) {
-				var mods = t.ChannelingInstance.Mods;
+		protected override void ChannelingEffect(ChannelingInstance ci) {
+			if (ci != null) {
+				var mods = ci.Mods;
 				if (!mods.ContainsKey("Speed")) mods["Speed"] = new List<Func<double, double>>();
 				mods["Speed"].Add(s => s);	//100% increase
-
-				EverythingIDoIsAwfulRegardlessOfThisVariableValue = true;
 			}
-			base.TileEffect(t);
-		}
-		public override bool Do(Tile target) {
-			EverythingIDoIsAwfulRegardlessOfThisVariableValue = false;
-			base.Do(target);
-			if (EverythingIDoIsAwfulRegardlessOfThisVariableValue) return true;
-			else return false;
+			base.ChannelingEffect(ci);
 		}
 
 		public SpeedupChanneling(SkillUser caster) : base(caster, 10, "Channeling speedup") {
 			TargetTileAllowed = true;
-			TargetTilesOnlyAllowed = true;
+			MustTargetChannelingInstance = true;
 			GetAreaOfEffect = GetGetAreOfEffect(1);
 		}
 	}

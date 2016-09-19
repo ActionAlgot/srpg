@@ -22,6 +22,17 @@ namespace FuckingAround {
 		private Menu BeingMenu;
 		private MenuItem SkillMenu;
 		private TextBox txtbx= new TextBox();
+		private event EventHandler MouseHoverChanged;
+		private Tile _mouseHover;
+		private Tile MMouseHover {
+			get { return _mouseHover; }
+			set {
+				if (value != _mouseHover) {
+					_mouseHover = value;
+					if(MouseHoverChanged != null)MouseHoverChanged(this, EventArgs.Empty);
+				}
+			}
+		}
 
 		private int TileSetOffsetX = 0;
 		private int TileSetOffsetY = 0;
@@ -29,7 +40,8 @@ namespace FuckingAround {
 
 		public Form1() {
 			InitializeComponent();
-
+			MouseHoverChanged += (s, e) => { if (activeBeing != null && activeBeing.SelectedAction == null)Refresh(); };
+			MouseMove += (s, e) => MMouseHover = tileSet.SelectTile(e.X - TileSetOffsetX, e.Y - TileSetOffsetY);
 			this.Width = 550;
 
 			tileSet = new TileSet(30, 30);
@@ -38,10 +50,10 @@ namespace FuckingAround {
 
 			Turners = new List<ITurnHaver>();
 			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6], Weapon = new Weapon { Damage = 2, Range = 5 } });
-			var b1 = new Being(1, 4, 6) { Place = tileSet[10, 10] };
+			var b1 = new Being(1, 7, 6) { Place = tileSet[10, 10] };
 			b1.Skills = new Skill[] { new Blackify(b1), new SpeedupChanneling(b1) };
 			Turners.Add(b1);
-			var b2 = new Being(2, 7, 7) { Place = tileSet[20, 17] };
+			var b2 = new Being(2, 8, 7) { Place = tileSet[20, 17] };
 			b2.Skills = new Skill[] { new ChannelingSpell(b2, new Blackify(b2), t => () => t, fuckpiss) };
 			Turners.Add(b2);
 
@@ -131,6 +143,14 @@ namespace FuckingAround {
 
 			foreach (var fuck in fuckpiss.GETCHANNELINGINSTANCES())
 				fuck.Draw(graphics);
+
+			if (activeBeing != null && MMouseHover != null && activeBeing.SelectedAction == null) {
+				var gfsde = new SolidBrush(Color.Black);
+				var fuck = tileSet.GetPath(activeBeing.Place, MMouseHover, activeBeing.GetTraversalCost);
+				foreach(var fgdsa in fuck){
+					graphics.FillRectangle(gfsde, fgdsa.Rectangle);
+				}
+			}
 
 			graphics.EndContainer(grafconatber);
 
