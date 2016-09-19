@@ -45,7 +45,7 @@ namespace FuckingAround {
 		}
 
 		public Tile SelectTile(int x, int y) {
-			if (x >= 0 && x <= Tiles.GetLength(0) * Tile.Size && y >= 0 && y <= Tiles.GetLength(1) * Tile.Size)	//within tileset area
+			if (x >= 0 && x < Tiles.GetLength(0) * Tile.Size && y >= 0 && y < Tiles.GetLength(1) * Tile.Size)	//within tileset area
 				return Tiles[x / Tile.Size, y / Tile.Size];
 			else return null;
 		}
