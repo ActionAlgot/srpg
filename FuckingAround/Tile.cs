@@ -40,6 +40,9 @@ namespace FuckingAround {
 		public IEnumerable<Tile> GetArea(int range) {
 			return Owner.GetArea(this, range);
 		}
+		public IEnumerable<Tile> GetPath(Tile destination, Func<Tile, int> travCostCalc) {
+			return Owner.GetPath(this, destination, travCostCalc);
+		}
 		public Func<Being, int, IEnumerable<Tile>> GetShit {
 			get { return (b, n) => Owner.GetTraversalArea(this, b, n); }
 		}

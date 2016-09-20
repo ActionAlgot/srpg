@@ -37,21 +37,22 @@ namespace FuckingAround {
 		private int TileSetOffsetX = 0;
 		private int TileSetOffsetY = 0;
 
+
 		private event EventHandler tajmEvent;
 
-		delegate void fuckinghellCallback();
+		delegate void fuckinghellCallback(object sender, EventArgs e);
 		private System.Threading.Timer tajmer;
 
 		public Form1() {
 			InitializeComponent();
 			this.Width = 550;
 			DoubleBuffered = true;
+			tajmEvent += (s, e) => Invalidate();
 			tajmer = new System.Threading.Timer(
 				(o) => {
-					var kghkgh = new fuckinghellCallback(() => { this.Invalidate(); });
 					try {	//TODO something better than try catch?
-						this.Invoke(kghkgh, new object[] { });
-					} catch (ObjectDisposedException e) {
+						this.Invoke(new fuckinghellCallback(tajmEvent), new object[]{tajmer, EventArgs.Empty});
+					} catch (ObjectDisposedException) {
 						tajmer.Dispose();
 					}
 				}
@@ -65,11 +66,11 @@ namespace FuckingAround {
 			fuckpiss = new TurnFuckYouFuckThatFuckEverything();
 
 			Turners = new List<ITurnHaver>();
-			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6], Weapon = new Weapon { Damage = 2, Range = 5 } });
-			var b1 = new Being(1, 7, 6) { Place = tileSet[10, 10] };
+			Turners.Add(new Being(1, 5, 500) { Place = tileSet[5, 6], Weapon = new Weapon { Damage = 2, Range = 5 } });
+			var b1 = new Being(1, 7, 600) { Place = tileSet[10, 10] };
 			b1.Skills = new Skill[] { new Blackify(b1), new SpeedupChanneling(b1) };
 			Turners.Add(b1);
-			var b2 = new Being(2, 8, 7) { Place = tileSet[20, 17] };
+			var b2 = new Being(2, 8, 700) { Place = tileSet[20, 17] };
 			b2.Skills = new Skill[] { new ChannelingSpell(b2, new Blackify(b2), t => () => t, fuckpiss) };
 			Turners.Add(b2);
 
@@ -87,6 +88,12 @@ namespace FuckingAround {
 									(s2, e2) => { if (!activeBeing.ActionTaken) activeBeing.SelectedAction = skill; Refresh(); }));
 					}
 				};
+
+			foreach (var b in Beings) {
+				EventHandler fun = (s, e) => b.GraphicMove(5);
+				b.MoveStarted += (s, e) => tajmEvent += fun;
+				b.MoveFinished += (s, e) => tajmEvent -= fun;
+			}
 
 			tileSet.TileClicked += (o, e) => { if (activeBeing != null) activeBeing.Command(this, e); };
 
@@ -120,7 +127,7 @@ namespace FuckingAround {
 			DrawShit(e);
 		}
 
-		private void DrawShit(/*object s,*/ PaintEventArgs e) {
+		private void DrawShit(PaintEventArgs e) {
 			Graphics graphics = e.Graphics;
 			//var grafconatber = graphics.BeginContainer();
 			//graphics.TranslateTransform(TileSetOffsetX, TileSetOffsetY);

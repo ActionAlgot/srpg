@@ -91,8 +91,7 @@ namespace FuckingAround {
 			get { return Place.GetShit(this, MovementPoints); }
 		}
 		public void Command(Object s, TileClickedEventArgs e) {
-			if(_command != null)
-				_command(s, e);
+			if(_command != null) _command(s, e);
 		}
 
 		public void OnCommand(object sender, TileClickedEventArgs e) {
@@ -110,12 +109,68 @@ namespace FuckingAround {
 				this.EndTurn();
 		}
 
-		public void Move(object sender, TileClickedEventArgs e) {
-			if (movementArea.Any(t => t == e.Tile))
-				if (e.Tile.Inhabitant == null) {
-					Place = e.Tile;
-					Moved = true;
+
+		public bool Moving;
+		public int PathIndex;
+		public List<Tile> Path;
+		private Rectangle MovingRect;
+
+
+		public void GraphicMove(int n) {
+			if (PathIndex + 1 >= Path.Count) {
+				Moving = false;
+				if (MoveFinished != null)
+					MoveFinished(this, EventArgs.Empty);
+				return;
+			}
+			int xDiff = Path[PathIndex].X - Path[PathIndex + 1].X;
+			if (xDiff != 0) {
+				if (xDiff < 0) {
+					MovingRect.X += n;
+					if (MovingRect.X >= Path[PathIndex + 1].Rectangle.X) {
+						PathIndex++;
+						GraphicMove(MovingRect.X - Path[PathIndex].Rectangle.X);
+					}
+				} else {
+					MovingRect.X -= n;
+					if (MovingRect.X <= Path[PathIndex + 1].Rectangle.X) {
+						PathIndex++;
+						GraphicMove(MovingRect.X - Path[PathIndex].Rectangle.X);
+					}
 				}
+			} else {
+				int yDiff = Path[PathIndex].Y - Path[PathIndex + 1].Y;
+				if (yDiff < 0) {
+					MovingRect.Y += n;
+					if (MovingRect.Y >= Path[PathIndex + 1].Rectangle.Y) {
+						PathIndex++;
+						GraphicMove(MovingRect.Y - Path[PathIndex].Rectangle.Y);
+					}
+				} else {
+					MovingRect.Y -= n;
+					if (MovingRect.Y <= Path[PathIndex + 1].Rectangle.Y) {
+						PathIndex++;
+						GraphicMove(MovingRect.Y - Path[PathIndex].Rectangle.Y);
+					}
+				}
+			}
+		}
+
+		public event EventHandler MoveFinished;
+		public event EventHandler MoveStarted;
+		public void Move(object sender, TileClickedEventArgs e) {
+			if (movementArea.Any(t => t == e.Tile)
+					&& e.Tile.Inhabitant == null) {
+
+				Moving = true;
+				MovingRect = Place.Rectangle;
+				PathIndex = 0;
+				Path = Place.GetPath(e.Tile, GetTraversalCost).ToList();
+				if (MoveStarted != null) MoveStarted(this, EventArgs.Empty);
+
+				Place = e.Tile;
+				Moved = true;
+			}
 		}
 		public int MovementPoints;
 		public Action<Graphics> Draw;
@@ -128,7 +183,10 @@ namespace FuckingAround {
 			MovementPoints = mp;
 			_team = team;
 			Brush = new SolidBrush(Color.Green);
-			Draw = g => g.FillEllipse(Brush, Place.Rectangle);
+			Draw = g => {
+				if (Moving) g.FillEllipse(Brush, MovingRect);
+				else g.FillEllipse(Brush, Place.Rectangle);
+			};
 			_command += OnCommand;
 		}
 	}
