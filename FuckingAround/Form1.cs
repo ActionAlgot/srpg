@@ -37,14 +37,30 @@ namespace FuckingAround {
 		private int TileSetOffsetX = 0;
 		private int TileSetOffsetY = 0;
 
+		private event EventHandler tajmEvent;
+
+		delegate void fuckinghellCallback();
+		private System.Threading.Timer tajmer;
 
 		public Form1() {
 			InitializeComponent();
-			MouseHoverChanged += (s, e) => { if (activeBeing != null && activeBeing.SelectedAction == null)Refresh(); };
-			MouseMove += (s, e) => MMouseHover = tileSet.SelectTile(e.X - TileSetOffsetX, e.Y - TileSetOffsetY);
 			this.Width = 550;
-
+			DoubleBuffered = true;
+			tajmer = new System.Threading.Timer(
+				(o) => {
+					var kghkgh = new fuckinghellCallback(() => { this.Invalidate(); });
+					try {	//TODO something better than try catch?
+						this.Invoke(kghkgh, new object[] { });
+					} catch (ObjectDisposedException e) {
+						tajmer.Dispose();
+					}
+				}
+				, null, 100, 1000/60);
+			Disposed += (s, e) => tajmer.Dispose();
+			tajmEvent +=
+				(s, o) => Refresh();
 			tileSet = new TileSet(30, 30);
+			MouseMove += (s, e) => MMouseHover = tileSet.SelectTile(e.X - TileSetOffsetX, e.Y - TileSetOffsetY);
 
 			fuckpiss = new TurnFuckYouFuckThatFuckEverything();
 
@@ -77,7 +93,7 @@ namespace FuckingAround {
 			this.MouseClick += (s, e) => {
 				//modify e.X and Y for grpahic offset
 				tileSet.ClickTile(new MouseEventArgs(e.Button, e.Clicks, e.X - TileSetOffsetX, e.Y - TileSetOffsetY , e.Delta));
-				this.Refresh();
+				this.Invalidate();
 			};
 
 			SkillMenu = new MenuItem("Skills");
@@ -101,17 +117,17 @@ namespace FuckingAround {
 
 		protected override void OnPaint(PaintEventArgs e) {
 			base.OnPaint(e);
-			DrawShit();
+			DrawShit(e);
 		}
 
-		private void DrawShit() {
-			Graphics graphics = this.CreateGraphics();
-			var grafconatber = graphics.BeginContainer();
-			graphics.TranslateTransform(TileSetOffsetX, TileSetOffsetY);
-
+		private void DrawShit(/*object s,*/ PaintEventArgs e) {
+			Graphics graphics = e.Graphics;
+			//var grafconatber = graphics.BeginContainer();
+			//graphics.TranslateTransform(TileSetOffsetX, TileSetOffsetY);
+			
 			foreach (var tile in tileSet.AsEnumerable())
 				tile.Draw(graphics);
-
+			
 			SolidBrush fuckyoubrush = new SolidBrush(Color.FromArgb(128, 0, 0, 255));
 			if (activeBeing != null) {
 				foreach (var tile in activeBeing.SelectedAction == null
@@ -137,7 +153,7 @@ namespace FuckingAround {
 					tileSet.XLength * Tile.Size,
 					y * Tile.Size);
 			lineGridPen.Dispose();
-
+			
 			foreach (var t in Beings)
 				t.Draw(graphics);
 
@@ -151,10 +167,6 @@ namespace FuckingAround {
 					graphics.FillRectangle(gfsde, fgdsa.Rectangle);
 				}
 			}
-
-			graphics.EndContainer(grafconatber);
-
-			graphics.Dispose();
 		}
 	}
 }
