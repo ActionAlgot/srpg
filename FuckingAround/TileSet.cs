@@ -129,7 +129,7 @@ namespace FuckingAround {
 			int TopCut = start.Y + range;	//out of range for y is handled in loop
 			int BottomCut = start.Y - range + 1;
 
-			for (int x = LeftCut; x < RightCut; x++) {
+			for (int x = LeftCut; x <= RightCut; x++) {
 				int xoff = Math.Abs(start.X - x);
 				for (int y = BottomCut + xoff > 0 ? BottomCut + xoff : 0;
 						 y < (TopCut - xoff < YLength ? TopCut - xoff: YLength);
