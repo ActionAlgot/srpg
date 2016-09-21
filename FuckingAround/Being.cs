@@ -123,17 +123,20 @@ namespace FuckingAround {
 					MoveFinished(this, EventArgs.Empty);
 				return;
 			}
+
 			int xDiff = Path[PathIndex].X - Path[PathIndex + 1].X;
 			if (xDiff != 0) {
 				if (xDiff < 0) {
 					MovingRect.X += n;
 					if (MovingRect.X >= Path[PathIndex + 1].Rectangle.X) {
+						MovingRect.X = Path[PathIndex + 1].Rectangle.X;
 						PathIndex++;
 						GraphicMove(MovingRect.X - Path[PathIndex].Rectangle.X);
 					}
 				} else {
 					MovingRect.X -= n;
 					if (MovingRect.X <= Path[PathIndex + 1].Rectangle.X) {
+						MovingRect.X = Path[PathIndex + 1].Rectangle.X;
 						PathIndex++;
 						GraphicMove(MovingRect.X - Path[PathIndex].Rectangle.X);
 					}
@@ -143,12 +146,14 @@ namespace FuckingAround {
 				if (yDiff < 0) {
 					MovingRect.Y += n;
 					if (MovingRect.Y >= Path[PathIndex + 1].Rectangle.Y) {
+						MovingRect.Y = Path[PathIndex + 1].Rectangle.Y;
 						PathIndex++;
 						GraphicMove(MovingRect.Y - Path[PathIndex].Rectangle.Y);
 					}
 				} else {
 					MovingRect.Y -= n;
 					if (MovingRect.Y <= Path[PathIndex + 1].Rectangle.Y) {
+						MovingRect.Y = Path[PathIndex + 1].Rectangle.Y;
 						PathIndex++;
 						GraphicMove(MovingRect.Y - Path[PathIndex].Rectangle.Y);
 					}
