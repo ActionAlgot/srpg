@@ -51,12 +51,12 @@ namespace FuckingAround {
 			tajmer = new System.Threading.Timer(
 				(o) => {
 					try {	//TODO something better than try catch?
-						this.Invoke(new fuckinghellCallback(tajmEvent), new object[]{tajmer, EventArgs.Empty});
+						this.Invoke(new fuckinghellCallback(tajmEvent), new object[]{o, EventArgs.Empty});
 					} catch (ObjectDisposedException) {
 						tajmer.Dispose();
 					}
-				}
-				, null, 100, 1000/60);
+				},
+				null, 100, 1000/60);
 			Disposed += (s, e) => tajmer.Dispose();
 			tajmEvent +=
 				(s, o) => Refresh();
@@ -66,7 +66,7 @@ namespace FuckingAround {
 			fuckpiss = new TurnFuckYouFuckThatFuckEverything();
 
 			Turners = new List<ITurnHaver>();
-			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6], Weapon = new Weapon { Damage = 2, Range = 5 } });
+			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6], Weapon = new Weapon { Damage = new Damage { PhysDmg = 2 }, Range = 5 } });
 			var b1 = new Being(1, 7, 6) { Place = tileSet[10, 10] };
 			b1.Skills = new Skill[] { new Blackify(b1), new SpeedupChanneling(b1) };
 			Turners.Add(b1);

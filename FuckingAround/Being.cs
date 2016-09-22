@@ -8,13 +8,67 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace FuckingAround {
-	public class Being :ITurnHaver, SkillUser {
+	public class Being : ITurnHaver, SkillUser {
 
-		private Dictionary<string, List<Func<double, double>>> _mods;
+		public const int DefaultBaseMaxHp = 10;
+		public const int DefaultBaseStrength = 10;
+		public const int DefaultBaseSpeed = 10;
+
+		private IEnumerable<PassiveSkill> PSkills;
+		private IEnumerable<Mod> MODS {
+			get {
+				return PSkills.Select(ps => ps.Mod); /*
+					.Concat(Equipment.SelectMany(eq => eq.UserMods))
+					.Concat(DebuffsAndBuffs.SelectMany(thing => thing.VictimMods))
+					 */
+				//  Handle mods relying on stats as a mod how?
+				//  .Concat(yadayada(Strength))	//Stack fucking overflow
+			}
+		}
+		private IEnumerable<int> _BaseMods(string tag) {
+			return MODS
+				.Where( m =>
+					   m.Tags.Contains("BeingStat")
+					&& m.Tags.Contains("Base")
+					&& m.Tags.Contains(tag))
+				.Select(m => (int)m.SomeShit);
+		}
+
+		private IEnumerable<double> _Mods(string tag) {
+			return MODS
+				.Where( m => 
+					   m.Tags.Contains("BeingStat")
+					&& m.Tags.Contains("Multiply")
+					&& m.Tags.Contains(tag))
+				.Select(m => (double)m.SomeShit);
+		}
+
+		public int _BaseStrength {
+			get { return DefaultBaseStrength + _BaseMods("Strength").Aggregate((a, b) => a + b); }
+		}
+
+		public int _Strength {
+			get { return _BaseStrength +  (int)(_BaseStrength * _Mods("Strength").Aggregate((a, b) => a + b)); }
+		}
+
+		private Dictionary<string, List<Func<double, double>>> _mods;	//%increase
 		public Dictionary<string, List<Func<double, double>>> Mods { get { return _mods; } }
+		private Dictionary<string, List<int>> BaseMods;	//flat increase
 
-		private int _strength;
-		public int Strength { get { return _strength; } }
+		public int BaseStrength {
+			get {
+				return DefaultBaseStrength + (BaseMods.ContainsKey("Strength")
+					? BaseMods["Strength"].Aggregate((a, b) => a + b)
+					: 0);
+			}
+		}
+		public int Strength {
+			get {
+				return BaseStrength + (int)(Mods.ContainsKey("Strength")
+					? Mods["Strength"].Aggregate(0.0, (n, f) => n + f(BaseStrength)) 
+					: 0);
+			}
+		}
 		private int _maxHP;
 		public int MaxHP { get { return _maxHP; } }
 		private int _HP;
@@ -39,7 +93,7 @@ namespace FuckingAround {
 		public event EventHandler TurnFinished;
 		private event EventHandler<TileClickedEventArgs> _command;
 
-		public Weapon Unarmed = new Weapon { Range = 2, Damage = 1 };
+		public Weapon Unarmed = new Weapon { Range = 2, Damage = new Damage { PhysDmg = 1 } };
 
 		private int _team;
 		public int Team { get { return _team; } }
@@ -181,7 +235,17 @@ namespace FuckingAround {
 		public Action<Graphics> Draw;
 		public SolidBrush Brush;
 
+		public void Die() {
+			_HP = 0;
+			Brush = new SolidBrush(Color.DarkOrange);
+		}
+		public void TakeDamage(Damage damage) {
+			_HP -= damage.PhysDmg;
+			if (HP <= 0) Die();
+		}
+
 		public Being(int team, double speed, int mp) {
+			var baseMods = new Dictionary<string, List<Func<double, double>>>();
 			_mods = new Dictionary<string, List<Func<double, double>>>();
 			_speed = speed;
 			Skills = new Skill[0];
@@ -193,6 +257,9 @@ namespace FuckingAround {
 				else g.FillEllipse(Brush, Place.Rectangle);
 			};
 			_command += OnCommand;
+
+			_maxHP = 10;
+			_HP = MaxHP;
 		}
 	}
 }
