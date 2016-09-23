@@ -25,7 +25,7 @@ namespace FuckingAround {
 	}
 
 	public class EquipmentMod : Mod {
-		public bool Global;
+		public bool Global;	//Affect stats outside of itself, IE non-global armour % increase should only affect its own stats
 		public EquipmentMod(Stat targetStat, ModifyingMethod modifyingmethod, double value, bool global)
 			: base(targetStat, modifyingmethod, value) {
 			Global = global;

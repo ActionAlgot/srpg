@@ -218,6 +218,7 @@ namespace FuckingAround {
 			};
 			_command += OnCommand;
 
+			HP = MaxHP;
 		}
 	}
 }
