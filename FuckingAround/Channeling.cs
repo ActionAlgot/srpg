@@ -8,25 +8,20 @@ namespace FuckingAround {
 	public class ChannelingInstance : ITurnHaver, SkillUser {
 		#region ITurnHaver
 		public event EventHandler TurnFinished;
-		protected double _speed;
 		protected double _awaited;
-		public double Speed {
-			get {
-				var s = _speed;
-				if (Mods.ContainsKey("Speed"))
-					foreach (var f in Mods["Speed"])
-						s += f(_speed);
-				return s;
-			}
-		}
+		public double Speed { get { return Mods.GetStat(Stat.ChannelingSpeed); } }
 		public double Awaited { get { return _awaited; } }
 		public void Await(double time) {
 			_awaited += Speed * time;
 		}
 		#endregion
 		public Weapon Weapon { get { return null; } }	//Kill me
-		private Dictionary<string, List<Func<double, double>>> _mods;
-		public Dictionary<string, List<Func<double, double>>> Mods { get { return _mods; } }
+
+		public void AddMod(Mod mod) {
+			_mods.Add(mod);
+		}
+		private List<Mod> _mods;
+		public IEnumerable<Mod> Mods { get { return _mods; } }
 
 		private Tile _place;
 		public Tile Place {
@@ -50,17 +45,14 @@ namespace FuckingAround {
 			if (!Spell.Do(TargetSelector()))
 				ConsoleLoggerHandlerOrWhatever.Log(this.ToString() + " cast " + Spell.Name + " and hit nothing.");
 			_awaited = 0;	//should just kill self
-			_speed = 0;
+			_mods = new List<Mod>();
 			if (TurnFinished != null) TurnFinished(this, EventArgs.Empty);
 			Place = null;
 		}
 
 		public ChannelingInstance(SkillUser caster, Spell spell, Tile place, Func<Tile> targetSelector) {
-			_mods = new Dictionary<string, List<Func<double, double>>>();
-			foreach (var fuck in caster.Mods) {
-				Mods[fuck.Key] = fuck.Value.Select(f => f).ToList();
-			}
-			_speed = 5;
+			_mods = caster.Mods.ToList();
+
 			Spell = spell.GetAsChanneled(this);
 			Place = place;
 			TargetSelector = targetSelector;
@@ -96,9 +88,7 @@ namespace FuckingAround {
 	public class SpeedupChanneling : Spell {
 		protected override void ChannelingEffect(ChannelingInstance ci) {
 			if (ci != null) {
-				var mods = ci.Mods;
-				if (!mods.ContainsKey("Speed")) mods["Speed"] = new List<Func<double, double>>();
-				mods["Speed"].Add(s => s);	//100% increase
+				ci.AddMod(new Mod(Stat.ChannelingSpeed, ModifyingMethod.Multiply, 1));	//100% increase
 			}
 			base.ChannelingEffect(ci);
 		}

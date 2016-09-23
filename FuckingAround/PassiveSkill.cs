@@ -6,21 +6,30 @@ using System.Threading.Tasks;
 
 namespace FuckingAround {
 	public class PassiveSkill {
-		public Mod Mod { get; protected set; }
+		public List<Mod> _mods;
+		public IEnumerable<Mod> Mods { get { return _mods; } }
 		public PassiveSkill(Mod mod) {
-			Mod = mod;
+			_mods = new List<Mod>{ mod };
+		}
+		public PassiveSkill(IEnumerable<Mod> mods) {
+			_mods = mods.ToList();
 		}
 	}
 
-	public class Mod {
-		public List<string> Tags;	//ENUM list
-		public object SomeShit;
-	}
-
 	public static class Passives {
+
+		public static IEnumerable<PassiveSkill> Default = new PassiveSkill[]{
+			new PassiveSkill(new Mod(Stat.Strength, ModifyingMethod.Add, 10)),
+			new PassiveSkill(new Mod(Stat.Speed, ModifyingMethod.Add, 5)),
+			new PassiveSkill(new Mod(Stat.HP, ModifyingMethod.Add, 20)),
+			new PassiveSkill(new Mod(Stat.ChannelingSpeed, ModifyingMethod.Add, 4))
+		};
+
 		public static PassiveSkill[] All = new PassiveSkill[]{
-			new PassiveSkill(new Mod{ Tags = new List<string>{"Stat", "Strength", "Base"}, SomeShit = 10 }),
-			new PassiveSkill(new Mod{ Tags = new List<string>{"Stat", "Strength", "Multiply"}, SomeShit = 0.20 })
+			new PassiveSkill(new Mod( Stat.Strength, ModifyingMethod.Add, 10 )),	//Increases strength by 10
+			new PassiveSkill(new Mod( Stat.Strength, ModifyingMethod.Multiply, 0.20 ))	//Increases strength by 20%
 		};
 	}
+
+	
 }

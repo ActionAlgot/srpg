@@ -57,6 +57,7 @@
     <Compile Include="GameEvent.cs" />
     <Compile Include="GameEventLogger.cs" />
     <Compile Include="ITurnHaver.cs" />
+    <Compile Include="Mods.cs" />
     <Compile Include="PassiveSkill.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

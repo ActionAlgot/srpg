@@ -90,11 +90,13 @@ namespace FuckingAround {
 		public Spell GetAsChanneled(ChannelingInstance CI) {
 			Spell copy = (Spell)this.MemberwiseClone();	//new this(CI, _range, Name);
 
+			/*
 			foreach (var fuck in Doer.Mods) {
 				if (!CI.Mods.ContainsKey(fuck.Key)) CI.Mods[fuck.Key] = new List<Func<double, double>>();
 				CI.Mods[fuck.Key].AddRange(fuck.Value);
 			}
-
+			*/
+			
 			copy.Doer = CI;
 			return copy;
 		}
@@ -120,6 +122,6 @@ namespace FuckingAround {
 
 		//take base value and return double to be added on top of it 
 		//Funcs must not use internal ref values
-		Dictionary<string, List<Func<double, double>>> Mods { get; }	
+		IEnumerable<Mod> Mods { get; }	
 	}
 }

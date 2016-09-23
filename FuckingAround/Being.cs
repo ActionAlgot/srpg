@@ -10,74 +10,33 @@ using System.Windows.Forms;
 namespace FuckingAround {
 	public class Being : ITurnHaver, SkillUser {
 
+		/*
 		public const int DefaultBaseMaxHp = 10;
 		public const int DefaultBaseStrength = 10;
 		public const int DefaultBaseSpeed = 10;
+		*/
+		
 
 		private IEnumerable<PassiveSkill> PSkills;
-		private IEnumerable<Mod> MODS {
+		public IEnumerable<Mod> Mods {
 			get {
-				return PSkills.Select(ps => ps.Mod); /*
-					.Concat(Equipment.SelectMany(eq => eq.UserMods))
-					.Concat(DebuffsAndBuffs.SelectMany(thing => thing.VictimMods))
-					 */
-				//  Handle mods relying on stats as a mod how?
-				//  .Concat(yadayada(Strength))	//Stack fucking overflow
+				return PSkills.SelectMany(ps => ps.Mods); /*
+						.Concat(Equipment.SelectMany(eq => eq.UserMods))
+						.Concat(DebuffsAndBuffs.SelectMany(thing => thing.VictimMods))
+						 */
+					//  Handle mods relying on stats as a mod how?
+					//  .Concat(yadayada(Strength))	//Stack fucking overflow
 			}
 		}
-		private IEnumerable<int> _BaseMods(string tag) {
-			return MODS
-				.Where( m =>
-					   m.Tags.Contains("BeingStat")
-					&& m.Tags.Contains("Base")
-					&& m.Tags.Contains(tag))
-				.Select(m => (int)m.SomeShit);
-		}
 
-		private IEnumerable<double> _Mods(string tag) {
-			return MODS
-				.Where( m => 
-					   m.Tags.Contains("BeingStat")
-					&& m.Tags.Contains("Multiply")
-					&& m.Tags.Contains(tag))
-				.Select(m => (double)m.SomeShit);
-		}
 
-		public int _BaseStrength {
-			get { return DefaultBaseStrength + _BaseMods("Strength").Aggregate((a, b) => a + b); }
-		}
-
-		public int _Strength {
-			get { return _BaseStrength +  (int)(_BaseStrength * _Mods("Strength").Aggregate((a, b) => a + b)); }
-		}
-
-		private Dictionary<string, List<Func<double, double>>> _mods;	//%increase
-		public Dictionary<string, List<Func<double, double>>> Mods { get { return _mods; } }
-		private Dictionary<string, List<int>> BaseMods;	//flat increase
-
-		public int BaseStrength {
-			get {
-				return DefaultBaseStrength + (BaseMods.ContainsKey("Strength")
-					? BaseMods["Strength"].Aggregate((a, b) => a + b)
-					: 0);
-			}
-		}
-		public int Strength {
-			get {
-				return BaseStrength + (int)(Mods.ContainsKey("Strength")
-					? Mods["Strength"].Aggregate(0.0, (n, f) => n + f(BaseStrength)) 
-					: 0);
-			}
-		}
-		private int _maxHP;
-		public int MaxHP { get { return _maxHP; } }
-		private int _HP;
-		public int HP { get { return _HP; } }
+		public int MaxHP { get { return (int)Mods.GetStat(Stat.HP); } }
+		public int HP { get; private set; }
 
 		protected double _speed;
 		protected double _awaited;
 		
-		public double Speed { get { return _speed; } }
+		public double Speed { get { return Mods.GetStat(Stat.Speed); } }
 		public double Awaited { get { return _awaited; } }
 
 		public void Await(double time) {
@@ -236,17 +195,18 @@ namespace FuckingAround {
 		public SolidBrush Brush;
 
 		public void Die() {
-			_HP = 0;
+			HP = 0;
 			Brush = new SolidBrush(Color.DarkOrange);
 		}
 		public void TakeDamage(Damage damage) {
-			_HP -= damage.PhysDmg;
+			HP -= damage.PhysDmg;
 			if (HP <= 0) Die();
 		}
 
 		public Being(int team, double speed, int mp) {
-			var baseMods = new Dictionary<string, List<Func<double, double>>>();
-			_mods = new Dictionary<string, List<Func<double, double>>>();
+
+			PSkills = Passives.Default.ToList();
+
 			_speed = speed;
 			Skills = new Skill[0];
 			MovementPoints = mp;
@@ -258,8 +218,6 @@ namespace FuckingAround {
 			};
 			_command += OnCommand;
 
-			_maxHP = 10;
-			_HP = MaxHP;
 		}
 	}
 }
