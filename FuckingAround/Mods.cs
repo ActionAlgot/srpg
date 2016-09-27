@@ -64,8 +64,7 @@ namespace FuckingAround {
 		}
 		private static double GetStat(this IEnumerable<Mod> mods, StatType stat, List<StatType> alreadyDoneStats) {
 			mods = mods.Concat(mods.ConversionToMods(stat, alreadyDoneStats));
-			double addedShit = mods.AdditionMods(stat).Sum();
-			return addedShit + addedShit * mods.MultiplicationMods(stat).Sum();
+			return mods.AdditionMods(stat).Sum() * (1 + mods.MultiplicationMods(stat).Sum());
 		}
 		#endregion
 
@@ -86,13 +85,14 @@ namespace FuckingAround {
 		}
 	}
 
+	[Flags]
 	public enum StatType {
-		Strength, Speed, HP, MP, Armour,
-		PhysicalDamage, FireDamage, IceDamage, LightningDamage, SpellDamage, MeeleeDamage,
-		ChannelingSpeed,
-		FireResistance, IceResistance, LightningResistance,
-		ElementalDamage = FireDamage | IceDamage | LightningDamage,
-		ElementalResistance = FireResistance | IceResistance | LightningResistance
+		Strength = 0, Speed = 1, HP = 2, MP = 4, Armour = 8,
+		Damage = 16, Physical = 32, Fire = 64, Ice = 128, Lightning = 256,
+		PhysicalDamage = Damage|Physical, FireDamage = Damage|Fire, IceDamage = Damage|Ice, LightningDamage = Damage|Lightning,
+		ChannelingSpeed = 512,
+		Resistance = 1024,
+		FireResistance = Resistance|Fire, IceResistance = Resistance|Ice, LightningResistance = Resistance|Lightning
 	}
 
 	public enum ModifyingMethod {
