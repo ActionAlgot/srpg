@@ -9,7 +9,7 @@ namespace FuckingAround {
 		#region ITurnHaver
 		public event EventHandler TurnFinished;
 		protected double _awaited;
-		public double Speed { get { return Mods.GetStat(Stat.ChannelingSpeed); } }
+		public double Speed { get { return Mods.GetStat(StatType.ChannelingSpeed); } }
 		public double Awaited { get { return _awaited; } }
 		public void Await(double time) {
 			_awaited += Speed * time;
@@ -88,7 +88,7 @@ namespace FuckingAround {
 	public class SpeedupChanneling : Spell {
 		protected override void ChannelingEffect(ChannelingInstance ci) {
 			if (ci != null) {
-				ci.AddMod(new Mod(Stat.ChannelingSpeed, ModifyingMethod.Multiply, 1));	//100% increase
+				ci.AddMod(new Mod(StatType.ChannelingSpeed, ModifyingMethod.Multiply, 1));	//100% increase
 			}
 			base.ChannelingEffect(ci);
 		}

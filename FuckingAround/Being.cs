@@ -17,10 +17,15 @@ namespace FuckingAround {
 		*/
 		
 
-		private IEnumerable<PassiveSkill> PSkills;
+		private List<PassiveSkill> PSkills;
+		public void AddPassiveSkill(PassiveSkill passiveSkill) {
+			PSkills.Add(passiveSkill);
+		}
 		public IEnumerable<Mod> Mods {
 			get {
-				return PSkills.SelectMany(ps => ps.Mods); /*
+				return PSkills
+					.SelectMany(ps => ps.Mods)
+					/*.Concat(new Mod[]{new Mod(StatType.Strength, ModifyingMethod.Add, (double)Weapon.Damage)})*/; /*
 						.Concat(Equipment.SelectMany(eq => eq.UserMods))
 						.Concat(DebuffsAndBuffs.SelectMany(thing => thing.VictimMods))
 						 */
@@ -30,13 +35,13 @@ namespace FuckingAround {
 		}
 
 
-		public int MaxHP { get { return (int)Mods.GetStat(Stat.HP); } }
+		public int MaxHP { get { return (int)Mods.GetStat(StatType.HP); } }
 		public int HP { get; private set; }
 
 		protected double _speed;
 		protected double _awaited;
 		
-		public double Speed { get { return Mods.GetStat(Stat.Speed); } }
+		public double Speed { get { return Mods.GetStat(StatType.Speed); } }
 		public double Awaited { get { return _awaited; } }
 
 		public void Await(double time) {
@@ -199,6 +204,7 @@ namespace FuckingAround {
 			Brush = new SolidBrush(Color.DarkOrange);
 		}
 		public void TakeDamage(Damage damage) {
+			//TODO handle armour/resistances
 			HP -= damage.PhysDmg;
 			if (HP <= 0) Die();
 		}
