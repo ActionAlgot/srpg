@@ -7,6 +7,6 @@ using System.Threading.Tasks;
 namespace FuckingAround {
 	public class Weapon {
 		public int Range;
-		public Damage Damage;
+		public IEnumerable<Mod> Mods; 
 	}
 }

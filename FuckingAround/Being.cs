@@ -26,11 +26,9 @@ namespace FuckingAround {
 				return PSkills
 					.SelectMany(ps => ps.Mods)
 					/*.Concat(new Mod[]{new Mod(StatType.Strength, ModifyingMethod.Add, (double)Weapon.Damage)})*/; /*
-						.Concat(Equipment.SelectMany(eq => eq.UserMods))
-						.Concat(DebuffsAndBuffs.SelectMany(thing => thing.VictimMods))
-						 */
-					//  Handle mods relying on stats as a mod how?
-					//  .Concat(yadayada(Strength))	//Stack fucking overflow
+					.Concat(Equipment.SelectMany(eq => eq.UserMods))
+					.Concat(DebuffsAndBuffs.SelectMany(thing => thing.VictimMods))
+					*/
 			}
 		}
 
@@ -57,7 +55,7 @@ namespace FuckingAround {
 		public event EventHandler TurnFinished;
 		private event EventHandler<TileClickedEventArgs> _command;
 
-		public Weapon Unarmed = new Weapon { Range = 2, Damage = new Damage { PhysDmg = 1 } };
+		public Weapon Unarmed = new Weapon { Range = 2, Mods = new List<Mod>(){ new Mod(StatType.PhysicalDamage, ModifyingMethod.Add, 2)} };
 
 		private int _team;
 		public int Team { get { return _team; } }
