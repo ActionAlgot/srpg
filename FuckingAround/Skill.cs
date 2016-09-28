@@ -73,7 +73,7 @@ namespace FuckingAround {
 			t.Brush = new System.Drawing.SolidBrush(System.Drawing.Color.DarkRed);
 		}
 		protected override void BeingEffect(Being b) {
-			b.TakeDamage(new Damage(Doer.Mods.Concat(Doer.Weapon.Mods)));
+			b.TakeDamage(Doer.Mods.Concat(Doer.Weapon.Mods));
 			//ConsoleLoggerHandlerOrWhatever.Log(Doer.ToString() + " attacked " + b.ToString());
 		}
 

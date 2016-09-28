@@ -66,7 +66,8 @@ namespace FuckingAround {
 			fuckpiss = new TurnFuckYouFuckThatFuckEverything();
 
 			Turners = new List<ITurnHaver>();
-			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6], Weapon = new Weapon { Mods = new List<Mod>() { new Mod(StatType.PhysicalDamage, ModifyingMethod.Add, 2) }, Range = 5 } });
+			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6], Weapon = new Weapon { Mods = new List<Mod>() { new Mod(StatType.PhysicalDamage, ModifyingMethod.Add, 4) }, Range = 5 } });
+			((Being)Turners[0]).AddPassiveSkill(Passives.All[3]);
 			var b1 = new Being(1, 7, 6) { Place = tileSet[10, 10] };
 			b1.Skills = new Skill[] { new Blackify(b1), new SpeedupChanneling(b1) };
 			Turners.Add(b1);

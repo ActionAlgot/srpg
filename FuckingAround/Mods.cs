@@ -36,19 +36,19 @@ namespace FuckingAround {
 
 	public static class ModEnumerableExtension {
 
-		public static IEnumerable<double> AdditionMods(this IEnumerable<Mod> mods, StatType stat){
+		private static IEnumerable<double> AdditionMods(this IEnumerable<Mod> mods, StatType stat){
 			return mods
-				.Where(m =>
+				.Where(m => 
 					   m.ModifyingMethod == ModifyingMethod.Add
-					&& m.TargetStat == stat)
+					&& m.TargetStat.HasFlag(stat))
 				.Select(m => m.Value);
 		}
 
-		public static IEnumerable<double> MultiplicationMods(this IEnumerable<Mod> mods, StatType stat) {
+		private static IEnumerable<double> MultiplicationMods(this IEnumerable<Mod> mods, StatType stat) {
 			return mods
 				.Where(m =>
 					   m.ModifyingMethod == ModifyingMethod.Multiply
-					&& m.TargetStat == stat)
+					&& m.TargetStat.HasFlag(stat))
 				.Select(m => m.Value);
 		}
 
@@ -57,25 +57,28 @@ namespace FuckingAround {
 			alreadyDoneStats.Add(stat);
 			return mods
 				.Where(m =>
-					   m.ModifyingMethod == ModifyingMethod.Convert
+					   m.ModifyingMethod.HasFlag(ModifyingMethod.Convert)
 					&& !alreadyDoneStats.Any(s => s == m.ConversionSource)
-					&& m.TargetStat == stat)
-				.Select(m => new Mod(m.TargetStat, ModifyingMethod.Add, m.Value * mods.GetStat(m.ConversionSource, alreadyDoneStats)));
+					&& m.TargetStat.HasFlag(stat))
+				.Select(m => new Mod(
+					m.TargetStat,
+					(ModifyingMethod)(m.ModifyingMethod - ModifyingMethod.Convert),
+					m.Value * mods.GetStat(m.ConversionSource, alreadyDoneStats.ToList())));
 		}
 		private static double GetStat(this IEnumerable<Mod> mods, StatType stat, List<StatType> alreadyDoneStats) {
-			mods = mods.Concat(mods.ConversionToMods(stat, alreadyDoneStats));
+			mods = mods.Concat(mods.ConversionToMods(stat, alreadyDoneStats.ToList()));
 			return mods.AdditionMods(stat).Sum() * (1 + mods.MultiplicationMods(stat).Sum());
 		}
 		#endregion
 
-		public static IEnumerable<Mod> ConversionToMods(this IEnumerable<Mod> mods, StatType stat) {
+		private static IEnumerable<Mod> ConversionToMods(this IEnumerable<Mod> mods, StatType stat) {
 			return mods
 				.Where(m =>
-					   m.ModifyingMethod == ModifyingMethod.Convert
-					&& m.TargetStat == stat)
+					   m.ModifyingMethod.HasFlag(ModifyingMethod.Convert)
+					&& m.TargetStat.HasFlag(stat))
 				.Select(m => new Mod(
 					m.TargetStat,
-					ModifyingMethod.Add,
+					(ModifyingMethod)(m.ModifyingMethod - ModifyingMethod.Convert),
 					m.Value * mods.GetStat(m.ConversionSource, new List<StatType>(){stat})));	//TODO don't recurse
 		}
 
@@ -87,15 +90,16 @@ namespace FuckingAround {
 
 	[Flags]
 	public enum StatType {
-		Strength = 0, Speed = 1, HP = 2, MP = 4, Armour = 8,
-		Damage = 16, Physical = 32, Fire = 64, Ice = 128, Lightning = 256,
+		Strength = 1<<1, Speed = 1<<2, HP = 1<<3, MP = 1<<4, Armour = 1<<5,
+		Damage = 1<<6, Physical = 1<<7, Fire = 1<<8, Ice = 1<<9, Lightning = 1<<10,
 		PhysicalDamage = Damage|Physical, FireDamage = Damage|Fire, IceDamage = Damage|Ice, LightningDamage = Damage|Lightning,
-		ChannelingSpeed = 512,
-		Resistance = 1024,
-		FireResistance = Resistance|Fire, IceResistance = Resistance|Ice, LightningResistance = Resistance|Lightning
+		ChannelingSpeed = 1<<11,
+		Resistance = 1<<12,
+		FireResistance =  Resistance|Fire, IceResistance = Resistance|Ice, LightningResistance = Resistance|Lightning
 	}
 
+	[Flags]
 	public enum ModifyingMethod {
-		Add, Multiply, Convert
+		Add = 1<<1, Multiply = 1<<2, Convert = 1<<3
 	}
 }

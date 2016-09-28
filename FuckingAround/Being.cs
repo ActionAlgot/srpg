@@ -10,13 +10,6 @@ using System.Windows.Forms;
 namespace FuckingAround {
 	public class Being : ITurnHaver, SkillUser {
 
-		/*
-		public const int DefaultBaseMaxHp = 10;
-		public const int DefaultBaseStrength = 10;
-		public const int DefaultBaseSpeed = 10;
-		*/
-		
-
 		private List<PassiveSkill> PSkills;
 		public void AddPassiveSkill(PassiveSkill passiveSkill) {
 			PSkills.Add(passiveSkill);
@@ -201,9 +194,18 @@ namespace FuckingAround {
 			HP = 0;
 			Brush = new SolidBrush(Color.DarkOrange);
 		}
-		public void TakeDamage(Damage damage) {
+		public void TakeDamage(IEnumerable<Mod> mods) {
 			//TODO handle armour/resistances
-			HP -= damage.PhysDmg;
+			int preHP = HP;
+			foreach (StatType dmg in Enum.GetValues(typeof(StatType))) {
+				if ((dmg & StatType.Damage) == StatType.Damage && dmg != StatType.Damage) {
+					int crap = (int)mods.GetStat(dmg);
+					if(crap != 0) ConsoleLoggerHandlerOrWhatever.Log(crap + " " + dmg);
+					HP -= crap;
+				}
+			}
+			ConsoleLoggerHandlerOrWhatever.Log(preHP + " => " + HP);
+			//HP -= damage.PhysDmg;
 			if (HP <= 0) Die();
 		}
 
