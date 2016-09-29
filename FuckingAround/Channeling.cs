@@ -88,7 +88,7 @@ namespace FuckingAround {
 	public class SpeedupChanneling : Spell {
 		protected override void ChannelingEffect(ChannelingInstance ci) {
 			if (ci != null) {
-				ci.AddMod(new Mod(StatType.ChannelingSpeed, ModifyingMethod.Multiply, 1));	//100% increase
+				ci.AddMod(new Mod(StatType.ChannelingSpeed, ModifyingMethod.AdditiveMultiply, 1));	//100% increase
 			}
 			base.ChannelingEffect(ci);
 		}

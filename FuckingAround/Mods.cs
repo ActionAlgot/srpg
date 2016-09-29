@@ -44,6 +44,14 @@ namespace FuckingAround {
 				.Select(m => m.Value);
 		}
 
+		private static IEnumerable<double> AdditiveMultiplicationMods(this IEnumerable<Mod> mods, StatType stat) {
+			return mods
+				.Where(m =>
+					   m.ModifyingMethod == ModifyingMethod.AdditiveMultiply
+					&& m.TargetStat.HasFlag(stat))
+				.Select(m => m.Value);
+		}
+
 		private static IEnumerable<double> MultiplicationMods(this IEnumerable<Mod> mods, StatType stat) {
 			return mods
 				.Where(m =>
@@ -67,7 +75,9 @@ namespace FuckingAround {
 		}
 		private static double GetStat(this IEnumerable<Mod> mods, StatType stat, List<StatType> alreadyDoneStats) {
 			mods = mods.Concat(mods.ConversionToMods(stat, alreadyDoneStats.ToList()));
-			return mods.AdditionMods(stat).Sum() * (1 + mods.MultiplicationMods(stat).Sum());
+			return mods.MultiplicationMods(stat).Aggregate(
+				mods.AdditionMods(stat).Sum() * (1 + mods.AdditiveMultiplicationMods(stat).Sum()),
+				(a, b) => a * b);
 		}
 		#endregion
 
@@ -84,7 +94,9 @@ namespace FuckingAround {
 
 		public static double GetStat(this IEnumerable<Mod> mods, StatType stat){
 			mods = mods.Concat(mods.ConversionToMods(stat));
-			return mods.AdditionMods(stat).Sum() * (1 + mods.MultiplicationMods(stat).Sum());
+			return mods.MultiplicationMods(stat).Aggregate(
+				mods.AdditionMods(stat).Sum() * (1 + mods.AdditiveMultiplicationMods(stat).Sum()),
+				(a, b) => a * b);
 		}
 	}
 
@@ -100,6 +112,7 @@ namespace FuckingAround {
 
 	[Flags]
 	public enum ModifyingMethod {
-		Add = 1<<1, Multiply = 1<<2, Convert = 1<<3
+		Add = 1<<1, Multiply = 1<<2, Convert = 1<<3,
+		AdditiveMultiply = Add|Multiply
 	}
 }
