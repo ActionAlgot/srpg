@@ -58,8 +58,6 @@ namespace FuckingAround {
 				},
 				null, 100, 1000/60);
 			Disposed += (s, e) => tajmer.Dispose();
-			tajmEvent +=
-				(s, o) => Refresh();
 			tileSet = new TileSet(30, 30);
 			MouseMove += (s, e) => MMouseHover = tileSet.SelectTile(e.X - TileSetOffsetX, e.Y - TileSetOffsetY);
 
@@ -70,6 +68,7 @@ namespace FuckingAround {
 			((Being)Turners[0]).AddPassiveSkill(Passives.All[3]);
 			var b1 = new Being(1, 7, 6) { Place = tileSet[10, 10] };
 			b1.Skills = new Skill[] { new Blackify(b1), new SpeedupChanneling(b1) };
+			b1.AddPassiveSkill(Passives.All[4]);
 			Turners.Add(b1);
 			var b2 = new Being(2, 8, 7) { Place = tileSet[20, 17] };
 			b2.Skills = new Skill[] { new ChannelingSpell(b2, new Blackify(b2), t => () => t, fuckpiss) };

@@ -200,12 +200,15 @@ namespace FuckingAround {
 			foreach (StatType dmg in Enum.GetValues(typeof(StatType))) {
 				if ((dmg & StatType.Damage) == StatType.Damage && dmg != StatType.Damage) {
 					int crap = (int)mods.GetStat(dmg);
-					if(crap != 0) ConsoleLoggerHandlerOrWhatever.Log(crap + " " + dmg);
-					HP -= crap;
+					if (crap != 0) {
+						double resist = this.Mods.GetStat((StatType)(dmg - StatType.Damage) | StatType.Resistance);
+						crap = crap - (int)(crap * resist);
+						ConsoleLoggerHandlerOrWhatever.Log(crap + " " + dmg);
+						HP -= crap;
+					}
 				}
 			}
 			ConsoleLoggerHandlerOrWhatever.Log(preHP + " => " + HP);
-			//HP -= damage.PhysDmg;
 			if (HP <= 0) Die();
 		}
 

@@ -31,7 +31,8 @@ namespace FuckingAround {
 			new PassiveSkill(new Mod[]{	//Converts 50% of PhysicalDamage to FireDamage
 				new Mod( StatType.PhysicalDamage, ModifyingMethod.Multiply, -0.5),	//TODO Should be applied after regular Multiplying stuff
 				new Mod( StatType.FireDamage, ModifyingMethod.Convert | ModifyingMethod.Add, /*1 instead of 0.5 because mod above is applied first*/1){ ConversionSource = StatType.PhysicalDamage }
-			})
+			}),
+			new PassiveSkill(new Mod(StatType.FireResistance,ModifyingMethod.Add, 0.5))	//50% fire resistance
 		};
 	}
 }
