@@ -94,25 +94,27 @@ namespace FuckingAround {
 
 		public static double GetStat(this IEnumerable<Mod> mods, StatType stat){
 			mods = mods.Concat(mods.ConversionToMods(stat));
-			return mods.MultiplicationMods(stat).Aggregate(
-				mods.AdditionMods(stat).Sum() * (1 + mods.AdditiveMultiplicationMods(stat).Sum()),
-				(a, b) => a * b);
+			return mods.MultiplicationMods(stat)
+				.Aggregate(
+					mods.AdditionMods(stat).Sum() * (1 + mods.AdditiveMultiplicationMods(stat).Sum()),
+					(a, b) => a * b);
 		}
 	}
 
 	[Flags]
 	public enum StatType {
-		Strength = 1<<1, Speed = 1<<2, HP = 1<<3, MP = 1<<4, Armour = 1<<5,
+		Strength = 1<<0, Dexterity = 1<<1, Speed = 1<<2, HP = 1<<3, MP = 1<<4,
 		Damage = 1<<6, Physical = 1<<7, Fire = 1<<8, Ice = 1<<9, Lightning = 1<<10,
 		PhysicalDamage = Damage|Physical, FireDamage = Damage|Fire, IceDamage = Damage|Ice, LightningDamage = Damage|Lightning,
 		ChannelingSpeed = 1<<11,
-		Resistance = 1<<12,
-		FireResistance =  Resistance|Fire, IceResistance = Resistance|Ice, LightningResistance = Resistance|Lightning
+		Resistance = 1<<12, Threshold = 1<<13, Penetration = 1<<14,
+		Armour = Resistance | Physical, FireResistance = Resistance | Fire, IceResistance = Resistance | Ice, LightningResistance = Resistance | Lightning,
+		ArmourPenetration = Penetration|Physical, FirePenetration = Penetration|Fire
 	}
 
 	[Flags]
 	public enum ModifyingMethod {
-		Add = 1<<1, Multiply = 1<<2, Convert = 1<<3,
+		Add = 1<<0, Multiply = 1<<1, Convert = 1<<2,
 		AdditiveMultiply = Add|Multiply
 	}
 }

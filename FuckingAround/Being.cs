@@ -25,18 +25,18 @@ namespace FuckingAround {
 			}
 		}
 
+		public bool IsAlive { get { return HP > 0; } }
 
 		public int MaxHP { get { return (int)Mods.GetStat(StatType.HP); } }
 		public int HP { get; private set; }
 
 		protected double _speed;
-		protected double _awaited;
 		
-		public double Speed { get { return Mods.GetStat(StatType.Speed); } }
-		public double Awaited { get { return _awaited; } }
+		public double Speed { get { return IsAlive ? Mods.GetStat(StatType.Speed) : 0; } }
+		public double Awaited { get; protected set; }
 
 		public void Await(double time) {
-			_awaited += Speed * time;
+			Awaited += Speed * time;
 		}
 
 		private IEnumerable<Skill> _skills;
@@ -73,7 +73,7 @@ namespace FuckingAround {
 		public bool ActionTaken { get; protected set; }
 		public bool Moved { get; protected set; }
 		public void EndTurn() {
-			_awaited = 0;
+			Awaited = 0;
 			SelectedAction = null;
 			ActionTaken = false;
 			Moved = false;
@@ -192,6 +192,7 @@ namespace FuckingAround {
 
 		public void Die() {
 			HP = 0;
+			Awaited = 0;
 			Brush = new SolidBrush(Color.DarkOrange);
 		}
 		public void TakeDamage(IEnumerable<Mod> mods) {

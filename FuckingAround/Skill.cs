@@ -34,6 +34,8 @@ namespace FuckingAround {
 		protected bool MustTargetChannelingInstance;
 		protected bool MustTargetBeing;
 
+		public Func<Tile, bool> ValidTarget { get; protected set; }
+
 		protected virtual void TileEffect(Tile t) { }
 		protected virtual void BeingEffect(Being b) { }
 		protected virtual void ChannelingEffect(ChannelingInstance ci) { }
@@ -120,8 +122,6 @@ namespace FuckingAround {
 		Tile Place { get; }
 		Weapon Weapon { get; }	//I'm a dumb fuck
 
-		//take base value and return double to be added on top of it 
-		//Funcs must not use internal ref values
 		IEnumerable<Mod> Mods { get; }	
 	}
 }
