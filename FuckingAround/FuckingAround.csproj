@@ -63,6 +63,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Being.cs" />
     <Compile Include="Skill.cs" />
+    <Compile Include="Skill2.cs" />
     <Compile Include="Tile.cs" />
     <Compile Include="TileSet.cs" />
     <Compile Include="Weapon.cs" />

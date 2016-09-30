@@ -108,7 +108,7 @@ namespace FuckingAround {
 		PhysicalDamage = Damage|Physical, FireDamage = Damage|Fire, IceDamage = Damage|Ice, LightningDamage = Damage|Lightning,
 		ChannelingSpeed = 1<<11,
 		Resistance = 1<<12, Threshold = 1<<13, Penetration = 1<<14,
-		Armour = Resistance | Physical, FireResistance = Resistance | Fire, IceResistance = Resistance | Ice, LightningResistance = Resistance | Lightning,
+		Armour = Resistance|Physical, FireResistance = Resistance|Fire, IceResistance = Resistance|Ice, LightningResistance = Resistance|Lightning,
 		ArmourPenetration = Penetration|Physical, FirePenetration = Penetration|Fire
 	}
 

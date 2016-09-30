@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace FuckingAround {
 	public abstract class Skill {
 
+
 		public Skill(SkillUser doer, int range, string name) {
 			_name = name;
 			Doer = doer;
@@ -33,8 +34,6 @@ namespace FuckingAround {
 		protected bool TargetSelfAllowed;
 		protected bool MustTargetChannelingInstance;
 		protected bool MustTargetBeing;
-
-		public Func<Tile, bool> ValidTarget { get; protected set; }
 
 		protected virtual void TileEffect(Tile t) { }
 		protected virtual void BeingEffect(Being b) { }
