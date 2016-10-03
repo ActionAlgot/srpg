@@ -20,6 +20,9 @@ namespace FuckingAround {
 		public void AddMod(Mod mod) {
 			_mods.Add(mod);
 		}
+		public void AddMods(IEnumerable<Mod> mods) {
+			_mods.AddRange(mods.ToList());
+		}
 		private List<Mod> _mods;
 		public IEnumerable<Mod> Mods { get { return _mods; } }
 

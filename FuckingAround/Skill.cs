@@ -65,6 +65,9 @@ namespace FuckingAround {
 			public static bool NoChannelingInstance(Skill skill, SkillUser su, Tile target) {
 				return target.ChannelingInstance == null;
 			}
+			public static bool AnyChannelingInstanceInArea(Skill skill, SkillUser su, Tile target){
+				return skill._GetAreaOfEffect(skill, su, target).Any(t2 => t2.ChannelingInstance != null);
+			}
 		}
 		private static class Range {
 			public static IEnumerable<Tile> UseWeaponRange(Skill skill, SkillUser su){
@@ -94,6 +97,13 @@ namespace FuckingAround {
 					} else throw new Exception("bullshit");
 				};
 			}
+			public static Action<Skill, SkillUser, Tile> AddModsToChannel(IEnumerable<Mod> mods) {
+				return (s, su, t) => {
+					if(t.ChannelingInstance != null){
+						t.ChannelingInstance.AddMods(mods);
+					} else throw new Exception("bullshit");
+				};
+			}
 		}
 		#endregion 
 
@@ -119,11 +129,20 @@ namespace FuckingAround {
 				new Mod[]{
 					new Mod(StatType.Range, ModifyingMethod.Add, 6)
 				});
+		public static Skill ChannelSpeedUp = new Skill("Channel speedup",
+			Validation.AnyChannelingInstanceInArea,
+			Range.GetFromMods,
+			AoE.TargetOnly,
+			Effect.AddModsToChannel(new Mod[] { new Mod(StatType.ChannelingSpeed, ModifyingMethod.Add, 3) }),
+			new Mod[] { 
+				new Mod(StatType.Range, ModifyingMethod.Add, 6)
+			});
 
 		public static IEnumerable<Skill> Default = new Skill[]{
 			StandardAttack,
 			Blackify,
-			BlackifyChannel
+			BlackifyChannel,
+			ChannelSpeedUp
 		};
 	}
 	

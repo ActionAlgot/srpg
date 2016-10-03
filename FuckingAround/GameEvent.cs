@@ -15,4 +15,8 @@ namespace FuckingAround {
 			return Source.ToString() + " used " + skill.Name + " on Tile:" + Target.ToString() + (Targets.Any() ? " affecting " + string.Join(", ", Targets) : "");
 		}
 	}
+
+	public class GameSubEvent {
+
+	}
 }
