@@ -109,7 +109,8 @@ namespace FuckingAround {
 		ChannelingSpeed = 1<<11,
 		Resistance = 1<<12, Threshold = 1<<13, Penetration = 1<<14,
 		Armour = Resistance|Physical, FireResistance = Resistance|Fire, IceResistance = Resistance|Ice, LightningResistance = Resistance|Lightning,
-		ArmourPenetration = Penetration|Physical, FirePenetration = Penetration|Fire
+		ArmourPenetration = Penetration|Physical, FirePenetration = Penetration|Fire,
+		Range = 1<<15, AreaOfEffect = 1<<16
 	}
 
 	[Flags]

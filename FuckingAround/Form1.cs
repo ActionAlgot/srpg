@@ -14,9 +14,8 @@ namespace FuckingAround {
 
 		private TileSet tileSet;
 		private List<ITurnHaver> Turners;
-		private TurnFuckYouFuckThatFuckEverything fuckpiss;
 		//private ITurnHaver _currentTurnHaver;
-		private ITurnHaver CurrentTurnHaver { get { return fuckpiss.CurrentTurnHaver; } }
+		private ITurnHaver CurrentTurnHaver { get { return TurnTracker.CurrentTurnHaver; } }
 		private Being activeBeing { get { return CurrentTurnHaver as Being; } }	//return null if current turn does not belong to a being
 		private IEnumerable<Being> Beings { get { return Turners.Where(t => t is Being).Cast<Being>(); } }
 		private Menu BeingMenu;
@@ -61,20 +60,18 @@ namespace FuckingAround {
 			tileSet = new TileSet(30, 30);
 			MouseMove += (s, e) => MMouseHover = tileSet.SelectTile(e.X - TileSetOffsetX, e.Y - TileSetOffsetY);
 
-			fuckpiss = new TurnFuckYouFuckThatFuckEverything();
-
 			Turners = new List<ITurnHaver>();
 			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6], Weapon = new Weapon { Mods = new List<Mod>() { new Mod(StatType.PhysicalDamage, ModifyingMethod.Add, 4) }, Range = 5 } });
 			((Being)Turners[0]).AddPassiveSkill(Passives.All[3]);
 			var b1 = new Being(1, 7, 6) { Place = tileSet[10, 10] };
-			b1.Skills = new Skill[] { new Blackify(b1), new SpeedupChanneling(b1) };
+			//b1.Skills = new ObsoleteSkill[] { new Blackify(b1), new SpeedupChanneling(b1) };
 			b1.AddPassiveSkill(Passives.All[4]);
 			Turners.Add(b1);
 			var b2 = new Being(2, 8, 7) { Place = tileSet[20, 17] };
-			b2.Skills = new Skill[] { new ChannelingSpell(b2, new Blackify(b2), t => () => t, fuckpiss) };
+			//b2.Skills = new ObsoleteSkill[] { new ChannelingSpell(b2, new Blackify(b2), t => () => t, fuckpiss) };
 			Turners.Add(b2);
 
-			fuckpiss.AddRange(Turners);
+			TurnTracker.AddRange(Turners);
 			
 			foreach (var t in Turners)
 				t.TurnFinished += (s, e) => {
@@ -139,7 +136,7 @@ namespace FuckingAround {
 			if (activeBeing != null) {
 				foreach (var tile in activeBeing.SelectedAction == null
 						? tileSet.GetTraversalArea(activeBeing.Place, activeBeing, activeBeing.MovementPoints)
-						: activeBeing.Place.GetArea(activeBeing.SelectedAction.Range))
+						: activeBeing.SelectedAction.Range(activeBeing))
 					graphics.FillRectangle(fuckyoubrush, tile.Rectangle);
 				fuckyoubrush.Dispose();
 			}
@@ -164,7 +161,7 @@ namespace FuckingAround {
 			foreach (var t in Beings)
 				t.Draw(graphics);
 
-			foreach (var fuck in fuckpiss.GETCHANNELINGINSTANCES())
+			foreach (var fuck in TurnTracker.GETCHANNELINGINSTANCES())
 				fuck.Draw(graphics);
 
 			if (activeBeing != null && MMouseHover != null && activeBeing.SelectedAction == null) {

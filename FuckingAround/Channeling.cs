@@ -36,67 +36,30 @@ namespace FuckingAround {
 				if (value != null) value.ChannelingInstance = this;
 			}
 		}
-		protected Spell Spell;
+		protected Skill Skill;
 		protected Func<Tile> TargetSelector;
 
 		public Action<System.Drawing.Graphics> Draw { get; protected set; }
 
 		public void Do() {
-			if (!Spell.Do(TargetSelector()))
-				ConsoleLoggerHandlerOrWhatever.Log(this.ToString() + " cast " + Spell.Name + " and hit nothing.");
+			if (!Skill.Do(this, TargetSelector()))
+				ConsoleLoggerHandlerOrWhatever.Log(this.ToString() + " cast " + Skill.Name + " and hit nothing.");
 			_awaited = 0;	//should just kill self
 			_mods = new List<Mod>();
 			if (TurnFinished != null) TurnFinished(this, EventArgs.Empty);
 			Place = null;
 		}
 
-		public ChannelingInstance(SkillUser caster, Spell spell, Tile place, Func<Tile> targetSelector) {
-			_mods = caster.Mods.ToList();
+		public ChannelingInstance(IEnumerable<Mod> mods, Skill skill, Tile place, Func<Tile> targetSelector) {
+			_mods = mods.ToList();
 
-			Spell = spell.GetAsChanneled(this);
+			Skill = skill;
 			Place = place;
 			TargetSelector = targetSelector;
 
 			Draw = g => g.FillRectangle(new System.Drawing.SolidBrush(System.Drawing.Color.Pink), Place.Rectangle);
+			TurnFinished += (s, e) => TurnTracker.Remove(this);
 		}
-	}
-
-	public class ChannelingSpell : Spell {
-		protected Spell Spell;
-		protected Func<SkillUser, Spell> SpellMaker;
-		protected Func<Tile, Func<Tile>> TargetSelector;
-		private TurnFuckYouFuckThatFuckEverything ShitTracker;
-
-		protected override void TileEffect(Tile t) {
-			var piss = new ChannelingInstance(Doer, Spell, t, TargetSelector(t));
-			piss.TurnFinished += (s, e) => ShitTracker.Remove(piss);
-			ShitTracker.Add(piss);
-		}
-
-		public ChannelingSpell(SkillUser doer, Spell spell, Func<Tile, Func<Tile>> targetSelector, TurnFuckYouFuckThatFuckEverything shitTracker)
-			: base(doer, 6, "Channel" + " channeling") {
-			ShitTracker = shitTracker;
-			Spell = spell;
-			//Spell.Doer = this;
-			TargetSelector = targetSelector;
-			TargetTileAllowed = true;
-
-			GetAreaOfEffect = GetGetAreOfEffect(1);
-		}
-	}
-
-	public class SpeedupChanneling : Spell {
-		protected override void ChannelingEffect(ChannelingInstance ci) {
-			if (ci != null) {
-				ci.AddMod(new Mod(StatType.ChannelingSpeed, ModifyingMethod.AdditiveMultiply, 1));	//100% increase
-			}
-			base.ChannelingEffect(ci);
-		}
-
-		public SpeedupChanneling(SkillUser caster) : base(caster, 10, "Channeling speedup") {
-			TargetTileAllowed = true;
-			MustTargetChannelingInstance = true;
-			GetAreaOfEffect = GetGetAreOfEffect(1);
-		}
+		public ChannelingInstance(IEnumerable<Mod> mods, Skill skill, Tile place) : this(mods, skill, place, () => place) { }
 	}
 }

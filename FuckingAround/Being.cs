@@ -105,14 +105,14 @@ namespace FuckingAround {
 
 		public void OnCommand(object sender, TileClickedEventArgs e) {
 			if (!ActionTaken && SelectedAction != null) {
-				if (SelectedAction.Do(e.Tile))
+				if (SelectedAction.Do(this, e.Tile))
 					ActionTaken = true;
 				else ConsoleLoggerHandlerOrWhatever.Log("Skill apply failed");
 				SelectedAction = null;
 			} else if (SelectedAction == null && e.Tile.Inhabitant == null && !Moved)
 				Move(sender, e);
 			else if (!ActionTaken && e.Tile.Inhabitant != null)
-				if (new DefaultAttack(this).Do(e.Tile))
+				if (Skills.First().Do(this, e.Tile))
 					ActionTaken = true;
 			if (ActionTaken && Moved)
 				this.EndTurn();
@@ -218,7 +218,7 @@ namespace FuckingAround {
 			PSkills = Passives.Default.ToList();
 
 			_speed = speed;
-			Skills = new Skill[0];
+			Skills = SkillsRepo.Default.ToList();
 			MovementPoints = mp;
 			_team = team;
 			Brush = new SolidBrush(Color.Green);

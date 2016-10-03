@@ -19,43 +19,39 @@ namespace FuckingAround {
 		}
 	}
 
-	public class TurnFuckYouFuckThatFuckEverything {
-		private List<ITurnHaver> turnfyuckers;
+	public static class TurnTracker {
+		private static List<ITurnHaver> TurnHavers = new List<ITurnHaver>();
 
-		public TurnFuckYouFuckThatFuckEverything(){
-			turnfyuckers = new List<ITurnHaver>();
+		public static void Add(ITurnHaver fuck){
+			TurnHavers.Add(fuck);
 		}
 
-		public void Add(ITurnHaver fuck){
-			turnfyuckers.Add(fuck);
+		public static void AddRange(IEnumerable<ITurnHaver> fuckers) {
+			TurnHavers.AddRange(fuckers);
 		}
 
-		public void AddRange(IEnumerable<ITurnHaver> fuckers) {
-			turnfyuckers.AddRange(fuckers);
+		public static void Remove(ITurnHaver fuck){
+			TurnHavers.Remove(fuck);
 		}
 
-		public void Remove(ITurnHaver fuck){
-			turnfyuckers.Remove(fuck);
-		}
-
-		private ITurnHaver _currentTurnHaver;
-		public ITurnHaver CurrentTurnHaver {
+		private static ITurnHaver _currentTurnHaver;
+		public static ITurnHaver CurrentTurnHaver {
 			get {	//automatically forward time if time to do so
 				if (_currentTurnHaver == null || _currentTurnHaver.GetTimeToWait() > 0) {
-					_currentTurnHaver = turnfyuckers.Aggregate((t1, t2) => t1.GetTimeToWait() <= t2.GetTimeToWait() ? t1 : t2);
+					_currentTurnHaver = TurnHavers.Aggregate((t1, t2) => t1.GetTimeToWait() <= t2.GetTimeToWait() ? t1 : t2);
 					var dsgfsdf = _currentTurnHaver.GetTimeToWait();
-					foreach (var t in turnfyuckers) t.Await(dsgfsdf);
+					foreach (var t in TurnHavers) t.Await(dsgfsdf);
 
 					ConsoleLoggerHandlerOrWhatever.Log("_____________");
-					foreach (var t in turnfyuckers) ConsoleLoggerHandlerOrWhatever.Log(t.ToString() + " " + t.Awaited + " + " + t.Speed);
+					foreach (var t in TurnHavers) ConsoleLoggerHandlerOrWhatever.Log(t.ToString() + " " + t.Awaited + " + " + t.Speed);
 
 				}
 				return _currentTurnHaver;
 			}
 		}
 
-		public IEnumerable<ChannelingInstance> GETCHANNELINGINSTANCES() {
-				return turnfyuckers.Where(t => t is ChannelingInstance).Cast<ChannelingInstance>();
+		public static IEnumerable<ChannelingInstance> GETCHANNELINGINSTANCES() {
+			return TurnHavers.Where(t => t is ChannelingInstance).Cast<ChannelingInstance>();
 		}
 	}
 }
