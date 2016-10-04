@@ -29,8 +29,8 @@ namespace FuckingAround {
 			new PassiveSkill(new Mod( StatType.Strength, ModifyingMethod.AdditiveMultiply, 0.20 )),	//Increases strength by 20%
 			new PassiveSkill(new Mod( StatType.Strength, ModifyingMethod.Convert|ModifyingMethod.Add, 0.10 ){ ConversionSource = StatType.PhysicalDamage}),	//gain 10% of physical damage as bonus fire damage
 			new PassiveSkill(new Mod[]{	//Converts 50% of PhysicalDamage to FireDamage
-				new Mod( StatType.PhysicalDamage, ModifyingMethod.Multiply, 0.50),
-				new Mod( StatType.FireDamage, ModifyingMethod.Convert|ModifyingMethod.Add, 1){ ConversionSource = StatType.PhysicalDamage }	//value is 1 rather than 0.5 because mod above is applied first
+				new Mod( StatType.PhysicalDamage, ModifyingMethod.Multiply, 0.50),	//TODO fix 100% conversion
+				new Mod( StatType.FireDamage, ModifyingMethod.Convert|ModifyingMethod.Add, 0.50*(1/0.50)){ ConversionSource = StatType.PhysicalDamage }	//value is 1 rather than 0.5 because mod above is applied first
 			}),
 			new PassiveSkill(new Mod(StatType.FireResistance,ModifyingMethod.Add, 0.50))	//50% fire resistance
 		};

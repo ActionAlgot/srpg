@@ -44,7 +44,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Armour.cs" />
     <Compile Include="Channeling.cs" />
     <Compile Include="ConsoleLoggerHandlerOrWhatever.cs" />
     <Compile Include="Damage.cs" />
@@ -56,6 +55,7 @@
     </Compile>
     <Compile Include="GameEvent.cs" />
     <Compile Include="GameEventLogger.cs" />
+    <Compile Include="Gear.cs" />
     <Compile Include="ITurnHaver.cs" />
     <Compile Include="Mods.cs" />
     <Compile Include="PassiveSkill.cs" />

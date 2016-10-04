@@ -108,27 +108,27 @@ namespace FuckingAround {
 		#endregion 
 
 		public static Skill StandardAttack = new Skill("Standard attack",
-				Validation.AnyAliveBeingInArea,
-				Range.UseWeaponRange,
-				AoE.TargetOnly,
-				Effect.WeaponDamage);
+			Validation.AnyAliveBeingInArea,
+			Range.UseWeaponRange,
+			AoE.TargetOnly,
+			Effect.WeaponDamage);
 		public static Skill Blackify = new Skill("Blackify",
-				Validation.AnyAliveBeingInArea,
-				Range.GetFromMods,
-				AoE.FromMods,
-				(s, su, t) => { if(t.Inhabitant != null) t.Inhabitant.Brush = new System.Drawing.SolidBrush(System.Drawing.Color.Black);},
-				new Mod[]{
-					new Mod(StatType.Range, ModifyingMethod.Add, 6),
-					new Mod(StatType.AreaOfEffect, ModifyingMethod.Add, 2)
-				});
+			Validation.AnyAliveBeingInArea,
+			Range.GetFromMods,
+			AoE.FromMods,
+			(s, su, t) => { if(t.Inhabitant != null) t.Inhabitant.Brush = new System.Drawing.SolidBrush(System.Drawing.Color.Black);},
+			new Mod[]{
+				new Mod(StatType.Range, ModifyingMethod.Add, 6),
+				new Mod(StatType.AreaOfEffect, ModifyingMethod.Add, 2)
+			});
 		public static Skill BlackifyChannel = new Skill("Blackify channeling",
-				Validation.NoChannelingInstance,
-				Range.GetFromMods,
-				AoE.TargetOnly,
-				Effect.Channel(Blackify),
-				new Mod[]{
-					new Mod(StatType.Range, ModifyingMethod.Add, 6)
-				});
+			Validation.NoChannelingInstance,
+			Range.GetFromMods,
+			AoE.TargetOnly,
+			Effect.Channel(Blackify),
+			new Mod[]{
+				new Mod(StatType.Range, ModifyingMethod.Add, 6)
+			});
 		public static Skill ChannelSpeedUp = new Skill("Channel speedup",
 			Validation.AnyChannelingInstanceInArea,
 			Range.GetFromMods,

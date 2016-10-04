@@ -40,7 +40,7 @@ namespace FuckingAround {
 			return mods
 				.Where(m => 
 					   m.ModifyingMethod == ModifyingMethod.Add
-					&& m.TargetStat.HasFlag(stat))
+					&& m.TargetStat.Supports(stat))
 				.Select(m => m.Value);
 		}
 
@@ -48,7 +48,7 @@ namespace FuckingAround {
 			return mods
 				.Where(m =>
 					   m.ModifyingMethod == ModifyingMethod.AdditiveMultiply
-					&& m.TargetStat.HasFlag(stat))
+					&& m.TargetStat.Supports(stat))
 				.Select(m => m.Value);
 		}
 
@@ -56,7 +56,7 @@ namespace FuckingAround {
 			return mods
 				.Where(m =>
 					   m.ModifyingMethod == ModifyingMethod.Multiply
-					&& m.TargetStat.HasFlag(stat))
+					&& m.TargetStat.Supports(stat))
 				.Select(m => m.Value);
 		}
 
@@ -66,8 +66,8 @@ namespace FuckingAround {
 			return mods
 				.Where(m =>
 					   m.ModifyingMethod.HasFlag(ModifyingMethod.Convert)
-					&& !alreadyDoneStats.Any(s => s == m.ConversionSource)
-					&& m.TargetStat.HasFlag(stat))
+					&& !alreadyDoneStats.Any(s => m.ConversionSource.Supports(s))
+					&& m.TargetStat.Supports(stat))
 				.Select(m => new Mod(
 					m.TargetStat,
 					(ModifyingMethod)(m.ModifyingMethod - ModifyingMethod.Convert),
@@ -110,7 +110,13 @@ namespace FuckingAround {
 		Resistance = 1<<12, Threshold = 1<<13, Penetration = 1<<14,
 		Armour = Resistance|Physical, FireResistance = Resistance|Fire, IceResistance = Resistance|Ice, LightningResistance = Resistance|Lightning,
 		ArmourPenetration = Penetration|Physical, FirePenetration = Penetration|Fire,
-		Range = 1<<15, AreaOfEffect = 1<<16
+		Range = 1<<15, AreaOfEffect = 1<<16, Weapon = 1<<17, Spell = 1<<18, WeaponRange = Weapon|Range,
+		Restriction = Weapon|Spell
+	}
+	public static class StatTypeExtensions {
+		public static bool Supports(this StatType stat, StatType target) {
+			return stat.HasFlag(target) && (target&StatType.Restriction).HasFlag(stat&StatType.Restriction);
+		}
 	}
 
 	[Flags]

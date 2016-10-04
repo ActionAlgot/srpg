@@ -17,8 +17,7 @@ namespace FuckingAround {
 		public IEnumerable<Mod> Mods {
 			get {
 				return PSkills
-					.SelectMany(ps => ps.Mods)
-					/*.Concat(new Mod[]{new Mod(StatType.Strength, ModifyingMethod.Add, (double)Weapon.Damage)})*/; /*
+					.SelectMany(ps => ps.Mods); /*
 					.Concat(Equipment.SelectMany(eq => eq.UserMods))
 					.Concat(DebuffsAndBuffs.SelectMany(thing => thing.VictimMods))
 					*/
@@ -28,7 +27,24 @@ namespace FuckingAround {
 		public bool IsAlive { get { return HP > 0; } }
 
 		public int MaxHP { get { return (int)Mods.GetStat(StatType.HP); } }
-		public int HP { get; private set; }
+		private int _hp;
+		public int HP {
+			get { return _hp; }
+			protected set {
+				bool wasAlive = this.IsAlive;
+				_hp = value;
+				if (_hp < 0) {
+					_hp = 0;
+					if(wasAlive) this.Die();
+				}
+				else if (_hp > MaxHP) _hp = MaxHP;
+				/*
+				if (!wasAlive && IsAlive) {
+					//Ressurected event?
+				}
+				*/
+			}
+		}
 
 		protected double _speed;
 		
@@ -59,13 +75,12 @@ namespace FuckingAround {
 			get { return _weapon ?? Unarmed; }
 			set { _weapon = value; }
 		}
-		public Armour Armour;
 
 		public int GetTraversalCost(Tile t) {
-			if (t.Inhabitant != null) {
+			if (t.Inhabitant != null && t.Inhabitant.IsAlive) {
 				if (t.Inhabitant.Team == this.Team)
 					return t.TraverseCost;
-				return -1;
+				else return -1;
 			}
 			return t.TraverseCost;
 		}
@@ -196,8 +211,8 @@ namespace FuckingAround {
 			Brush = new SolidBrush(Color.DarkOrange);
 		}
 		public void TakeDamage(IEnumerable<Mod> mods) {
-			//TODO handle armour/resistances
 			int preHP = HP;
+			int total = 0;
 			foreach (StatType dmg in Enum.GetValues(typeof(StatType))) {
 				if ((dmg & StatType.Damage) == StatType.Damage && dmg != StatType.Damage) {
 					int crap = (int)mods.GetStat(dmg);
@@ -205,12 +220,12 @@ namespace FuckingAround {
 						double resist = this.Mods.GetStat((StatType)(dmg - StatType.Damage) | StatType.Resistance);
 						crap = crap - (int)(crap * resist);
 						ConsoleLoggerHandlerOrWhatever.Log(crap + " " + dmg);
-						HP -= crap;
+						total += crap;	//apply all at once to avoid potentially annoying stuff when multitype damage with >100% res damages and heals at once
 					}
 				}
 			}
+			HP -= total;
 			ConsoleLoggerHandlerOrWhatever.Log(preHP + " => " + HP);
-			if (HP <= 0) Die();
 		}
 
 		public Being(int team, double speed, int mp) {
