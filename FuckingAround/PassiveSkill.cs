@@ -18,6 +18,7 @@ namespace FuckingAround {
 
 	public static class Passives {
 		public static IEnumerable<PassiveSkill> Default = new PassiveSkill[]{
+			
 			new PassiveSkill(new Mod(StatType.Strength, ModifyingMethod.Add, 10)),
 			new PassiveSkill(new Mod(StatType.Speed, ModifyingMethod.Add, 5)),
 			new PassiveSkill(new Mod(StatType.HP, ModifyingMethod.Add, 20)),

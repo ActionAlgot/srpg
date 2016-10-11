@@ -5,30 +5,38 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace FuckingAround {
-	public class Skill {
+	public class Skill {	//TODO handle wether 'doer' is using weapon
 
 		public string Name { get; protected set; }
-		public Func<Skill, SkillUser, Tile, bool> _ValidTarget { get; protected set; }
-		public Func<Skill, SkillUser, IEnumerable<Tile>> _Range { get; protected set; }
-		public Func<Skill, SkillUser, Tile, IEnumerable<Tile>> _GetAreaOfEffect { get; protected set; }
-		public Action<Skill, SkillUser, Tile> _Effect { get; protected set; }
+		protected Func<Skill, SkillUser, Tile, bool> _ValidTarget { get; set; }
+		protected Func<Skill, SkillUser, IEnumerable<Tile>> _Range { get; set; }
+		protected Func<Skill, SkillUser, Tile, IEnumerable<Tile>> _GetAreaOfEffect { get; set; }
+		protected Action<Skill, SkillUser, Tile> _Effect { get; set; }
 
-		public IEnumerable<Tile> Range(SkillUser su) {
-			return _Range(this, su);
-		}
+		public bool ValidTarget(SkillUser su, Tile target) { return _ValidTarget(this, su, target); }
+		public IEnumerable<Tile> Range(SkillUser su) { return _Range(this, su); }
+		public IEnumerable<Tile> AoE(SkillUser su, Tile target) { return _GetAreaOfEffect(this, su, target); }
+		public void Apply(SkillUser su, Tile target) { _Effect(this, su, target); }
+		//public void Apply(SkillUser su, Tile target, IEnumerable<Mod> mods) {
+		//	_Effect(this.GetModdedInstance(mods), su, target);
+		//}
 
 		public IEnumerable<Mod> Mods { get; protected set; }
 
 		public virtual bool Do(SkillUser doer, Tile target) {
-			if(_ValidTarget(this, doer, target) && _Range(this, doer).Any(t => t == target)){
-				foreach (Tile t in _GetAreaOfEffect(this, doer, target)) {
+			if(ValidTarget(doer, target) && Range(doer).Any(t => t == target)){
+				foreach (Tile t in _GetAreaOfEffect(this, doer, target))
 					_Effect(this, doer, t);
-
-					//GameEventLogger.Log(new GameEvent(stuff))
-				}
+				//GameEventLogger.Log(new GameEvent(stuff))
 				return true;
 			}
 			else return false;
+		}
+
+		public Skill GetModdedInstance(IEnumerable<Mod> mods) {
+			Skill copy = this.MemberwiseClone() as Skill;
+			copy.Mods = Mods.Concat(mods).ToList();
+			return copy;
 		}
 
 		public Skill(string name,
@@ -57,7 +65,7 @@ namespace FuckingAround {
 		#region subFuncs
 		private static class Validation {
 			public static bool AnyAliveBeingInArea(Skill skill, SkillUser su, Tile target) {
-				return skill._GetAreaOfEffect(skill, su, target).Any(t2 => t2.Inhabitant != null && t2.Inhabitant.IsAlive);
+				return skill.AoE(su, target).Any(t2 => t2.Inhabitant != null && t2.Inhabitant.IsAlive);
 			}
 			public static bool AliveBeingIsTarget(Skill skill, SkillUser su, Tile target) {
 				return target.Inhabitant != null && target.Inhabitant.IsAlive;
@@ -66,18 +74,23 @@ namespace FuckingAround {
 				return target.ChannelingInstance == null;
 			}
 			public static bool AnyChannelingInstanceInArea(Skill skill, SkillUser su, Tile target){
-				return skill._GetAreaOfEffect(skill, su, target).Any(t2 => t2.ChannelingInstance != null);
+				return skill.AoE(su, target).Any(t2 => t2.ChannelingInstance != null);
 			}
 		}
 		private static class Range {
 			public static IEnumerable<Tile> UseWeaponRange(Skill skill, SkillUser su){
-				return su.Place.GetArea(su.Weapon.Range);
+				return ((Being)su).MainHand.Range(skill, su);
 			}
 			public static IEnumerable<Tile> GetFromMods(Skill skill, SkillUser su) {
 				return su.Place.GetArea((int)skill.Mods.Concat(su.Mods).GetStat(StatType.Range));
 			}
 		}
 		private static class AoE {
+
+			public static IEnumerable<Tile> UseWeapon(Skill skill, SkillUser su, Tile target) {
+				return ((Being)su).MainHand.AoE(skill, su, target);
+			}
+
 			public static IEnumerable<Tile> TargetOnly(Skill skill, SkillUser su, Tile target) {
 				return new Tile[] { target };
 			}
@@ -86,9 +99,10 @@ namespace FuckingAround {
 			}
 		}
 		private static class Effect {
-			public static void WeaponDamage(Skill skill, SkillUser su, Tile target) {
-				if(target.Inhabitant != null) target.Inhabitant.TakeDamage(skill.Mods.Concat(su.Mods).Concat(su.Weapon.Mods));
+			public static void Damage(Skill skill, SkillUser su, Tile target) {
+				if(target.Inhabitant != null) target.Inhabitant.TakeDamage(skill.Mods.Concat(su.Mods));
 			}
+
 			public static Action<Skill, SkillUser, Tile> Channel(Skill skill) {
 				return (s, su, t) => {
 					if (t.ChannelingInstance == null) {
@@ -104,14 +118,21 @@ namespace FuckingAround {
 					} else throw new Exception("bullshit");
 				};
 			}
+
+			public static Action<Skill, SkillUser, Tile> DoWithWeapon(Action<Skill, SkillUser, Tile> effect) {
+				return (s, su, t) => {
+					var b = su as Being;
+					b.MainHand.Affect(s, su, t, effect);
+				};
+			}
 		}
 		#endregion 
 
 		public static Skill StandardAttack = new Skill("Standard attack",
 			Validation.AnyAliveBeingInArea,
 			Range.UseWeaponRange,
-			AoE.TargetOnly,
-			Effect.WeaponDamage);
+			AoE.UseWeapon,
+			Effect.DoWithWeapon(Effect.Damage));
 		public static Skill Blackify = new Skill("Blackify",
 			Validation.AnyAliveBeingInArea,
 			Range.GetFromMods,
@@ -148,8 +169,7 @@ namespace FuckingAround {
 	
 	public interface SkillUser {
 		Tile Place { get; }
-		Weapon Weapon { get; }	//I'm a dumb fuck
-
+		//Weapon Weapon { get; }	//I'm a dumb fuck
 		IEnumerable<Mod> Mods { get; }	
 	}
 }

@@ -61,13 +61,13 @@ namespace FuckingAround {
 			MouseMove += (s, e) => MMouseHover = tileSet.SelectTile(e.X - TileSetOffsetX, e.Y - TileSetOffsetY);
 
 			Turners = new List<ITurnHaver>();
-			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6], Weapon = new Weapon { Mods = new List<Mod>() { new Mod(StatType.PhysicalDamage, ModifyingMethod.Add, 4) }, Range = 5 } });
+			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6], MainHand = new Spear(6) });
 			((Being)Turners[0]).AddPassiveSkill(Passives.All[3]);
-			var b1 = new Being(1, 7, 6) { Place = tileSet[10, 10] };
+			var b1 = new Being(1, 7, 6) { Place = tileSet[7, 8] };
 			//b1.Skills = new ObsoleteSkill[] { new Blackify(b1), new SpeedupChanneling(b1) };
 			b1.AddPassiveSkill(Passives.All[4]);
 			Turners.Add(b1);
-			var b2 = new Being(2, 8, 7) { Place = tileSet[20, 17] };
+			var b2 = new Being(2, 8, 7) { Place = tileSet[9, 10] };
 			//b2.Skills = new ObsoleteSkill[] { new ChannelingSpell(b2, new Blackify(b2), t => () => t, fuckpiss) };
 			Turners.Add(b2);
 

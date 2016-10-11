@@ -33,7 +33,7 @@ namespace FuckingAround {
 			protected set {
 				bool wasAlive = this.IsAlive;
 				_hp = value;
-				if (_hp < 0) {
+				if (_hp <= 0) {
 					_hp = 0;
 					if(wasAlive) this.Die();
 				}
@@ -64,16 +64,27 @@ namespace FuckingAround {
 		public event EventHandler TurnFinished;
 		private event EventHandler<TileClickedEventArgs> _command;
 
-		public Weapon Unarmed = new Weapon { Range = 2, Mods = new List<Mod>(){ new Mod(StatType.PhysicalDamage, ModifyingMethod.Add, 2)} };
-
 		private int _team;
 		public int Team { get { return _team; } }
 		public Skill SelectedAction;
 
-		private Weapon _weapon;
-		public Weapon Weapon {
-			get { return _weapon ?? Unarmed; }
-			set { _weapon = value; }
+		public Weapon Unarmed = new Weapon(2);
+		private Weapon _mainHand;
+		public Weapon MainHand {
+			get { return _mainHand ?? Unarmed; }
+			set {
+				if (value.TwoH && OffHand != null) throw new ArgumentException("TwoHanded requires two hands");
+				else _mainHand = value;
+			}
+		}
+		private HandGear _offHand;
+		public HandGear OffHand {
+			get { return _offHand ?? (MainHand != null && MainHand.TwoH ? null : Unarmed); }
+			set {
+				if (value == null || (!MainHand.TwoH && value is Weapon && ((Weapon)value).TwoH))
+					_offHand = value;
+				else throw new ArgumentException("TwoHanded requires two hands");
+			}
 		}
 
 		public int GetTraversalCost(Tile t) {
@@ -220,7 +231,7 @@ namespace FuckingAround {
 						double resist = this.Mods.GetStat((StatType)(dmg - StatType.Damage) | StatType.Resistance);
 						crap = crap - (int)(crap * resist);
 						ConsoleLoggerHandlerOrWhatever.Log(crap + " " + dmg);
-						total += crap;	//apply all at once to avoid potentially annoying stuff when multitype damage with >100% res damages and heals at once
+						total += crap;	//apply all at once to avoid potentially annoying stuff when multitype damage with >100% res which may damage and heal at once
 					}
 				}
 			}

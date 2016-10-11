@@ -50,6 +50,11 @@ namespace FuckingAround {
 		public Rectangle Rectangle {
 			get { return new Rectangle(X * Size, Y * Size, Size, Size); }
 		}
+		public Tile North	{ get { return Y+1 < Owner.YLength ? Owner[X, Y+1] : null; } }
+		public Tile East	{ get { return X+1 < Owner.XLength ? Owner[X+1, Y] : null; } }
+		public Tile West	{ get { return X-1 >= 0 ? Owner[X-1, Y] : null; } }
+		public Tile South	{ get { return Y-1 >= 0 ? Owner[X, Y-1] : null; } }
+
 		public IEnumerable<Tile> Adjacent {
 			get {
 				if (X - 1 >= 0) yield return Owner[X - 1, Y];
