@@ -8,13 +8,33 @@ namespace FuckingAround {
 	public abstract class Gear {
 		public IEnumerable<EquipmentMod> BaseMods { get; protected set; }
 		public IEnumerable<EquipmentMod> Enchantments { get; protected set; }
-		public IEnumerable<Mod> GlobalMods { get { return BaseMods.Concat(Enchantments).Where(em => em.Global); } }
+		public virtual IEnumerable<Mod> GlobalMods { get { return BaseMods.Concat(Enchantments).Where(em => em.Global).Concat(ModdedMods); } }
 		protected IEnumerable<Mod> PrivMods { get { return BaseMods.Concat(Enchantments).Where(em => !em.Global); } }
+		protected IEnumerable<Mod> ModdedMods {	//get private mods calculated into global add mod
+			get {
+				foreach (StatType stat in Enum.GetValues(typeof(StatType))) {
+					var val = PrivMods.GetStat(stat);
+					if (val != 0) yield return new Mod(stat, ModifyingMethod.Add, val);
+				}
+			}
+		}
 	}
 
-	public abstract class HandGear : Gear { }
+	public class ArmourButNotNecessarilyArmour : Gear {
+		/*
+		public override IEnumerable<Mod> GlobalMods {
+			get { return base.GlobalMods.Concat(ModdedMods); }
+		}*/
+		public ArmourButNotNecessarilyArmour(int armour) {
+			BaseMods = new EquipmentMod[] { new EquipmentMod(StatType.Armour, ModifyingMethod.Add, armour, false) };
+			Enchantments = new EquipmentMod[0];
+		}
+	}
+	public class Shield : ArmourButNotNecessarilyArmour {
+		public Shield(int armour) : base(armour) { }
+	}
 
-	public class Weapon : HandGear {
+	public class Weapon : Gear {
 		public bool TwoH;
 		public virtual void Affect(Skill skill, SkillUser su, Tile target, Action<Skill, SkillUser, Tile> effect) {
 			effect(skill.GetModdedInstance(PrivMods), su, target);
@@ -112,9 +132,6 @@ namespace FuckingAround {
 				effect(skill.GetModdedInstance(mods), su, target);
 			}
 		} 
-	}
-	public class Shield : HandGear {
-
 	}
 
 	public enum GearType {

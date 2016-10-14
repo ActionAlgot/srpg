@@ -61,8 +61,9 @@ namespace FuckingAround {
 			MouseMove += (s, e) => MMouseHover = tileSet.SelectTile(e.X - TileSetOffsetX, e.Y - TileSetOffsetY);
 
 			Turners = new List<ITurnHaver>();
-			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6], MainHand = new Spear(6) });
+			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6] });
 			((Being)Turners[0]).AddPassiveSkill(Passives.All[3]);
+			((Being)Turners[0]).Inventory[0] = new Spear(6);
 			var b1 = new Being(1, 7, 6) { Place = tileSet[7, 8] };
 			//b1.Skills = new ObsoleteSkill[] { new Blackify(b1), new SpeedupChanneling(b1) };
 			b1.AddPassiveSkill(Passives.All[4]);
@@ -82,7 +83,9 @@ namespace FuckingAround {
 						foreach (var skill in activeBeing.Skills)
 							SkillMenu.MenuItems.Add(
 								new MenuItem(skill.Name,
-									(s2, e2) => { if (!activeBeing.ActionTaken) activeBeing.SelectedAction = skill; Refresh(); }));
+									(s2, e2) => {
+										if (!activeBeing.ActionTaken) activeBeing.SelectedAction = skill;
+										Refresh(); }));
 					}
 				};
 

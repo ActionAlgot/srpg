@@ -17,10 +17,12 @@ namespace FuckingAround {
 		public IEnumerable<Mod> Mods {
 			get {
 				return PSkills
-					.SelectMany(ps => ps.Mods); /*
-					.Concat(Equipment.SelectMany(eq => eq.UserMods))
+					.SelectMany(ps => ps.Mods)
+					.Concat(Inventory
+						.Where(g => g != null)
+						.SelectMany(g => g.GlobalMods)) /*
 					.Concat(DebuffsAndBuffs.SelectMany(thing => thing.VictimMods))
-					*/
+					*/;
 			}
 		}
 
@@ -68,24 +70,10 @@ namespace FuckingAround {
 		public int Team { get { return _team; } }
 		public Skill SelectedAction;
 
-		public Weapon Unarmed = new Weapon(2);
-		private Weapon _mainHand;
-		public Weapon MainHand {
-			get { return _mainHand ?? Unarmed; }
-			set {
-				if (value.TwoH && OffHand != null) throw new ArgumentException("TwoHanded requires two hands");
-				else _mainHand = value;
-			}
-		}
-		private HandGear _offHand;
-		public HandGear OffHand {
-			get { return _offHand ?? (MainHand != null && MainHand.TwoH ? null : Unarmed); }
-			set {
-				if (value == null || (!MainHand.TwoH && value is Weapon && ((Weapon)value).TwoH))
-					_offHand = value;
-				else throw new ArgumentException("TwoHanded requires two hands");
-			}
-		}
+		public Weapon Fist = new Weapon(2);
+		public PersonalInventory Inventory { get; private set; }
+		public Weapon MainHand { get { return Inventory.MainHand; } }
+		public Gear OffHand { get { return Inventory.OffHand; } }
 
 		public int GetTraversalCost(Tile t) {
 			if (t.Inhabitant != null && t.Inhabitant.IsAlive) {
@@ -229,7 +217,7 @@ namespace FuckingAround {
 					int crap = (int)mods.GetStat(dmg);
 					if (crap != 0) {
 						double resist = this.Mods.GetStat((StatType)(dmg - StatType.Damage) | StatType.Resistance);
-						crap = crap - (int)(crap * resist);
+						crap = (int)(crap * (1 - resist));
 						ConsoleLoggerHandlerOrWhatever.Log(crap + " " + dmg);
 						total += crap;	//apply all at once to avoid potentially annoying stuff when multitype damage with >100% res which may damage and heal at once
 					}
@@ -240,7 +228,7 @@ namespace FuckingAround {
 		}
 
 		public Being(int team, double speed, int mp) {
-
+			Inventory = new PersonalInventory(this);
 			PSkills = Passives.Default.ToList();
 
 			_speed = speed;

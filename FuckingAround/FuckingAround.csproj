@@ -59,6 +59,7 @@
     <Compile Include="ITurnHaver.cs" />
     <Compile Include="Mods.cs" />
     <Compile Include="PassiveSkill.cs" />
+    <Compile Include="PersonalInventory.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Being.cs" />
