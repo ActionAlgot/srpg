@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FuckingAround {
 	public class PassiveSkill {
-		public List<Mod> _mods;
+		private List<Mod> _mods;
 		public IEnumerable<Mod> Mods { get { return _mods; } }
 		public PassiveSkill(Mod mod) {
 			_mods = new List<Mod>{ mod };
@@ -18,12 +18,11 @@ namespace FuckingAround {
 
 	public static class Passives {
 		public static IEnumerable<PassiveSkill> Default = new PassiveSkill[]{
-			
-			new PassiveSkill(new Mod(StatType.Strength, ModifyingMethod.Add, 10)),
-			new PassiveSkill(new Mod(StatType.Speed, ModifyingMethod.Add, 5)),
-			new PassiveSkill(new Mod(StatType.HP, ModifyingMethod.Add, 20)),
-			new PassiveSkill(new Mod(StatType.ChannelingSpeed, ModifyingMethod.Add, 4)),
-			new PassiveSkill(new Mod(StatType.PhysicalDamage, ModifyingMethod.Convert|ModifyingMethod.AdditiveMultiply, 0.05){ ConversionSource = StatType.Strength})	//5% increase in physical damage for each point in strength
+			new PassiveSkill(new Mod( StatType.Strength, ModifyingMethod.Add, 10)),
+			new PassiveSkill(new Mod( StatType.Speed, ModifyingMethod.Add, 5)),
+			new PassiveSkill(new Mod( StatType.HP, ModifyingMethod.Add, 20)),
+			new PassiveSkill(new Mod( StatType.ChannelingSpeed, ModifyingMethod.Add, 4)),
+			new PassiveSkill(new Mod( StatType.PhysicalDamage, ModifyingMethod.Convert|ModifyingMethod.AdditiveMultiply, 0.05){ ConversionSource = StatType.Strength})	//5% increase in physical damage for each point in strength
 		};
 		public static PassiveSkill[] All = new PassiveSkill[]{
 			new PassiveSkill(new Mod( StatType.Strength, ModifyingMethod.Add, 10 )),	//Increases strength by 10

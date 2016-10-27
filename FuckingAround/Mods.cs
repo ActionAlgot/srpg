@@ -1,10 +1,104 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace FuckingAround {
+
+	public class thing {
+		public Dictionary<StatType, Stat> Stats;
+		public IEnumerable<NewMod> mods;
+		public thing() { }
+	}
+	
+	public abstract class NewMod {
+		public StatType TargetStatType { get; protected set; }
+		public abstract void Affect(Stat stat);
+		public abstract void UnAffect(Stat stat);
+		public virtual void Affect(Dictionary<StatType, Stat> statD){
+			if (!statD.ContainsKey(TargetStatType)) new Stat(TargetStatType, statD);
+			Affect(statD[TargetStatType]);
+		}
+		public virtual void Unaffect(Dictionary<StatType, Stat> statD){
+			UnAffect(statD[TargetStatType]);
+		}
+	}
+	public abstract class SuperStatCompatibleMod : NewMod {
+		public abstract void Affect(astat stat);
+		public abstract void UnAffect(astat stat);
+		public override void Affect(Stat stat) { Affect(stat as astat); }
+		public override void UnAffect(Stat stat) { UnAffect(stat as astat); }
+	}
+
+	public class AdditionMod : SuperStatCompatibleMod {
+		double Value;
+		public override void Affect(astat stat) { stat.Base += Value; }
+		public override void UnAffect(astat stat) { stat.Base -= Value; }
+		public AdditionMod(StatType targetStat, double value) {
+			TargetStatType = targetStat;
+			Value = value;
+		}
+	}
+
+	public class MultiplierMod : SuperStatCompatibleMod {
+		double Value;
+		public override void Affect(astat stat) { stat.Multipliers.Add(Value); }
+		public override void UnAffect(astat stat) {
+			if (stat.Multipliers.Remove(Value)) return;
+			else throw new ArgumentException("No multiplier to be removed was found");
+		}
+
+		public MultiplierMod(StatType targetStat, double value) {
+			TargetStatType = targetStat;
+			Value = value;
+		}
+	}
+
+	public class ConversionMod : NewMod {
+		double Value;
+		StatType sourceType;
+		private SuperStatCompatibleMod SourceMod;
+		private SuperStatCompatibleMod ResultMod;
+
+		private astat Converter(Dictionary<StatType, Stat> std, StatType excluder) {
+			if (sourceType.Supports(excluder)) {
+				var r = new ComboStat(sourceType);
+				ResultMod.Affect(r);	//probably pointless to mod the empty stat, but might as well
+				return r;
+			}
+			if(!std.ContainsKey(sourceType)) new Stat(sourceType, std);
+			var stat = std[sourceType].ExcludingStat(excluder);
+			SourceMod.UnAffect(stat);
+			ResultMod.Affect(stat);
+			return stat;
+		}
+
+		public override void Affect(Dictionary<StatType, Stat> statD) {
+			SourceMod.Affect(statD);
+			base.Affect(statD);
+		}
+		public override void Unaffect(Dictionary<StatType, Stat> statD) {
+			SourceMod.Unaffect(statD);
+			base.Unaffect(statD);
+		}
+		public override void Affect(Stat stat) {
+			stat.Converters.Add(Converter);
+		}
+		public override void UnAffect(Stat stat) {
+			stat.Converters.Remove(Converter);
+		}
+
+		public ConversionMod(StatType targetStat, double value, StatType sourceStat) {
+			TargetStatType = targetStat;
+			Value = value;
+			sourceType = sourceStat;
+			SourceMod = new MultiplierMod(sourceStat, 1 - value);
+			ResultMod = new MultiplierMod(targetStat, value);
+		}
+	}
 
 	public class Mod {
 		public StatType TargetStat;
@@ -116,7 +210,7 @@ namespace FuckingAround {
 	}
 	public static class StatTypeExtensions {
 		public static bool Supports(this StatType stat, StatType target) {
-			return target.HasFlag(stat)/*&& (target&StatType.Restriction).HasFlag(stat&StatType.Restriction)*/;
+			return target.HasFlag(stat);
 		}
 	}
 

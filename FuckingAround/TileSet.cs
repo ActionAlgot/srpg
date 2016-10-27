@@ -55,8 +55,7 @@ namespace FuckingAround {
 			var accumTravCost = new Dictionary<Tile, int>();    //dictionary for accumulated traversal cost
 			var prev = new Dictionary<Tile, Tile>();
 			var tils = new LinkedList<Tile>();
-			accumTravCost.Add(start, 0);
-			tils.AddFirst(start);
+
 			Action<LinkedListNode<Tile>> AddAdjTiles = (node) => {
 				foreach (var adjT in node.Value.Adjacent)
 					if (accumTravCost.ContainsKey(adjT) == false) {
@@ -76,6 +75,8 @@ namespace FuckingAround {
 					}
 			};
 
+			accumTravCost.Add(start, 0);
+			tils.AddFirst(start);
 			for (var node = tils.First; node != null; node = node.Next) {
 				if (node.Value == destination) break;
 				AddAdjTiles(node);
@@ -93,10 +94,9 @@ namespace FuckingAround {
 		public IEnumerable<Tile> GetTraversalArea(Tile start, Func<Tile, int> travCostCalc, int mp) {
 			var accumTravCost = new Dictionary<Tile, int>();    //dictionary for accumulated traversal cost
 			var tils = new LinkedList<Tile>();
-			accumTravCost.Add(start, 0);
-			tils.AddFirst(start);
+
 			Action<LinkedListNode<Tile>> AddAdjTiles = (node) => {
-				foreach (var adjT in node.Value.Adjacent)
+				foreach (var adjT in node.Value.Adjacent) {
 					if (accumTravCost.ContainsKey(adjT) == false) {
 						int adjTravCost = travCostCalc(adjT);
 						if (adjTravCost >= 0) {
@@ -104,13 +104,18 @@ namespace FuckingAround {
 							if (_accumTravCost <= mp) {
 								accumTravCost.Add(adjT, _accumTravCost);
 								var added = false;
-								for (var node2 = node.Next; node2 != null; node2 = node2.Next)
+								for (var node2 = node.Next; node2 != null; node2 = node2.Next) {
 									if (accumTravCost[node2.Value] >= accumTravCost[adjT]) {
 										added = true;
 										tils.AddBefore(node2, adjT);
-										break; }
+										break;
+								}	}
 								if (!added) tils.AddLast(adjT);
-			} } } };
+				}	}	}	}
+			};
+
+			accumTravCost.Add(start, 0);
+			tils.AddFirst(start);
 			AddAdjTiles(tils.First);    //skip 'start'
 			for (var node = tils.First.Next; node != null; node = node.Next) {
 				yield return node.Value;

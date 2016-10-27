@@ -11,9 +11,10 @@ namespace FuckingAround{
 		private Gear[] gear = new Gear[5];
 
 		private Weapon _mainHand;
-		public Weapon MainHand { //set should never be called outside of Equip/Unequip
-			get{ return _mainHand ?? Owner.Fist; }
-			private set { _mainHand = value; } }
+		public Weapon MainHand { //set should never be used outside of Equip/Unequip
+			get { return _mainHand ?? Owner.Fist; }
+			private set { _mainHand = value; }
+		}
 		private Gear _offHand;
 		public Gear OffHand {
 			get { return _offHand ?? (MainHand.TwoH ? null : Owner.Fist); }
@@ -29,8 +30,8 @@ namespace FuckingAround{
 			if (w == null) MainHand = w;
 			else if (MainHand == Owner.Fist) {
 				if (!w.TwoH || OffHand == Owner.Fist) MainHand = w;
-				else throw new ArgumentException("Can't wield 2H in 1H");
-			} else if (MainHand.TwoH) throw new ArgumentException("Can't shit in offhand while wielding 2H");
+				else throw new ArgumentException("Can't wield 2H in 1H"); }
+			else if (MainHand.TwoH) throw new ArgumentException("Can't shit in offhand while wielding 2H");
 			else if (OffHand != Owner.Fist) throw new ArgumentException("Can't triplewield");
 			else if (w.TwoH) throw new ArgumentException("Can't 2H in 1H");
 			else OffHand = w;

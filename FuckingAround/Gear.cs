@@ -6,27 +6,32 @@ using System.Threading.Tasks;
 
 namespace FuckingAround {
 	public abstract class Gear {
-		public IEnumerable<EquipmentMod> BaseMods { get; protected set; }
+		public abstract IEnumerable<EquipmentMod> BaseMods { get; }
 		public IEnumerable<EquipmentMod> Enchantments { get; protected set; }
-		public virtual IEnumerable<Mod> GlobalMods { get { return BaseMods.Concat(Enchantments).Where(em => em.Global).Concat(ModdedMods); } }
-		protected IEnumerable<Mod> PrivMods { get { return BaseMods.Concat(Enchantments).Where(em => !em.Global); } }
-		protected IEnumerable<Mod> ModdedMods {	//get private mods calculated into global add mod
+		public virtual IEnumerable<Mod> GlobalMods { get {
+			return BaseMods
+				.Concat(Enchantments)
+				.Where(em => em.Global)
+				.Concat(ModdedMods);
+		} }
+		protected IEnumerable<Mod> PrivMods { get {
+			return BaseMods
+				.Concat(Enchantments)
+				.Where(em => !em.Global);
+		} }
+		protected IEnumerable<Mod> ModdedMods {	//get private mods calculated into global add mods
 			get {
 				foreach (StatType stat in Enum.GetValues(typeof(StatType))) {
 					var val = PrivMods.GetStat(stat);
 					if (val != 0) yield return new Mod(stat, ModifyingMethod.Add, val);
-				}
-			}
-		}
+		} } }
 	}
 
 	public class ArmourButNotNecessarilyArmour : Gear {
-		/*
-		public override IEnumerable<Mod> GlobalMods {
-			get { return base.GlobalMods.Concat(ModdedMods); }
-		}*/
+		private EquipmentMod BaseArmour;
+		public override IEnumerable<EquipmentMod> BaseMods { get { yield return BaseArmour; } }
 		public ArmourButNotNecessarilyArmour(int armour) {
-			BaseMods = new EquipmentMod[] { new EquipmentMod(StatType.Armour, ModifyingMethod.Add, armour, false) };
+			BaseArmour = new EquipmentMod(StatType.Armour, ModifyingMethod.Add, armour, false);
 			Enchantments = new EquipmentMod[0];
 		}
 	}
@@ -36,6 +41,8 @@ namespace FuckingAround {
 
 	public class Weapon : Gear {
 		public bool TwoH;
+		private EquipmentMod BaseDamage;
+		public override IEnumerable<EquipmentMod> BaseMods { get { yield return BaseDamage; } }
 		public virtual void Affect(Skill skill, SkillUser su, Tile target, Action<Skill, SkillUser, Tile> effect) {
 			effect(skill.GetModdedInstance(PrivMods), su, target);
 		}
@@ -46,7 +53,7 @@ namespace FuckingAround {
 			yield return target;
 		}
 		public Weapon(int dmg) {
-			BaseMods = new EquipmentMod[] { new EquipmentMod(StatType.PhysicalDamage, ModifyingMethod.Add, dmg, false) };
+			BaseDamage = new EquipmentMod(StatType.PhysicalDamage, ModifyingMethod.Add, dmg, false);
 			Enchantments = new EquipmentMod[0];
 		}
 	}
@@ -126,8 +133,8 @@ namespace FuckingAround {
 				if (dif == 0) dif = su.Place.Y - target.Y;
 				var mods = PrivMods;
 				if (Math.Abs(dif) != 1)
-					mods = mods.Concat(	//halve damage v targets 2 tiles away
-						new Mod[] { new Mod(StatType.Damage, ModifyingMethod.Multiply, 0.50) });
+					mods = mods.Concat(	//halve effect v targets 2 tiles away
+						new Mod[] { new Mod(StatType.None, ModifyingMethod.Multiply, 0.50) });
 
 				effect(skill.GetModdedInstance(mods), su, target);
 			}

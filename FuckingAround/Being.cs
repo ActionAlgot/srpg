@@ -220,9 +220,7 @@ namespace FuckingAround {
 						crap = (int)(crap * (1 - resist));
 						ConsoleLoggerHandlerOrWhatever.Log(crap + " " + dmg);
 						total += crap;	//apply all at once to avoid potentially annoying stuff when multitype damage with >100% res which may damage and heal at once
-					}
-				}
-			}
+			}	}	}
 			HP -= total;
 			ConsoleLoggerHandlerOrWhatever.Log(preHP + " => " + HP);
 		}
