@@ -8,6 +8,14 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace FuckingAround {
+
+	public static class StatDictionaryExtensions {
+		public static Stat GetStat(this Dictionary<StatType, Stat> std, StatType statType) {
+			if (!std.ContainsKey(statType)) new Stat(statType, std);
+			return std[statType];
+		}
+	}
+
 	public class Stat : astat{
 
 		public Stat(StatType statType, Dictionary<StatType, Stat> owner){
@@ -15,6 +23,7 @@ namespace FuckingAround {
 			Owner = owner;
 			if (!Owner.ContainsKey(StatType)) Owner[StatType] = this;
 			else if (Owner[StatType] != this) throw new ArgumentException("'owner' already contains a stat of StatType" + StatType);
+			_multipliers.CollectionChanged += OnMultipliersChanged;
 		}
 
 		public class ValueUpdatedEventArgs : EventArgs {

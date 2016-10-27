@@ -66,11 +66,10 @@ namespace FuckingAround {
 		private astat Converter(Dictionary<StatType, Stat> std, StatType excluder) {
 			if (sourceType.Supports(excluder)) {
 				var r = new ComboStat(sourceType);
-				ResultMod.Affect(r);	//probably pointless to mod the empty stat, but might as well
+				ResultMod.Affect(r);	//probably pointless to mod the empty stat, but might as well do it
 				return r;
 			}
-			if(!std.ContainsKey(sourceType)) new Stat(sourceType, std);
-			var stat = std[sourceType].ExcludingStat(excluder);
+			var stat = std.GetStat(sourceType).ExcludingStat(excluder);
 			SourceMod.UnAffect(stat);
 			ResultMod.Affect(stat);
 			return stat;
