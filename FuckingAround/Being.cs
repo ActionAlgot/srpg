@@ -13,7 +13,12 @@ namespace FuckingAround {
 		private List<PassiveSkill> PSkills;
 		public void AddPassiveSkill(PassiveSkill passiveSkill) {
 			PSkills.Add(passiveSkill);
+			foreach (var m in passiveSkill.Mods)
+				m.Affect(Stats);
 		}
+		public Dictionary<StatType, Stat> Stats { get; protected set; }
+		public Dictionary<object, Dictionary<StatType, Stat>> OtherStats { get; protected set; }
+		public Stat this[StatType asdf]{ get { return Stats.GetStat(asdf); } }
 		public IEnumerable<Mod> Mods {
 			get {
 				return PSkills
@@ -28,7 +33,7 @@ namespace FuckingAround {
 
 		public bool IsAlive { get { return HP > 0; } }
 
-		public int MaxHP { get { return (int)Mods.GetStat(StatType.HP); } }
+		public int MaxHP { get { return (int)this[StatType.HP].Value; } }
 		private int _hp;
 		public int HP {
 			get { return _hp; }
@@ -50,7 +55,7 @@ namespace FuckingAround {
 
 		protected double _speed;
 		
-		public double Speed { get { return IsAlive ? Mods.GetStat(StatType.Speed) : 0; } }
+		public double Speed { get { return IsAlive ? this[StatType.Speed].Value : 0; } }
 		public double Awaited { get; protected set; }
 
 		public void Await(double time) {
@@ -209,16 +214,16 @@ namespace FuckingAround {
 			Awaited = 0;
 			Brush = new SolidBrush(Color.DarkOrange);
 		}
-		public void TakeDamage(IEnumerable<Mod> mods) {
+		public void TakeDamage(Dictionary<StatType, Stat> damages) {
 			int preHP = HP;
 			int total = 0;
-			foreach (StatType dmg in Enum.GetValues(typeof(StatType))) {
-				if ((dmg & StatType.Damage) == StatType.Damage && dmg != StatType.Damage) {
-					int crap = (int)mods.GetStat(dmg);
+			foreach (StatType dmgType in Enum.GetValues(typeof(StatType))) {
+				if ((dmgType & StatType.Damage) == StatType.Damage && dmgType != StatType.Damage) {
+					int crap = (int)damages.GetStat(dmgType).Value;
 					if (crap != 0) {
-						double resist = this.Mods.GetStat((StatType)(dmg - StatType.Damage) | StatType.Resistance);
+						double resist = this[(StatType)(dmgType - StatType.Damage) | StatType.Resistance].Value;
 						crap = (int)(crap * (1 - resist));
-						ConsoleLoggerHandlerOrWhatever.Log(crap + " " + dmg);
+						ConsoleLoggerHandlerOrWhatever.Log(crap + " " + dmgType);
 						total += crap;	//apply all at once to avoid potentially annoying stuff when multitype damage with >100% res which may damage and heal at once
 			}	}	}
 			HP -= total;
@@ -226,8 +231,15 @@ namespace FuckingAround {
 		}
 
 		public Being(int team, double speed, int mp) {
+
+			Stats = new Dictionary<StatType, Stat>();
+			OtherStats = new Dictionary<object, Dictionary<StatType, Stat>>();
+
 			Inventory = new PersonalInventory(this);
 			PSkills = Passives.Default.ToList();
+
+			foreach (var m in Mods)
+				m.Affect(Stats);
 
 			_speed = speed;
 			Skills = SkillsRepo.Default.ToList();

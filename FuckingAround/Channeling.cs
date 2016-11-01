@@ -9,7 +9,7 @@ namespace FuckingAround {
 		#region ITurnHaver
 		public event EventHandler TurnFinished;
 		protected double _awaited;
-		public double Speed { get { return Mods.GetStat(StatType.ChannelingSpeed); } }
+		public double Speed { get { return Stats.GetStat(StatType.ChannelingSpeed).Value; } }
 		public double Awaited { get { return _awaited; } }
 		public void Await(double time) {
 			_awaited += Speed * time;
@@ -17,14 +17,8 @@ namespace FuckingAround {
 		#endregion
 		public Weapon Weapon { get { return null; } }	//Kill me
 
-		public void AddMod(Mod mod) {
-			_mods.Add(mod);
-		}
-		public void AddMods(IEnumerable<Mod> mods) {
-			_mods.AddRange(mods.ToList());
-		}
-		private List<Mod> _mods;
-		public IEnumerable<Mod> Mods { get { return _mods; } }
+		public Dictionary<StatType, Stat> Stats { get; protected set; }
+		public Dictionary<object, Dictionary<StatType, Stat>> OtherStats { get; protected set; }
 
 		private Tile _place;
 		public Tile Place {
@@ -48,21 +42,29 @@ namespace FuckingAround {
 			if (!Skill.Do(this, TargetSelector()))
 				ConsoleLoggerHandlerOrWhatever.Log(this.ToString() + " cast " + Skill.Name + " and hit nothing.");
 			_awaited = 0;	//should just kill self
-			_mods = new List<Mod>();
 			if (TurnFinished != null) TurnFinished(this, EventArgs.Empty);
 			Place = null;
 		}
 
 		public ChannelingInstance(IEnumerable<Mod> mods, Skill skill, Tile place, Func<Tile> targetSelector) {
-			_mods = mods.ToList();
+			Stats = new Dictionary<StatType, Stat>();
+			OtherStats = new Dictionary<object, Dictionary<StatType, Stat>>();
 
 			Skill = skill;
 			Place = place;
 			TargetSelector = targetSelector;
 
+			foreach (var m in mods)
+				m.Affect(Stats);
+
 			Draw = g => g.FillRectangle(new System.Drawing.SolidBrush(System.Drawing.Color.Pink), Place.Rectangle);
 			TurnFinished += (s, e) => TurnTracker.Remove(this);
 		}
 		public ChannelingInstance(IEnumerable<Mod> mods, Skill skill, Tile place) : this(mods, skill, place, () => place) { }
+	}
+	public static class SkillUserChannelingExtensions {
+		public static IEnumerable<Mod> GetChannelingMods(this SkillUser su) {
+			yield return new AdditionMod(StatType.ChannelingSpeed, su.Stats.GetStat(StatType.ChannelingSpeed).Value);
+		}
 	}
 }

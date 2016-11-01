@@ -11,7 +11,7 @@ namespace FuckingAround {
 
 		private List<astat> components = new List<astat>();
 		public void AddComponent(astat stat) {
-			components.Add(stat);
+			Update(() => components.Add(stat));
 		}
 
 		private double _base;

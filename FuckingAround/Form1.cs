@@ -66,7 +66,7 @@ namespace FuckingAround {
 			((Being)Turners[0]).Inventory[0] = new Spear(6);
 			var b1 = new Being(1, 7, 6) { Place = tileSet[7, 8] };
 			//b1.Skills = new ObsoleteSkill[] { new Blackify(b1), new SpeedupChanneling(b1) };
-			b1.AddPassiveSkill(Passives.All[4]);
+			//b1.AddPassiveSkill(Passives.All[4]);
 			Turners.Add(b1);
 			var b2 = new Being(2, 8, 7) { Place = tileSet[9, 10] };
 			//b2.Skills = new ObsoleteSkill[] { new ChannelingSpell(b2, new Blackify(b2), t => () => t, fuckpiss) };

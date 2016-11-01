@@ -32,7 +32,7 @@ namespace FuckingAround {
 			}
 			else return false;
 		}
-
+		
 		public Skill GetModdedInstance(IEnumerable<Mod> mods) {
 			Skill copy = this.MemberwiseClone() as Skill;
 			copy.Mods = Mods.Concat(mods).ToList();
@@ -59,6 +59,18 @@ namespace FuckingAround {
 				_Effect = effect;
 				Mods = mods.ToList();
 		}
+		public Dictionary<StatType, Stat> GetDic(SkillUser su) {
+			if (!su.OtherStats.ContainsKey(this)) {
+				su.OtherStats[this] = su.Stats.Copy();
+				foreach (var m in this.Mods)
+					m.Affect(su.OtherStats[this]);
+			}
+			return su.OtherStats[this];
+		}
+
+		public double GetStat(StatType st, SkillUser su) {
+			return GetDic(su).GetStat(st).Value;
+		}
 	}
 
 	public static class SkillsRepo {
@@ -82,7 +94,7 @@ namespace FuckingAround {
 				return ((Being)su).MainHand.Range(skill, su);
 			}
 			public static IEnumerable<Tile> GetFromMods(Skill skill, SkillUser su) {
-				return su.Place.GetArea((int)skill.Mods.Concat(su.Mods).GetStat(StatType.Range));
+				return su.Place.GetArea((int)skill.GetStat(StatType.Range, su));
 			}
 		}
 		private static class AoE {
@@ -95,18 +107,18 @@ namespace FuckingAround {
 				return new Tile[] { target };
 			}
 			public static IEnumerable<Tile> FromMods(Skill skill, SkillUser su, Tile target) {
-				return target.GetArea((int)skill.Mods.Concat(su.Mods).GetStat(StatType.AreaOfEffect));
+				return target.GetArea((int)skill.GetStat(StatType.AreaOfEffect, su));
 			}
 		}
 		private static class Effect {
 			public static void Damage(Skill skill, SkillUser su, Tile target) {
-				if(target.Inhabitant != null) target.Inhabitant.TakeDamage(skill.Mods.Concat(su.Mods));
+				if(target.Inhabitant != null) target.Inhabitant.TakeDamage(skill.GetDic(su));
 			}
 
 			public static Action<Skill, SkillUser, Tile> Channel(Skill skill) {
 				return (s, su, t) => {
 					if (t.ChannelingInstance == null) {
-						t.ChannelingInstance = new ChannelingInstance(su.Mods, skill, t);
+						t.ChannelingInstance = new ChannelingInstance(su.GetChannelingMods(), skill, t);
 						TurnTracker.Add(t.ChannelingInstance);
 					} else throw new Exception("bullshit");
 				};
@@ -114,7 +126,8 @@ namespace FuckingAround {
 			public static Action<Skill, SkillUser, Tile> AddModsToChannel(IEnumerable<Mod> mods) {
 				return (s, su, t) => {
 					if(t.ChannelingInstance != null){
-						t.ChannelingInstance.AddMods(mods);
+						foreach(var m in mods)
+							m.Affect(t.ChannelingInstance.Stats);
 					} else throw new Exception("bullshit");
 				};
 			}
@@ -139,8 +152,8 @@ namespace FuckingAround {
 			AoE.FromMods,
 			(s, su, t) => { if(t.Inhabitant != null) t.Inhabitant.Brush = new System.Drawing.SolidBrush(System.Drawing.Color.Black);},
 			new Mod[]{
-				new Mod(StatType.Range, ModifyingMethod.Add, 6),
-				new Mod(StatType.AreaOfEffect, ModifyingMethod.Add, 2)
+				new AdditionMod(StatType.Range, 6),
+				new AdditionMod(StatType.AreaOfEffect, 2)
 			});
 		public static Skill BlackifyChannel = new Skill("Blackify channeling",
 			Validation.NoChannelingInstance,
@@ -148,15 +161,15 @@ namespace FuckingAround {
 			AoE.TargetOnly,
 			Effect.Channel(Blackify),
 			new Mod[]{
-				new Mod(StatType.Range, ModifyingMethod.Add, 6)
+				new AdditionMod(StatType.Range, 6)
 			});
 		public static Skill ChannelSpeedUp = new Skill("Channel speedup",
 			Validation.AnyChannelingInstanceInArea,
 			Range.GetFromMods,
 			AoE.TargetOnly,
-			Effect.AddModsToChannel(new Mod[] { new Mod(StatType.ChannelingSpeed, ModifyingMethod.Add, 3) }),
+			Effect.AddModsToChannel(new Mod[] { new AdditionMod(StatType.ChannelingSpeed, 3) }),
 			new Mod[] { 
-				new Mod(StatType.Range, ModifyingMethod.Add, 6)
+				new AdditionMod(StatType.Range, 6)
 			});
 
 		public static IEnumerable<Skill> Default = new Skill[]{
@@ -170,6 +183,7 @@ namespace FuckingAround {
 	public interface SkillUser {
 		Tile Place { get; }
 		//Weapon Weapon { get; }	//I'm a dumb fuck
-		IEnumerable<Mod> Mods { get; }	
+		Dictionary<StatType, Stat> Stats { get; }
+		Dictionary<object, Dictionary<StatType, Stat>> OtherStats { get; }	
 	}
 }

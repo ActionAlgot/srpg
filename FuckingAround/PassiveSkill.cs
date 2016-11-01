@@ -18,21 +18,18 @@ namespace FuckingAround {
 
 	public static class Passives {
 		public static IEnumerable<PassiveSkill> Default = new PassiveSkill[]{
-			new PassiveSkill(new Mod( StatType.Strength, ModifyingMethod.Add, 10)),
-			new PassiveSkill(new Mod( StatType.Speed, ModifyingMethod.Add, 5)),
-			new PassiveSkill(new Mod( StatType.HP, ModifyingMethod.Add, 20)),
-			new PassiveSkill(new Mod( StatType.ChannelingSpeed, ModifyingMethod.Add, 4)),
-			new PassiveSkill(new Mod( StatType.PhysicalDamage, ModifyingMethod.Convert|ModifyingMethod.AdditiveMultiply, 0.05){ ConversionSource = StatType.Strength})	//5% increase in physical damage for each point in strength
+			new PassiveSkill(new AdditionMod(StatType.Strength, 10)),
+			new PassiveSkill(new AdditionMod(StatType.Speed, 5)),
+			new PassiveSkill(new AdditionMod(StatType.HP, 20)),
+			new PassiveSkill(new AdditionMod(StatType.ChannelingSpeed,  4)),
+			//new PassiveSkill(new Mod( StatType.PhysicalDamage, ModifyingMethod.Convert|ModifyingMethod.AdditiveMultiply, 0.05){ ConversionSource = StatType.Strength})	//5% increase in physical damage for each point in strength
 		};
 		public static PassiveSkill[] All = new PassiveSkill[]{
-			new PassiveSkill(new Mod( StatType.Strength, ModifyingMethod.Add, 10 )),	//Increases strength by 10
-			new PassiveSkill(new Mod( StatType.Strength, ModifyingMethod.AdditiveMultiply, 0.20 )),	//Increases strength by 20%
-			new PassiveSkill(new Mod( StatType.Strength, ModifyingMethod.Convert|ModifyingMethod.Add, 0.10 ){ ConversionSource = StatType.PhysicalDamage}),	//gain 10% of physical damage as bonus fire damage
-			new PassiveSkill(new Mod[]{	//Converts 50% of PhysicalDamage to FireDamage
-				new Mod( StatType.PhysicalDamage, ModifyingMethod.Multiply, 0.50),	//TODO fix 100% conversion
-				new Mod( StatType.FireDamage, ModifyingMethod.Convert|ModifyingMethod.Add, 0.50*(1/0.50)){ ConversionSource = StatType.PhysicalDamage }	//value is 1 rather than 0.5 because mod above is applied first
-			}),
-			new PassiveSkill(new Mod(StatType.FireResistance,ModifyingMethod.Add, 0.50))	//50% fire resistance
+			new PassiveSkill(new AdditionMod(StatType.Strength,  10)),	//Increases strength by 10
+			new PassiveSkill(new AdditiveMultiplierMod(StatType.Strength, 0.20)),	//Increases strength by 20%
+			new PassiveSkill(new ConversionMod(StatType.FireDamage, 0.10, StatType.PhysicalDamage)),	//gain 10% of physical damage as bonus fire damage
+			new PassiveSkill(new ConversionMod(StatType.FireDamage, 0.50, StatType.PhysicalDamage)),	//Converts 50% of PhysicalDamage to FireDamage
+			new PassiveSkill(new AdditionMod(StatType.FireResistance, 0.50))	//50% fire resistance
 		};
 
 	}

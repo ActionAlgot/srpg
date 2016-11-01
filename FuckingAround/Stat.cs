@@ -9,14 +9,48 @@ using System.Threading.Tasks;
 
 namespace FuckingAround {
 
+	[Flags]
+	public enum StatType {
+		None = 0,
+		Strength = 1 << 0, Dexterity = 1 << 1, Speed = 1 << 2, HP = 1 << 3, MP = 1 << 4,
+		Damage = 1 << 6, Physical = 1 << 7, Fire = 1 << 8, Ice = 1 << 9, Lightning = 1 << 10,
+		PhysicalDamage = Damage | Physical, FireDamage = Damage | Fire, IceDamage = Damage | Ice, LightningDamage = Damage | Lightning,
+		ChannelingSpeed = 1 << 11,
+		Resistance = 1 << 12, Threshold = 1 << 13, Penetration = 1 << 14,
+		Armour = Resistance | Physical, FireResistance = Resistance | Fire, IceResistance = Resistance | Ice, LightningResistance = Resistance | Lightning,
+		ArmourPenetration = Penetration | Physical, FirePenetration = Penetration | Fire,
+		Range = 1 << 15, AreaOfEffect = 1 << 16, Weapon = 1 << 17, Spell = 1 << 18, WeaponRange = Weapon | Range
+		//, Restriction = Weapon|Spell
+	}
+	public static class StatTypeExtensions {
+		public static bool Supports(this StatType stat, StatType target) {
+			return target.HasFlag(stat);
+		}
+	}
+
 	public static class StatDictionaryExtensions {
 		public static Stat GetStat(this Dictionary<StatType, Stat> std, StatType statType) {
 			if (!std.ContainsKey(statType)) new Stat(statType, std);
 			return std[statType];
 		}
+		public static Dictionary<StatType, Stat> Copy(this Dictionary<StatType, Stat> std) {
+			var r = new Dictionary<StatType, Stat>();
+			foreach (var s in std.Values)
+				s.CreateCopy(r);
+			return r;
+		}
 	}
 
 	public class Stat : astat{
+
+		public void CreateCopy(Dictionary<StatType, Stat> newOwner) {
+			var that = new Stat(this.StatType, newOwner);
+			that.Base = this.Base;
+			that.AdditiveMultipliers = this.AdditiveMultipliers;
+			foreach(var m in this.Multipliers)
+				that.Multipliers.Add(m);
+			that.Converters = this.Converters.ToList();
+		}
 
 		public Stat(StatType statType, Dictionary<StatType, Stat> owner){
 			StatType = statType;
