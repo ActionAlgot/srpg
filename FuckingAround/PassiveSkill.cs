@@ -27,8 +27,10 @@ namespace FuckingAround {
 		public static PassiveSkill[] All = new PassiveSkill[]{
 			new PassiveSkill(new AdditionMod(StatType.Strength,  10)),	//Increases strength by 10
 			new PassiveSkill(new AdditiveMultiplierMod(StatType.Strength, 0.20)),	//Increases strength by 20%
+			//TODO 
 			new PassiveSkill(new ConversionMod(StatType.FireDamage, 0.10, StatType.PhysicalDamage)),	//gain 10% of physical damage as bonus fire damage
 			new PassiveSkill(new ConversionMod(StatType.FireDamage, 0.50, StatType.PhysicalDamage)),	//Converts 50% of PhysicalDamage to FireDamage
+			new PassiveSkill(new ConversionMod(StatType.PhysicalDamage, 0.50, StatType.FireDamage)),	//Converts 50% of FireDamage to PhysicalDamage
 			new PassiveSkill(new AdditionMod(StatType.FireResistance, 0.50))	//50% fire resistance
 		};
 

@@ -16,8 +16,8 @@ namespace FuckingAround {
 			foreach (var m in passiveSkill.Mods)
 				m.Affect(Stats);
 		}
-		public Dictionary<StatType, Stat> Stats { get; protected set; }
-		public Dictionary<object, Dictionary<StatType, Stat>> OtherStats { get; protected set; }
+		public StatSet Stats { get; protected set; }
+		public Dictionary<object, StatSet> OtherStats { get; protected set; }
 		public Stat this[StatType asdf]{ get { return Stats.GetStat(asdf); } }
 		public IEnumerable<Mod> Mods {
 			get {
@@ -214,7 +214,7 @@ namespace FuckingAround {
 			Awaited = 0;
 			Brush = new SolidBrush(Color.DarkOrange);
 		}
-		public void TakeDamage(Dictionary<StatType, Stat> damages) {
+		public void TakeDamage(StatSet damages) {
 			int preHP = HP;
 			int total = 0;
 			foreach (StatType dmgType in Enum.GetValues(typeof(StatType))) {
@@ -232,8 +232,8 @@ namespace FuckingAround {
 
 		public Being(int team, double speed, int mp) {
 
-			Stats = new Dictionary<StatType, Stat>();
-			OtherStats = new Dictionary<object, Dictionary<StatType, Stat>>();
+			Stats = new StatSet();
+			OtherStats = new Dictionary<object, StatSet>();
 
 			Inventory = new PersonalInventory(this);
 			PSkills = Passives.Default.ToList();

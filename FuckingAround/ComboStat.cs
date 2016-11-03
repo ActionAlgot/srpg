@@ -24,7 +24,8 @@ namespace FuckingAround {
 			get { return _additiveMultipliers; }
 			set { Update(() => _additiveMultipliers = value); }
 		}
-		public Stat AdditiveFuckYou { get { return new Stat() { AdditiveMultipliers = AdditiveMultipliers }; } }
+		//additive multiplier to be injected into component stats
+		public Stat AdditiveFuckYou { get { return new Stat() { AdditiveMultipliers = this.AdditiveMultipliers }; } }
 
 		public class ValueUpdatedEventArgs : EventArgs {
 			public double PrevValue;

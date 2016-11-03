@@ -59,9 +59,10 @@ namespace FuckingAround {
 				_Effect = effect;
 				Mods = mods.ToList();
 		}
-		public Dictionary<StatType, Stat> GetDic(SkillUser su) {
+		public StatSet GetStatSet(SkillUser su) {
 			if (!su.OtherStats.ContainsKey(this)) {
-				su.OtherStats[this] = su.Stats.Copy();
+				su.OtherStats[this] = new StatSet();
+				su.OtherStats[this].AddSubSet(su.Stats);
 				foreach (var m in this.Mods)
 					m.Affect(su.OtherStats[this]);
 			}
@@ -69,7 +70,7 @@ namespace FuckingAround {
 		}
 
 		public double GetStat(StatType st, SkillUser su) {
-			return GetDic(su).GetStat(st).Value;
+			return GetStatSet(su)[st];
 		}
 	}
 
@@ -112,7 +113,7 @@ namespace FuckingAround {
 		}
 		private static class Effect {
 			public static void Damage(Skill skill, SkillUser su, Tile target) {
-				if(target.Inhabitant != null) target.Inhabitant.TakeDamage(skill.GetDic(su));
+				if(target.Inhabitant != null) target.Inhabitant.TakeDamage(skill.GetStatSet(su));
 			}
 
 			public static Action<Skill, SkillUser, Tile> Channel(Skill skill) {
@@ -167,7 +168,7 @@ namespace FuckingAround {
 			Validation.AnyChannelingInstanceInArea,
 			Range.GetFromMods,
 			AoE.TargetOnly,
-			Effect.AddModsToChannel(new Mod[] { new AdditionMod(StatType.ChannelingSpeed, 3) }),
+			Effect.AddModsToChannel(new Mod[] { new AdditionMod(StatType.None, 3) }),
 			new Mod[] { 
 				new AdditionMod(StatType.Range, 6)
 			});
@@ -183,7 +184,7 @@ namespace FuckingAround {
 	public interface SkillUser {
 		Tile Place { get; }
 		//Weapon Weapon { get; }	//I'm a dumb fuck
-		Dictionary<StatType, Stat> Stats { get; }
-		Dictionary<object, Dictionary<StatType, Stat>> OtherStats { get; }	
+		StatSet Stats { get; }
+		Dictionary<object, StatSet> OtherStats { get; }	
 	}
 }

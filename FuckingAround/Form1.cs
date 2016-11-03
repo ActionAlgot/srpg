@@ -63,7 +63,8 @@ namespace FuckingAround {
 			Turners = new List<ITurnHaver>();
 			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6] });
 			((Being)Turners[0]).AddPassiveSkill(Passives.All[3]);
-			((Being)Turners[0]).Inventory[0] = new Spear(6);
+			((Being)Turners[0]).AddPassiveSkill(Passives.All[4]);
+			((Being)Turners[0]).Inventory[0] = new Spear(12);
 			var b1 = new Being(1, 7, 6) { Place = tileSet[7, 8] };
 			//b1.Skills = new ObsoleteSkill[] { new Blackify(b1), new SpeedupChanneling(b1) };
 			//b1.AddPassiveSkill(Passives.All[4]);
@@ -80,12 +81,17 @@ namespace FuckingAround {
 						((ChannelingInstance)CurrentTurnHaver).Do();
 					if (activeBeing != null) {
 						SkillMenu.MenuItems.Clear();
-						foreach (var skill in activeBeing.Skills)
+						foreach (var skill in activeBeing.Skills) {
 							SkillMenu.MenuItems.Add(
-								new MenuItem(skill.Name,
+								new MenuItem(
+									skill.Name,
 									(s2, e2) => {
 										if (!activeBeing.ActionTaken) activeBeing.SelectedAction = skill;
-										Refresh(); }));
+										Refresh();
+									}
+								)
+							);
+						}
 					}
 				};
 

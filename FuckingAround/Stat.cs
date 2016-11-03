@@ -28,22 +28,9 @@ namespace FuckingAround {
 		}
 	}
 
-	public static class StatDictionaryExtensions {
-		public static Stat GetStat(this Dictionary<StatType, Stat> std, StatType statType) {
-			if (!std.ContainsKey(statType)) new Stat(statType, std);
-			return std[statType];
-		}
-		public static Dictionary<StatType, Stat> Copy(this Dictionary<StatType, Stat> std) {
-			var r = new Dictionary<StatType, Stat>();
-			foreach (var s in std.Values)
-				s.CreateCopy(r);
-			return r;
-		}
-	}
-
 	public class Stat : astat{
 
-		public void CreateCopy(Dictionary<StatType, Stat> newOwner) {
+		public void CreateCopy(StatSet newOwner) {
 			var that = new Stat(this.StatType, newOwner);
 			that.Base = this.Base;
 			that.AdditiveMultipliers = this.AdditiveMultipliers;
@@ -52,38 +39,34 @@ namespace FuckingAround {
 			that.Converters = this.Converters.ToList();
 		}
 
-		public Stat(StatType statType, Dictionary<StatType, Stat> owner){
+		public Stat(StatType statType, StatSet owner){
+			_multipliers.CollectionChanged += OnMultipliersChanged;
 			StatType = statType;
 			Owner = owner;
-			if (!Owner.ContainsKey(StatType)) Owner[StatType] = this;
-			else if (Owner[StatType] != this) throw new ArgumentException("'owner' already contains a stat of StatType" + StatType);
-			_multipliers.CollectionChanged += OnMultipliersChanged;
+			Owner.AddStat(this);
+			UpToDate = false;
+			if (ValueUpdated != null)
+				ValueUpdated(this, new ValueUpdatedEventArgs(StatType));
 		}
 
 		public class ValueUpdatedEventArgs : EventArgs {
-			public double PrevValue;
-			public ValueUpdatedEventArgs(double prevVal) {
-				PrevValue = prevVal;
+			public StatType StatType;
+			public ValueUpdatedEventArgs(StatType st) {
+				StatType = st;
 			}
 		}
 
-		private void Recalc() {
-			LoneValue = Base * (1 + AdditiveMultipliers) * Multipliers.Aggregate(0.0, (a, b) => a * b);
-		}
-
 		private void Update(Action setter) {
-			var prevVal = LoneValue;
 			setter();
-			Recalc();
+			UpToDate = false;
 			if (ValueUpdated != null)
-				ValueUpdated(this, new ValueUpdatedEventArgs(prevVal));
+				ValueUpdated(this, new ValueUpdatedEventArgs(StatType));
 		}
 		private T Update<T>(Func<T> setter) {
-			var prevVal = LoneValue;
 			T r = setter();
-			Recalc();
+			UpToDate = false;
 			if (ValueUpdated != null)
-				ValueUpdated(this, new ValueUpdatedEventArgs(prevVal));
+				ValueUpdated(this, new ValueUpdatedEventArgs(StatType));
 			return r;
 		}
 
@@ -109,18 +92,17 @@ namespace FuckingAround {
 
 		public event EventHandler<ValueUpdatedEventArgs> ValueUpdated;
 
-		public List<Func<Dictionary<StatType, Stat>, StatType, astat>> Converters =
-			new List<Func<Dictionary<StatType, Stat>, StatType, astat>>();
-		public IEnumerable<Func<Dictionary<StatType, Stat>, StatType, astat>> ConvertersAndSupportingConverters {
+		public List<Func<StatSet, StatType, astat>> Converters =
+			new List<Func<StatSet, StatType, astat>>();
+		public IEnumerable<Func<StatSet, StatType, astat>> ConvertersAndSupportingConverters {
 			get { return Converters.Concat(SupportingStats.SelectMany(ss => ss.Converters)); }
 		}
 
-		private Dictionary<StatType, Stat> Owner;
+		private StatSet Owner;
 		private IEnumerable<Stat> SupportingStats { get {
 			if (Owner == null) return new Stat[0];
-			else return Owner
-				.Select(kv => kv.Value)
-				.Where(s => s.StatType.Supports(this.StatType) && s != this);
+			else return Owner.GetSupporting(StatType)
+				.Where(s => s != this);
 		} }
 
 		public IEnumerable<astat> GetConversions() {
@@ -132,16 +114,27 @@ namespace FuckingAround {
 				.Where(s => !s.StatType.Supports(excluder));
 		}
 
+		//Flags the stat for recalculation but does not raise ValueUpdated event
+		public void Invalidate() { UpToDate = false; }
+		private bool UpToDate;
+
 		public override double Value { get { return FullStat.Value; } }
+		private ComboStat _fullStat;
 		public ComboStat FullStat {
 			get {
-				var r = new ComboStat(SupportingStats, this);
-				foreach (var cs in GetConversions())
-					if (cs.StatType.Supports(this.StatType)) throw new ArgumentException(String.Format("Illegal conversion: {0} to {1}", cs.StatType, this.StatType));
-					else if (this.StatType.Supports(cs.StatType)) throw new ArgumentException(String.Format("Illegal conversion: {0} to {1}", this.StatType, cs.StatType));
-					else r.AddComponent(cs);
-				return r;
+				if (!UpToDate) UpdateFullStat();
+				return _fullStat;
 			}
+		}
+
+		protected void UpdateFullStat() {
+			var r = new ComboStat(SupportingStats, this);
+			foreach (var cs in GetConversions())
+				if (cs.StatType.Supports(this.StatType)) throw new ArgumentException(String.Format("Illegal conversion: {0} to {1}", cs.StatType, this.StatType));
+				else if (this.StatType.Supports(cs.StatType)) throw new ArgumentException(String.Format("Illegal conversion: {0} to {1}", this.StatType, cs.StatType));
+				else r.AddComponent(cs);
+			_fullStat = r;
+			UpToDate = true;
 		}
 		public ComboStat ExcludingStat(StatType excluder) {
 			var r = new ComboStat(SupportingStats.Where(ss => !ss.StatType.Supports(excluder)), this);
@@ -151,7 +144,7 @@ namespace FuckingAround {
 				else r.AddComponent(cs);
 			return r;
 		}
-		public double LoneValue { get; private set; }
+		public double LoneValue { get { return Base * (1 + AdditiveMultipliers) * Multipliers.Aggregate(0.0, (a, b) => a * b); } }
 		public Stat() {
 			_multipliers.CollectionChanged += OnMultipliersChanged;
 		}

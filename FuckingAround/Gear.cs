@@ -24,12 +24,12 @@ namespace FuckingAround {
 		} }
 		protected IEnumerable<Mod> ModdedMods {	//get private mods calculated into global add mods
 			get {
-				var r = new Dictionary<StatType, Stat>();
+				var r = new StatSet();
 				var r2 = new List<Mod>();
 				foreach (var m in PrivMods)
 					if (m is ConversionMod) r2.Add(m);
 					else m.Affect(r);
-				return r.Values
+				return r.AsEnumerableStats()
 					.Select(stat => new AdditionMod(stat.StatType, stat.LoneValue))
 					.Concat(r2);
 		} }

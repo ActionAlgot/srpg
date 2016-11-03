@@ -12,12 +12,11 @@ namespace FuckingAround {
 		public StatType TargetStatType { get; protected set; }
 		public abstract void Affect(Stat stat);
 		public abstract void UnAffect(Stat stat);
-		public virtual void Affect(Dictionary<StatType, Stat> statD){
-			if (!statD.ContainsKey(TargetStatType)) new Stat(TargetStatType, statD);
-			Affect(statD[TargetStatType]);
+		public virtual void Affect(StatSet statD){
+			Affect(statD.GetStat(TargetStatType));
 		}
-		public virtual void Unaffect(Dictionary<StatType, Stat> statD){
-			UnAffect(statD[TargetStatType]);
+		public virtual void Unaffect(StatSet statD){
+			UnAffect(statD.GetStat(TargetStatType));
 		}
 	}
 	public abstract class SuperStatCompatibleMod : Mod {
@@ -67,23 +66,23 @@ namespace FuckingAround {
 		private SuperStatCompatibleMod SourceMod;
 		private SuperStatCompatibleMod ResultMod;
 
-		private astat Converter(Dictionary<StatType, Stat> std, StatType excluder) {
+		private astat Converter(StatSet ss, StatType excluder) {
 			if (sourceType.Supports(excluder)) {
 				var r = new ComboStat(sourceType);
 				ResultMod.Affect(r);	//probably pointless to mod the empty stat, but might as well do it
 				return r;
 			}
-			var stat = std.GetStat(sourceType).ExcludingStat(excluder);
+			var stat = ss.GetStat(sourceType).ExcludingStat(excluder);
 			SourceMod.UnAffect(stat);
 			ResultMod.Affect(stat);
 			return stat;
 		}
 
-		public override void Affect(Dictionary<StatType, Stat> statD) {
+		public override void Affect(StatSet statD) {
 			SourceMod.Affect(statD);
 			base.Affect(statD);
 		}
-		public override void Unaffect(Dictionary<StatType, Stat> statD) {
+		public override void Unaffect(StatSet statD) {
 			SourceMod.Unaffect(statD);
 			base.Unaffect(statD);
 		}

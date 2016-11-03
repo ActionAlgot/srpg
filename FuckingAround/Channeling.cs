@@ -9,7 +9,7 @@ namespace FuckingAround {
 		#region ITurnHaver
 		public event EventHandler TurnFinished;
 		protected double _awaited;
-		public double Speed { get { return Stats.GetStat(StatType.ChannelingSpeed).Value; } }
+		public double Speed { get { return Stats[StatType.ChannelingSpeed]; } }
 		public double Awaited { get { return _awaited; } }
 		public void Await(double time) {
 			_awaited += Speed * time;
@@ -17,8 +17,8 @@ namespace FuckingAround {
 		#endregion
 		public Weapon Weapon { get { return null; } }	//Kill me
 
-		public Dictionary<StatType, Stat> Stats { get; protected set; }
-		public Dictionary<object, Dictionary<StatType, Stat>> OtherStats { get; protected set; }
+		public StatSet Stats { get; protected set; }
+		public Dictionary<object, StatSet> OtherStats { get; protected set; }
 
 		private Tile _place;
 		public Tile Place {
@@ -47,8 +47,8 @@ namespace FuckingAround {
 		}
 
 		public ChannelingInstance(IEnumerable<Mod> mods, Skill skill, Tile place, Func<Tile> targetSelector) {
-			Stats = new Dictionary<StatType, Stat>();
-			OtherStats = new Dictionary<object, Dictionary<StatType, Stat>>();
+			Stats = new StatSet();
+			OtherStats = new Dictionary<object, StatSet>();
 
 			Skill = skill;
 			Place = place;
@@ -64,7 +64,7 @@ namespace FuckingAround {
 	}
 	public static class SkillUserChannelingExtensions {
 		public static IEnumerable<Mod> GetChannelingMods(this SkillUser su) {
-			yield return new AdditionMod(StatType.ChannelingSpeed, su.Stats.GetStat(StatType.ChannelingSpeed).Value);
+			yield return new AdditionMod(StatType.ChannelingSpeed, su.Stats[StatType.ChannelingSpeed]);
 		}
 	}
 }
