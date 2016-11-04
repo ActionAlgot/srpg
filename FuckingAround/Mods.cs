@@ -60,11 +60,26 @@ namespace FuckingAround {
 		}
 	}
 
+	public class Conversion{
+		public StatType Source;
+		private Func<StatSet, StatType, astat> _converter;
+		public astat Convert(StatSet ss, StatType excluder) {
+			return _converter(ss, excluder);
+		}
+		public Conversion(StatType source, Func<StatSet, StatType, astat> converter) {
+			Source = source;
+			_converter = converter;
+		}
+	}
+
 	public class ConversionMod : Mod {
+
 		double Value;
 		StatType sourceType;
 		private SuperStatCompatibleMod SourceMod;
 		private SuperStatCompatibleMod ResultMod;
+
+		public Conversion Conversion { get; private set; }
 
 		private astat Converter(StatSet ss, StatType excluder) {
 			if (sourceType.Supports(excluder)) {
@@ -87,10 +102,10 @@ namespace FuckingAround {
 			base.Unaffect(statD);
 		}
 		public override void Affect(Stat stat) {
-			stat.Converters.Add(Converter);
+			stat.Converters.Add(Conversion);
 		}
 		public override void UnAffect(Stat stat) {
-			stat.Converters.Remove(Converter);
+			stat.Converters.Remove(Conversion);
 		}
 
 		public ConversionMod(StatType targetStat, double value, StatType sourceStat) {
@@ -99,6 +114,8 @@ namespace FuckingAround {
 			sourceType = sourceStat;
 			SourceMod = new MultiplierMod(sourceStat, 1 - value);
 			ResultMod = new MultiplierMod(targetStat, value);
+
+			Conversion = new Conversion(sourceStat, Converter);
 		}
 	}
 }

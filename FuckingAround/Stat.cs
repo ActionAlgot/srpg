@@ -58,15 +58,19 @@ namespace FuckingAround {
 
 		private void Update(Action setter) {
 			setter();
-			UpToDate = false;
-			if (ValueUpdated != null)
-				ValueUpdated(this, new ValueUpdatedEventArgs(StatType));
+			if (UpToDate) {
+				UpToDate = false;
+				if (ValueUpdated != null)
+					ValueUpdated(this, new ValueUpdatedEventArgs(StatType));
+			}
 		}
 		private T Update<T>(Func<T> setter) {
 			T r = setter();
-			UpToDate = false;
-			if (ValueUpdated != null)
-				ValueUpdated(this, new ValueUpdatedEventArgs(StatType));
+			if (UpToDate) {
+				UpToDate = false;
+				if (ValueUpdated != null)
+					ValueUpdated(this, new ValueUpdatedEventArgs(StatType));
+			}
 			return r;
 		}
 
@@ -90,11 +94,17 @@ namespace FuckingAround {
 			}
 		}
 
+		public void RaiseUpdatedEvent() {
+			if (UpToDate) {
+				UpToDate = false;
+				ValueUpdated(this, new ValueUpdatedEventArgs(this.StatType));
+			}
+		}
 		public event EventHandler<ValueUpdatedEventArgs> ValueUpdated;
 
-		public List<Func<StatSet, StatType, astat>> Converters =
-			new List<Func<StatSet, StatType, astat>>();
-		public IEnumerable<Func<StatSet, StatType, astat>> ConvertersAndSupportingConverters {
+		public List<Conversion> Converters =
+			new List<Conversion>();
+		public IEnumerable<Conversion> ConvertersAndSupportingConverters {
 			get { return Converters.Concat(SupportingStats.SelectMany(ss => ss.Converters)); }
 		}
 
@@ -106,11 +116,11 @@ namespace FuckingAround {
 		} }
 
 		public IEnumerable<astat> GetConversions() {
-			return ConvertersAndSupportingConverters.Select(c => c(Owner, StatType));
+			return ConvertersAndSupportingConverters.Select(c => c.Convert(Owner, StatType));
 		}
 		public IEnumerable<astat> GetConversionsExcluding(StatType excluder) {
 			return ConvertersAndSupportingConverters
-				.Select(c => c(Owner, excluder | this.StatType))
+				.Select(c => c.Convert(Owner, excluder | this.StatType))
 				.Where(s => !s.StatType.Supports(excluder));
 		}
 

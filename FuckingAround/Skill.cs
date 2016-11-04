@@ -168,7 +168,7 @@ namespace FuckingAround {
 			Validation.AnyChannelingInstanceInArea,
 			Range.GetFromMods,
 			AoE.TargetOnly,
-			Effect.AddModsToChannel(new Mod[] { new AdditionMod(StatType.None, 3) }),
+			Effect.AddModsToChannel(new Mod[] { new AdditionMod(StatType.ChannelingSpeed, 3) }),
 			new Mod[] { 
 				new AdditionMod(StatType.Range, 6)
 			});
