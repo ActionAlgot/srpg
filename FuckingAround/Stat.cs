@@ -118,9 +118,7 @@ namespace FuckingAround {
 			return ConvertersAndSupportingConverters.Select(c => c.GetTargetApplication(Owner, StatType));
 		}
 		public IEnumerable<Action<ComboStat>> GetConversionApplications(StatType excluder) {
-			return ConvertersAndSupportingConverters
-				.Select(c => c.GetTargetApplication(Owner, excluder | this.StatType))
-				/*.Where(s => !s.StatType.Supports(excluder))*/;
+			return ConvertersAndSupportingConverters.Select(c => c.GetTargetApplication(Owner, excluder | this.StatType));
 		}
 		
 		public void Invalidate() { UpToDate = false; }	//Flags the stat for recalculation but does not raise ValueUpdated event
@@ -143,6 +141,7 @@ namespace FuckingAround {
 			UpToDate = true;
 		}
 		public ComboStat ExcludingStat(StatType excluder) {
+			if (this.StatType.Supports(excluder)) return new ComboStat(this.StatType);
 			var r = new ComboStat(SupportingStats.Where(ss => !ss.StatType.Supports(excluder)), this);
 			foreach (var a in GetConversionApplications(excluder))
 				a(r);

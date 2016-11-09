@@ -84,14 +84,9 @@ namespace FuckingAround {
 
 		private Action<ComboStat> Converter(StatSet ss, StatType excluder) {
 			astat statComponent;
-			if (sourceType.Supports(excluder)) {	//probably pointless to do anything in this case, but who knows
-				statComponent = new ComboStat(sourceType);
-				ResultMod.Affect(statComponent);	
-			} else {
-				statComponent = ss.GetStat(sourceType).ExcludingStat(excluder);
-				SourceMod.UnAffect(statComponent);
-				ResultMod.Affect(statComponent);
-			}
+			statComponent = ss.GetStat(sourceType).ExcludingStat(excluder);
+			if (!sourceType.Supports(excluder)) SourceMod.UnAffect(statComponent);
+			ResultMod.Affect(statComponent);
 			return stat => stat.AddComponent(statComponent);
 		}
 
@@ -133,6 +128,36 @@ namespace FuckingAround {
 			sourceType = sourceStat;
 
 			Conversion = new Conversion(sourceType, (ss, excluder) => stat => stat.AdditiveMultipliers += Value * ss.GetStat(sourceType).ExcludingStat(excluder).Value);
+				
+		}
+
+		public override void Affect(Stat stat) {
+			stat.Converters.Add(Conversion);
+		}
+		public override void UnAffect(Stat stat) {
+			stat.Converters.Remove(Conversion);
+		}
+	}
+
+	public class GainMod : Mod {
+		double Value;
+		StatType sourceType;
+		private SuperStatCompatibleMod targetMod;
+
+		public Conversion Conversion { get; private set; }
+
+		public GainMod(StatType targetStat, double value, StatType sourceStat) {
+			TargetStatType = targetStat;
+			Value = value;
+			sourceType = sourceStat;
+
+			targetMod = new MultiplierMod(TargetStatType, Value);
+
+			Conversion = new Conversion(sourceType, (ss, excluder) => stat => {
+				var s = ss.GetStat(sourceType).ExcludingStat(excluder);
+				targetMod.Affect(s);
+				stat.AddComponent(s);
+			});
 		}
 
 		public override void Affect(Stat stat) {
