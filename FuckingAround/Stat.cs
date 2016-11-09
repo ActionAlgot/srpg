@@ -28,7 +28,7 @@ namespace FuckingAround {
 		}
 	}
 
-	public class Stat : astat{
+	public class Stat : astat {
 
 		public void CreateCopy(StatSet newOwner) {
 			var that = new Stat(this.StatType, newOwner);
@@ -102,8 +102,7 @@ namespace FuckingAround {
 		}
 		public event EventHandler<ValueUpdatedEventArgs> ValueUpdated;
 
-		public List<Conversion> Converters =
-			new List<Conversion>();
+		public List<Conversion> Converters = new List<Conversion>();
 		public IEnumerable<Conversion> ConvertersAndSupportingConverters {
 			get { return Converters.Concat(SupportingStats.SelectMany(ss => ss.Converters)); }
 		}
@@ -114,18 +113,17 @@ namespace FuckingAround {
 			else return Owner.GetSupporting(StatType)
 				.Where(s => s != this);
 		} }
-
-		public IEnumerable<astat> GetConversions() {
-			return ConvertersAndSupportingConverters.Select(c => c.Convert(Owner, StatType));
+		
+		public IEnumerable<Action<ComboStat>> GetConversionApplications() {
+			return ConvertersAndSupportingConverters.Select(c => c.GetTargetApplication(Owner, StatType));
 		}
-		public IEnumerable<astat> GetConversionsExcluding(StatType excluder) {
+		public IEnumerable<Action<ComboStat>> GetConversionApplications(StatType excluder) {
 			return ConvertersAndSupportingConverters
-				.Select(c => c.Convert(Owner, excluder | this.StatType))
-				.Where(s => !s.StatType.Supports(excluder));
+				.Select(c => c.GetTargetApplication(Owner, excluder | this.StatType))
+				/*.Where(s => !s.StatType.Supports(excluder))*/;
 		}
-
-		//Flags the stat for recalculation but does not raise ValueUpdated event
-		public void Invalidate() { UpToDate = false; }
+		
+		public void Invalidate() { UpToDate = false; }	//Flags the stat for recalculation but does not raise ValueUpdated event
 		private bool UpToDate;
 
 		public override double Value { get { return FullStat.Value; } }
@@ -139,19 +137,15 @@ namespace FuckingAround {
 
 		protected void UpdateFullStat() {
 			var r = new ComboStat(SupportingStats, this);
-			foreach (var cs in GetConversions())
-				if (cs.StatType.Supports(this.StatType)) throw new ArgumentException(String.Format("Illegal conversion: {0} to {1}", cs.StatType, this.StatType));
-				else if (this.StatType.Supports(cs.StatType)) throw new ArgumentException(String.Format("Illegal conversion: {0} to {1}", this.StatType, cs.StatType));
-				else r.AddComponent(cs);
+			foreach(Action<ComboStat> a in GetConversionApplications())
+				a(r);
 			_fullStat = r;
 			UpToDate = true;
 		}
 		public ComboStat ExcludingStat(StatType excluder) {
 			var r = new ComboStat(SupportingStats.Where(ss => !ss.StatType.Supports(excluder)), this);
-			foreach (var cs in GetConversionsExcluding(excluder))
-				if (cs.StatType.Supports(this.StatType)) throw new ArgumentException(String.Format("Illegal conversion: {0} to {1}", cs.StatType, this.StatType));
-				else if (this.StatType.Supports(cs.StatType)) throw new ArgumentException(String.Format("Illegal conversion: {0} to {1}", this.StatType, cs.StatType));
-				else r.AddComponent(cs);
+			foreach (var a in GetConversionApplications(excluder))
+				a(r);
 			return r;
 		}
 		public double LoneValue { get { return Base * (1 + AdditiveMultipliers) * Multipliers.Aggregate(0.0, (a, b) => a * b); } }

@@ -48,12 +48,9 @@ namespace FuckingAround {
 			DoubleBuffered = true;
 			tajmEvent += (s, e) => Invalidate();
 			tajmer = new System.Threading.Timer(
-				(o) => {
-					try {	//TODO something better than try catch?
-						this.Invoke(new fuckinghellCallback(tajmEvent), new object[]{o, EventArgs.Empty});
-					} catch (ObjectDisposedException) {
-						tajmer.Dispose();
-					}
+				(o) => {	//TODO something better than try catch?
+					try { this.Invoke(new fuckinghellCallback(tajmEvent), new object[]{o, EventArgs.Empty}); }
+					catch (ObjectDisposedException) { tajmer.Dispose(); }
 				},
 				null, 100, 1000/60);
 			Disposed += (s, e) => tajmer.Dispose();

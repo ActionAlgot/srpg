@@ -22,7 +22,7 @@ namespace FuckingAround {
 			new PassiveSkill(new AdditionMod(StatType.Speed, 5)),
 			new PassiveSkill(new AdditionMod(StatType.HP, 20)),
 			new PassiveSkill(new AdditionMod(StatType.ChannelingSpeed,  4)),
-			//new PassiveSkill(new Mod( StatType.PhysicalDamage, ModifyingMethod.Convert|ModifyingMethod.AdditiveMultiply, 0.05){ ConversionSource = StatType.Strength})	//5% increase in physical damage for each point in strength
+			new PassiveSkill(new ConversionToAdditiveMultiplierMod( StatType.PhysicalDamage, 0.05, StatType.Strength))	//5% increase in physical damage for each point in strength
 		};
 		public static PassiveSkill[] All = new PassiveSkill[]{
 			new PassiveSkill(new AdditionMod(StatType.Strength,  10)),	//Increases strength by 10
