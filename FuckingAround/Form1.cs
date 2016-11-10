@@ -71,28 +71,19 @@ namespace FuckingAround {
 			Turners.Add(b2);
 
 			TurnTracker.AddRange(Turners);
-			
-			foreach (var t in Turners)
-				t.TurnFinished += (s, e) => {
-					if (CurrentTurnHaver is ChannelingInstance)
-						((ChannelingInstance)CurrentTurnHaver).Do();
-					if (activeBeing != null) {
-						SkillMenu.MenuItems.Clear();
-						foreach (var skill in activeBeing.Skills) {
-							SkillMenu.MenuItems.Add(
-								new MenuItem(
-									skill.Name,
-									(s2, e2) => {
-										if (!activeBeing.ActionTaken) activeBeing.SelectedAction = skill;
-										Refresh();
-									}
-								)
-							);
-						}
-					}
-				};
 
 			foreach (var b in Beings) {
+				b.TurnStarted += (s, e) => {
+					SkillMenu.MenuItems.Clear();
+					foreach (var skill in activeBeing.Skills) {
+						SkillMenu.MenuItems.Add(
+							new MenuItem(
+								skill.Name,
+								(s2, e2) => {
+									if (!activeBeing.ActionTaken) activeBeing.SelectedAction = skill;
+									Refresh();
+				}	)	);	}	};
+
 				EventHandler fun = (s, e) => b.GraphicMove(5);
 				b.MoveStarted += (s, e) => tajmEvent += fun;
 				b.MoveFinished += (s, e) => tajmEvent -= fun;

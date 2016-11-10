@@ -16,6 +16,7 @@ namespace FuckingAround {
 			foreach (var m in passiveSkill.Mods)
 				m.Affect(Stats);
 		}
+
 		public StatSet Stats { get; protected set; }
 		public Dictionary<object, StatSet> OtherStats { get; protected set; }
 		public Stat this[StatType asdf]{ get { return Stats.GetStat(asdf); } }
@@ -253,6 +254,12 @@ namespace FuckingAround {
 			_command += OnCommand;
 
 			HP = MaxHP;
+		}
+
+		public event EventHandler TurnStarted;
+
+		public void StartTurn() {
+			TurnStarted(this, EventArgs.Empty);
 		}
 	}
 }

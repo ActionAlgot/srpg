@@ -38,7 +38,7 @@ namespace FuckingAround {
 
 		public Action<System.Drawing.Graphics> Draw { get; protected set; }
 
-		public void Do() {
+		public void OnTurnStarted(object s, EventArgs e) {
 			if (!Skill.Do(this, TargetSelector()))
 				ConsoleLoggerHandlerOrWhatever.Log(this.ToString() + " cast " + Skill.Name + " and hit nothing.");
 			_awaited = 0;	//should just kill self
@@ -59,8 +59,15 @@ namespace FuckingAround {
 
 			Draw = g => g.FillRectangle(new System.Drawing.SolidBrush(System.Drawing.Color.Pink), Place.Rectangle);
 			TurnFinished += (s, e) => TurnTracker.Remove(this);
+			TurnStarted += OnTurnStarted;
 		}
 		public ChannelingInstance(IEnumerable<Mod> mods, Skill skill, Tile place) : this(mods, skill, place, () => place) { }
+
+		public event EventHandler TurnStarted;
+
+		public void StartTurn() {
+			TurnStarted(this, EventArgs.Empty);
+		}
 	}
 	public static class SkillUserChannelingExtensions {
 		public static IEnumerable<Mod> GetChannelingMods(this SkillUser su) {

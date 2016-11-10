@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 namespace FuckingAround {
 
 	public interface ITurnHaver {
+		event EventHandler TurnStarted;
 		event EventHandler TurnFinished;
+		void StartTurn();
 		double Speed { get; }
 		double Awaited { get; }
 		void Await(double time);
@@ -45,6 +47,7 @@ namespace FuckingAround {
 					ConsoleLoggerHandlerOrWhatever.Log("_____________");
 					foreach (var t in TurnHavers) ConsoleLoggerHandlerOrWhatever.Log(t.ToString() + " " + t.Awaited + " + " + t.Speed);
 
+					_currentTurnHaver.StartTurn();
 				}
 				return _currentTurnHaver;
 			}
