@@ -10,6 +10,18 @@ using System.Windows.Forms;
 namespace FuckingAround {
 	public class Being : ITurnHaver, SkillUser {
 
+		private List<StatusEffect> StatusEffects = new List<StatusEffect>();
+		public void AddStatusEffect(StatusEffect se) {
+			StatusEffects.Add(se);
+			foreach (var m in se.Mods)
+				m.Affect(this.Stats);
+		}
+		public void RemoveStatusEffect(StatusEffect se) {
+			StatusEffects.Remove(se);
+			foreach (var m in se.Mods)
+				m.Unaffect(this.Stats);
+		}
+
 		private List<PassiveSkill> PSkills;
 		public void AddPassiveSkill(PassiveSkill passiveSkill) {
 			PSkills.Add(passiveSkill);
@@ -26,9 +38,8 @@ namespace FuckingAround {
 					.SelectMany(ps => ps.Mods)
 					.Concat(Inventory
 						.Where(g => g != null)
-						.SelectMany(g => g.GlobalMods)) /*
-					.Concat(DebuffsAndBuffs.SelectMany(thing => thing.VictimMods))
-					*/;
+						.SelectMany(g => g.GlobalMods))
+					.Concat(StatusEffects.SelectMany(se => se.Mods));
 			}
 		}
 

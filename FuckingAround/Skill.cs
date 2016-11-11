@@ -126,10 +126,17 @@ namespace FuckingAround {
 			}
 			public static Action<Skill, SkillUser, Tile> AddModsToChannel(IEnumerable<Mod> mods) {
 				return (s, su, t) => {
-					if(t.ChannelingInstance != null){
-						foreach(var m in mods)
+					if (t.ChannelingInstance != null) {
+						foreach (var m in mods)
 							m.Affect(t.ChannelingInstance.Stats);
 					} else throw new Exception("bullshit");
+				};
+			}
+			public static Action<Skill, SkillUser, Tile> AddStatusEffect(Func<Being, StatSet, StatusEffect> suC) {
+				return (s, su, t) => {
+					var target = t.Inhabitant;
+					if (target != null) target.AddStatusEffect(suC(target, su.Stats));
+					else throw new Exception("bullshit");
 				};
 			}
 
@@ -172,12 +179,21 @@ namespace FuckingAround {
 			new Mod[] { 
 				new AdditionMod(StatType.Range, 6)
 			});
+		public static Skill GrantPhysResistance = new Skill("Physical resistance",
+			Validation.AnyAliveBeingInArea,
+			Range.GetFromMods,
+			AoE.TargetOnly,
+			Effect.AddStatusEffect((t, ss) => new TimedStatusEffect(t, new AdditionMod(StatType.Armour, 1), ss, 20)),
+			new Mod[]{
+				new AdditionMod(StatType.Range, 6)
+			});
 
 		public static IEnumerable<Skill> Default = new Skill[]{
 			StandardAttack,
 			Blackify,
 			BlackifyChannel,
-			ChannelSpeedUp
+			ChannelSpeedUp,
+			GrantPhysResistance
 		};
 	}
 	
