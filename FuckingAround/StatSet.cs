@@ -37,7 +37,7 @@ namespace FuckingAround {
 		private void OnValueUpdated(object sender, Stat.ValueUpdatedEventArgs e) {
 			var st = ((Stat)sender).StatType;
 			foreach (var s in MainSet.Values)
-				if (s.ConvertersAndSupportingConverters.Any(c => st.Supports(c.Source)))
+				if (s.ConvertersAndSupportingConverters.Any(c => st.Supports(c.SourceType)))
 					s.RaiseUpdatedEvent();
 			foreach (var s in MainSet.Values)
 				if (st.Supports(s.StatType))

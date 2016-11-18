@@ -228,17 +228,26 @@ namespace FuckingAround {
 		}
 		public void TakeDamage(StatSet damages) {
 			int preHP = HP;
-			int total = 0;
-			foreach (StatType dmgType in Enum.GetValues(typeof(StatType))) {
-				if ((dmgType & StatType.Damage) == StatType.Damage && dmgType != StatType.Damage) {
-					int crap = (int)damages.GetStat(dmgType).Value;
-					if (crap != 0) {
-						double resist = this[(StatType)(dmgType - StatType.Damage) | StatType.Resistance].Value;
-						crap = (int)(crap * (1 - resist));
-						ConsoleLoggerHandlerOrWhatever.Log(crap + " " + dmgType);
-						total += crap;	//apply all at once to avoid potentially annoying stuff when multitype damage with >100% res which may damage and heal at once
-			}	}	}
-			HP -= total;
+			double total = 0.0;
+			foreach (StatType dmgType in StatTypeStuff.DirectDamageTypeApplicationTypes) {
+				double crap = damages.GetStat(dmgType).Value;
+				if (crap != 0) {
+					double resist = this[dmgType.AsResistance()].Value;
+					double penetration = damages[dmgType.AsPenetration()];
+					double threshold = this[dmgType.AsThreshold()].Value;
+					crap *= (1 - (resist - penetration));
+					if (Math.Abs(crap) < threshold) crap = 0;	//don't negate more than absolute damage
+					else crap -= (crap / Math.Abs(crap)) * threshold;	//negate flat amount regardless of effective res
+					ConsoleLoggerHandlerOrWhatever.Log(crap + " " + dmgType);
+					total += crap;	//apply all at once later to avoid potentially annoying stuff when multitype damage with >100% res which may damage and heal at once
+			}	}
+			HP -= (int)total;
+			ConsoleLoggerHandlerOrWhatever.Log(preHP + " => " + HP);
+		}
+
+		public void TakeRawDamage(int dmg) {
+			int preHP = HP;
+			HP -= dmg;
 			ConsoleLoggerHandlerOrWhatever.Log(preHP + " => " + HP);
 		}
 

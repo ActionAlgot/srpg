@@ -70,7 +70,7 @@ namespace FuckingAround {
 			yield return target;
 		}
 		public Weapon(int dmg) {
-			BaseDamage = new AdditionMod(StatType.PhysicalDamage, dmg);
+			BaseDamage = new AdditionMod(StatType.PhysicalDamage|StatType.Weapon, dmg);
 			LocalEnchantments = new List<Mod>();
 			GlobalEnchantments = new List<Mod>();
 		}

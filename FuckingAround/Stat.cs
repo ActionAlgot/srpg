@@ -13,6 +13,7 @@ namespace FuckingAround {
 	public enum StatType {
 		None = 0,
 		Strength = 1 << 0, Dexterity = 1 << 1, Speed = 1 << 2, HP = 1 << 3, MP = 1 << 4,
+		OverTime = 1<<5, DamageOverTime = Damage|OverTime,
 		Damage = 1 << 6, Physical = 1 << 7, Fire = 1 << 8, Ice = 1 << 9, Lightning = 1 << 10,
 		PhysicalDamage = Damage | Physical, FireDamage = Damage | Fire, IceDamage = Damage | Ice, LightningDamage = Damage | Lightning,
 		ChannelingSpeed = 1 << 11,
@@ -20,12 +21,42 @@ namespace FuckingAround {
 		Armour = Resistance | Physical, FireResistance = Resistance | Fire, IceResistance = Resistance | Ice, LightningResistance = Resistance | Lightning,
 		ArmourPenetration = Penetration | Physical, FirePenetration = Penetration | Fire,
 		Range = 1 << 15, AreaOfEffect = 1 << 16, Weapon = 1 << 17, Spell = 1 << 18, WeaponRange = Weapon | Range
-		//, Restriction = Weapon|Spell
+	}
+	public static class StatTypeStuff {
+		public static readonly IEnumerable<StatType> DamageTypes = new StatType[]{
+			StatType.PhysicalDamage, StatType.FireDamage, StatType.LightningDamage, StatType.IceDamage };
+		public static readonly IEnumerable<StatType> DamageApplicationTypes = new StatType[]{
+			StatType.Weapon, StatType.Spell, StatType.OverTime };
+		public static readonly IEnumerable<StatType> DirectDamageApplicationTypes = new StatType[]{
+			StatType.Weapon, StatType.Spell };
+		public static readonly IEnumerable<StatType> DirectDamageTypeApplicationTypes =
+			DirectDamageApplicationTypes.SelectMany(da => DamageTypes.Select(dt => da|dt));
 	}
 	public static class StatTypeExtensions {
 		public static bool Supports(this StatType stat, StatType target) {
 			return target.HasFlag(stat);
 		}
+		public static StatType AsPenetration(this StatType stat) {
+			return stat & ~StatType.Damage & ~StatType.Resistance & ~StatType.Threshold | StatType.Penetration;
+		}
+		public static StatType AsResistance(this StatType stat) {
+			return stat & ~StatType.Damage & ~StatType.Penetration & ~StatType.Threshold | StatType.Resistance;
+		}
+		public static StatType AsDamage(this StatType stat) {
+			return stat & ~StatType.Resistance & ~StatType.Penetration & ~StatType.Threshold | StatType.Damage;
+		}
+		public static StatType AsThreshold(this StatType stat) {
+			return stat & ~StatType.Resistance & ~StatType.Penetration & ~StatType.Damage | StatType.Threshold;
+		}
+	}
+
+	public abstract class astat {
+		public StatType StatType { get; protected set; }
+		public virtual double Value { get; protected set; }
+		public virtual double Base { get; set; }
+		public virtual double AdditiveMultipliers { get; set; }
+		public abstract ICollection<double> Multipliers { get; }
+		//public abstract astat Copy();
 	}
 
 	public class Stat : astat {
@@ -114,11 +145,14 @@ namespace FuckingAround {
 				.Where(s => s != this);
 		} }
 		
-		public IEnumerable<Action<ComboStat>> GetConversionApplications() {
-			return ConvertersAndSupportingConverters.Select(c => c.GetTargetApplication(Owner, StatType));
-		}
-		public IEnumerable<Action<ComboStat>> GetConversionApplications(StatType excluder) {
-			return ConvertersAndSupportingConverters.Select(c => c.GetTargetApplication(Owner, excluder | this.StatType));
+		public void ApplyConversions(ComboStat target) { ApplyConversions(target, StatType.None); }
+		public void ApplyConversions(ComboStat target, StatType excluder) {
+			foreach (var c in ConvertersAndSupportingConverters) {
+				if (!c.TargetType.Supports(excluder) && !c.SourceType.Supports(excluder)) {
+					var st = this.StatType & ~c.TargetType | c.SourceType;	//inherit conversion in sourcetype as well, IE physical weapon damage is to be converted if physical damage is converted
+					c.Apply(Owner.GetStat(st).ExcludingStat(excluder | this.StatType), target);
+				}
+			}
 		}
 		
 		public void Invalidate() { UpToDate = false; }	//Flags the stat for recalculation but does not raise ValueUpdated event
@@ -135,29 +169,21 @@ namespace FuckingAround {
 
 		protected void UpdateFullStat() {
 			var r = new ComboStat(SupportingStats, this);
-			foreach(Action<ComboStat> a in GetConversionApplications())
-				a(r);
+			ApplyConversions(r);
 			_fullStat = r;
 			UpToDate = true;
 		}
 		public ComboStat ExcludingStat(StatType excluder) {
+
 			if (this.StatType.Supports(excluder)) return new ComboStat(this.StatType);
+
 			var r = new ComboStat(SupportingStats.Where(ss => !ss.StatType.Supports(excluder)), this);
-			foreach (var a in GetConversionApplications(excluder))
-				a(r);
+			ApplyConversions(r, excluder);
 			return r;
 		}
 		public double LoneValue { get { return Base * (1 + AdditiveMultipliers) * Multipliers.Aggregate(0.0, (a, b) => a * b); } }
 		public Stat() {
 			_multipliers.CollectionChanged += OnMultipliersChanged;
 		}
-	}
-
-	public abstract class astat {
-		public StatType StatType { get; protected set; }
-		public virtual double Value { get; protected set; }
-		public virtual double Base { get; set; }
-		public virtual double AdditiveMultipliers { get; set; }
-		public abstract ICollection<double> Multipliers { get; }
 	}
 }

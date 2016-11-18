@@ -61,33 +61,35 @@ namespace FuckingAround {
 	}
 
 	public class Conversion{
-		public StatType Source;
-		private Func<StatSet, StatType, Action<ComboStat>> _converter;
+		public StatType SourceType;
+		public StatType TargetType;
+		private Func<astat, Action<ComboStat>> _converter;
 
-		public Conversion(StatType source, Func<StatSet, StatType, Action<ComboStat>> converter) {
-			Source = source;
+		public Conversion(StatType sourceType, StatType targetType, Func<astat, Action<ComboStat>> converter) {
+			SourceType = sourceType;
+			TargetType = targetType;
 			_converter = converter;
 		}
 
-		public Action<ComboStat> GetTargetApplication(StatSet ss, StatType excluder) {
-			return _converter(ss, excluder);
+		public void Apply(astat source, ComboStat target) {
+			_converter(source)(target);
 		}
 	}
 
-	public class ConversionMod : Mod {
-		double Value;
-		StatType sourceType;
+	public abstract class InterStatularMod : Mod {
+		public double Effectiveness { get; protected set; }
+		public StatType SourceType { get; protected set; }
+		public Conversion Conversion { get; protected set; }
+	}
+
+	public class ConversionMod : InterStatularMod {
 		private SuperStatCompatibleMod SourceMod;
 		private SuperStatCompatibleMod ResultMod;
 
-		public Conversion Conversion { get; private set; }
-
-		private Action<ComboStat> Converter(StatSet ss, StatType excluder) {
-			astat statComponent;
-			statComponent = ss.GetStat(sourceType).ExcludingStat(excluder);
-			if (!sourceType.Supports(excluder)) SourceMod.UnAffect(statComponent);
-			ResultMod.Affect(statComponent);
-			return stat => stat.AddComponent(statComponent);
+		private Action<ComboStat> Converter(astat source) {
+			SourceMod.UnAffect(source);
+			ResultMod.Affect(source);
+			return stat => stat.AddComponent(source);
 		}
 
 		public override void Affect(StatSet statD) {
@@ -107,28 +109,21 @@ namespace FuckingAround {
 
 		public ConversionMod(StatType targetStat, double value, StatType sourceStat) {
 			TargetStatType = targetStat;
-			Value = value;
-			sourceType = sourceStat;
+			Effectiveness = value;
+			SourceType = sourceStat;
 			SourceMod = new MultiplierMod(sourceStat, 1 - value);
 			ResultMod = new MultiplierMod(targetStat, value);
 
-			Conversion = new Conversion(sourceStat, Converter);
+			Conversion = new Conversion(sourceStat, TargetStatType, Converter);
 		}
 	}
 
-	public class ConversionToAdditiveMultiplierMod : Mod {
-		double Value;
-		StatType sourceType;
-
-		public Conversion Conversion { get; private set; }
-
+	public class ConversionToAdditiveMultiplierMod : InterStatularMod {
 		public ConversionToAdditiveMultiplierMod(StatType targetStat, double value, StatType sourceStat) {
 			TargetStatType = targetStat;
-			Value = value;
-			sourceType = sourceStat;
-
-			Conversion = new Conversion(sourceType, (ss, excluder) => stat => stat.AdditiveMultipliers += Value * ss.GetStat(sourceType).ExcludingStat(excluder).Value);
-				
+			Effectiveness = value;
+			SourceType = sourceStat;
+			Conversion = new Conversion(SourceType, TargetStatType, source => target => target.AdditiveMultipliers += Effectiveness * source.Value);
 		}
 
 		public override void Affect(Stat stat) {
@@ -139,24 +134,19 @@ namespace FuckingAround {
 		}
 	}
 
-	public class GainMod : Mod {
-		double Value;
-		StatType sourceType;
+	public class GainMod : InterStatularMod {
 		private SuperStatCompatibleMod targetMod;
-
-		public Conversion Conversion { get; private set; }
 
 		public GainMod(StatType targetStat, double value, StatType sourceStat) {
 			TargetStatType = targetStat;
-			Value = value;
-			sourceType = sourceStat;
+			Effectiveness = value;
+			SourceType = sourceStat;
 
-			targetMod = new MultiplierMod(TargetStatType, Value);
+			targetMod = new MultiplierMod(TargetStatType, Effectiveness);
 
-			Conversion = new Conversion(sourceType, (ss, excluder) => stat => {
-				var s = ss.GetStat(sourceType).ExcludingStat(excluder);
-				targetMod.Affect(s);
-				stat.AddComponent(s);
+			Conversion = new Conversion(SourceType, TargetStatType, source => target => {
+				targetMod.Affect(source);
+				target.AddComponent(source);
 			});
 		}
 

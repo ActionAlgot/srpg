@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace FuckingAround {
 	public class StatusEffect {
 		protected Being Target;
+		
 		public IEnumerable<Mod> Mods { get; private set; }
 		public StatusEffect(Being target, IEnumerable<Mod> mods, StatSet ss) {
 			Target = target;
@@ -50,4 +51,5 @@ namespace FuckingAround {
 			if(TurnFinished != null) TurnFinished(this, EventArgs.Empty);
 		}
 	}
+
 }
