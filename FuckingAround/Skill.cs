@@ -187,13 +187,22 @@ namespace FuckingAround {
 			new Mod[]{
 				new AdditionMod(StatType.Range, 6)
 			});
+		public static Skill Bleed = new Skill("Bleed",
+			Validation.AnyAliveBeingInArea,
+			Range.GetFromMods,
+			AoE.TargetOnly,
+			Effect.AddStatusEffect((t, ss) => new TimedStatusEffect(t, new DamageOverTime(ss, 50, StatType.PhysicalDamage|StatType.DamageOverTime), ss, 100)),
+			new Mod[]{
+				new AdditionMod(StatType.Range, 6)
+			});
 
 		public static IEnumerable<Skill> Default = new Skill[]{
 			StandardAttack,
 			Blackify,
 			BlackifyChannel,
 			ChannelSpeedUp,
-			GrantPhysResistance
+			GrantPhysResistance,
+			Bleed
 		};
 	}
 	

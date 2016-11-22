@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -13,13 +14,11 @@ namespace FuckingAround {
 		private List<StatusEffect> StatusEffects = new List<StatusEffect>();
 		public void AddStatusEffect(StatusEffect se) {
 			StatusEffects.Add(se);
-			foreach (var m in se.Mods)
-				m.Affect(this.Stats);
+			se.Affect(this);
 		}
 		public void RemoveStatusEffect(StatusEffect se) {
 			StatusEffects.Remove(se);
-			foreach (var m in se.Mods)
-				m.Unaffect(this.Stats);
+			se.UnAffect(this);
 		}
 
 		private List<PassiveSkill> PSkills;
@@ -27,6 +26,14 @@ namespace FuckingAround {
 			PSkills.Add(passiveSkill);
 			foreach (var m in passiveSkill.Mods)
 				m.Affect(Stats);
+		}
+
+		protected OverTimeApplier OverTimeApplier;
+		public void AddDoT(DamageOverTime DoT){
+			OverTimeApplier.Add(DoT);
+		}
+		public void RemoveDoT(DamageOverTime DoT) {
+			OverTimeApplier.Remove(DoT);
 		}
 
 		public StatSet Stats { get; protected set; }
@@ -39,7 +46,7 @@ namespace FuckingAround {
 					.Concat(Inventory
 						.Where(g => g != null)
 						.SelectMany(g => g.GlobalMods))
-					.Concat(StatusEffects.SelectMany(se => se.Mods));
+					/*.Concat(StatusEffects.SelectMany(se => se.Mods))*/;
 			}
 		}
 
@@ -225,6 +232,10 @@ namespace FuckingAround {
 			HP = 0;
 			Awaited = 0;
 			Brush = new SolidBrush(Color.DarkOrange);
+
+			foreach (var se in StatusEffects)
+				se.UnAffect(this);
+			StatusEffects.Clear();
 		}
 		public void TakeDamage(StatSet damages) {
 			int preHP = HP;
@@ -237,7 +248,7 @@ namespace FuckingAround {
 					double threshold = this[dmgType.AsThreshold()].Value;
 					crap *= (1 - (resist - penetration));
 					if (Math.Abs(crap) < threshold) crap = 0;	//don't negate more than absolute damage
-					else crap -= (crap / Math.Abs(crap)) * threshold;	//negate flat amount regardless of effective res
+					else crap -= crap < 0 ? -1 : 1 * threshold;	//negate flat amount regardless of negative or positive damage
 					ConsoleLoggerHandlerOrWhatever.Log(crap + " " + dmgType);
 					total += crap;	//apply all at once later to avoid potentially annoying stuff when multitype damage with >100% res which may damage and heal at once
 			}	}
@@ -248,6 +259,7 @@ namespace FuckingAround {
 		public void TakeRawDamage(int dmg) {
 			int preHP = HP;
 			HP -= dmg;
+			ConsoleLoggerHandlerOrWhatever.Log(dmg + " DoT taken");
 			ConsoleLoggerHandlerOrWhatever.Log(preHP + " => " + HP);
 		}
 
@@ -258,6 +270,8 @@ namespace FuckingAround {
 
 			Inventory = new PersonalInventory(this);
 			PSkills = Passives.Default.ToList();
+
+			OverTimeApplier = new OverTimeApplier(this);
 
 			foreach (var m in Mods)
 				m.Affect(Stats);

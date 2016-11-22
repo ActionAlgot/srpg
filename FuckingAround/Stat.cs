@@ -75,7 +75,6 @@ namespace FuckingAround {
 			StatType = statType;
 			Owner = owner;
 			Owner.AddStat(this);
-			UpToDate = false;
 			if (ValueUpdated != null)
 				ValueUpdated(this, new ValueUpdatedEventArgs(StatType));
 		}
@@ -89,19 +88,19 @@ namespace FuckingAround {
 
 		private void Update(Action setter) {
 			setter();
-			if (UpToDate) {
-				UpToDate = false;
-				if (ValueUpdated != null)
-					ValueUpdated(this, new ValueUpdatedEventArgs(StatType));
-			}
+			//if (UpToDate) {
+			UpToDate = false;
+			if (ValueUpdated != null)
+				ValueUpdated(this, new ValueUpdatedEventArgs(StatType));
+			//}
 		}
 		private T Update<T>(Func<T> setter) {
 			T r = setter();
-			if (UpToDate) {
-				UpToDate = false;
-				if (ValueUpdated != null)
-					ValueUpdated(this, new ValueUpdatedEventArgs(StatType));
-			}
+			//if (UpToDate) {
+			UpToDate = false;
+			if (ValueUpdated != null)
+				ValueUpdated(this, new ValueUpdatedEventArgs(StatType));
+			//}
 			return r;
 		}
 
@@ -156,7 +155,14 @@ namespace FuckingAround {
 		}
 		
 		public void Invalidate() { UpToDate = false; }	//Flags the stat for recalculation but does not raise ValueUpdated event
-		private bool UpToDate;
+		private bool updt;
+		private bool UpToDate {
+			get{return updt;}
+			set {
+				ConsoleLoggerHandlerOrWhatever.Log(this.StatType + " UpToDate: " + updt + " => " + value);
+				updt = value;
+			}
+		}
 
 		public override double Value { get { return FullStat.Value; } }
 		private ComboStat _fullStat;

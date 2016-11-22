@@ -7,18 +7,27 @@ using System.Threading.Tasks;
 namespace FuckingAround {
 	public class StatusEffect {
 		protected Being Target;
+
+		public Action<Being> Affect { get; protected set; }
+		public Action<Being> UnAffect { get; protected set; }
 		
-		public IEnumerable<Mod> Mods { get; private set; }
 		public StatusEffect(Being target, IEnumerable<Mod> mods, StatSet ss) {
+			Affect = b => {
+				foreach (var m in mods)
+					m.Affect(b.Stats); };
+			UnAffect = b => {
+				foreach (var m in mods)
+					m.Unaffect(b.Stats); };
 			Target = target;
-			Mods = mods.ToList();
+		}
+
+		public StatusEffect(Being Target, DamageOverTime DoT, StatSet ss) {
+			Affect = b => b.AddDoT(DoT);
+			UnAffect = b => b.RemoveDoT(DoT);
 		}
 	}
 	public class TimedStatusEffect : StatusEffect, ITurnHaver {
-
-		public TimedStatusEffect(Being target, Mod mod, StatSet ss, int EffectTime) : this(target, new Mod[] { mod }, ss, EffectTime) { }
-		public TimedStatusEffect(Being target, IEnumerable<Mod> mods, StatSet ss, int EffectTime)
-			: base(target, mods, ss) {
+		private void initStuff(int EffectTime) {
 			Speed = 100.0 / EffectTime;
 			Awaited = 0;
 			TurnStarted += (s, e) => {
@@ -27,6 +36,15 @@ namespace FuckingAround {
 				TurnTracker.Remove(this);
 			};
 			TurnTracker.Add(this);
+		}
+		public TimedStatusEffect(Being target, Mod mod, StatSet ss, int EffectTime) : this(target, new Mod[] { mod }, ss, EffectTime) { }
+		public TimedStatusEffect(Being target, IEnumerable<Mod> mods, StatSet ss, int EffectTime)
+			: base(target, mods, ss) {
+				initStuff(EffectTime);
+		}
+		public TimedStatusEffect(Being target, DamageOverTime DoT, StatSet ss, int EffectTime)
+			: base(target, DoT, ss) {
+			initStuff(EffectTime);
 		}
 
 		public event EventHandler TurnFinished;

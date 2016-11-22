@@ -13,10 +13,8 @@ namespace FuckingAround {
 		protected double BaseDmg;	//per 100 time units
 		public StatSet Damages = new StatSet();
 
-		public DamageOverTime(Being target, double BaseDmg, StatType DmgType, StatSet ss)
-			: this(target, new Mod[0], ss, BaseDmg, DmgType) { }
 
-		protected DamageOverTime(Being target, IEnumerable<Mod> mods, StatSet ss, double BaseDmg, StatType DmgType) {
+		public DamageOverTime(StatSet ss, double BaseDmg, StatType DmgType) {
 
 			var asdfg = new StatSet();
 			asdfg.AddSubSet(ss);
@@ -25,16 +23,23 @@ namespace FuckingAround {
 			//snapshot
 			foreach (var dmgt in StatTypeStuff.DamageTypes.Select(asgf => asgf | StatType.DamageOverTime)) {
 				new AdditionMod(dmgt, asdfg[dmgt]).Affect(Damages);
-				var pen = ((StatType)(dmgt - StatType.Damage)) | StatType.Penetration;
+				var pen = dmgt.AsPenetration();
 				new AdditionMod(pen, asdfg[pen]).Affect(Damages);
 			}
 		}
 	}
 
 	public class OverTimeApplier : ITurnHaver {
-		protected IEnumerable<DamageOverTime> DoTs;
+		protected List<DamageOverTime> DoTs = new List<DamageOverTime>();
 		protected Being Target;
 		//protected healthregen
+
+		public void Add(DamageOverTime DoT) {
+			DoTs.Add(DoT);
+		}
+		public void Remove(DamageOverTime DoT) {
+			DoTs.Remove(DoT);
+		}
 
 		private double leftover;
 		public double Effect {
@@ -50,6 +55,11 @@ namespace FuckingAround {
 			}
 		}
 
+		public OverTimeApplier(Being target) {
+			Target = target;
+			TurnTracker.Add(this);
+		}
+
 		public event EventHandler TurnStarted;
 
 		public event EventHandler TurnFinished;
@@ -61,18 +71,18 @@ namespace FuckingAround {
 
 		public double Speed {
 			get {
-				return Target.MaxHP / (Effect * (1.0 / 100.0));
+				return (Effect / 100.0) / (Target.MaxHP / 100.0);
 			}
 		}
 
 		public double Awaited {
-			get { return (((double)(Target.MaxHP - Target.HP) + leftover)/ (double)Target.MaxHP) *100.0; }
+			get { return Target.IsAlive ? (((double)(Target.MaxHP - Target.HP) + leftover)/ (double)Target.MaxHP) *100.0 : 0; }
 		}
 
 		public void Await(double time) {
 			double dmg = Effect * (time / 100.0) + leftover;
 			leftover = dmg - (int)dmg;
-			Target.TakeRawDamage((int)dmg);
+			if((int)dmg != 0) Target.TakeRawDamage((int)dmg);
 		}
 	}
 }
