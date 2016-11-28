@@ -10,15 +10,34 @@ namespace FuckingAround{
 		private Being Owner;
 		private Gear[] gear = new Gear[5];
 
+		public class WeaponSetEventArgs : EventArgs {
+			public Weapon Previous;
+			public Weapon New;
+			public WeaponSetEventArgs(Gear previous, Gear newg){
+				Previous = previous as Weapon;	//autonull if shield
+				New = newg as Weapon;
+			}
+		}
+		public event EventHandler<WeaponSetEventArgs> MainHandSet;
+		public event EventHandler<WeaponSetEventArgs> OffHandSet;
+
 		private Weapon _mainHand;
 		public Weapon MainHand { //set should never be used outside of Equip/Unequip
 			get { return _mainHand ?? Owner.Fist; }
-			private set { _mainHand = value; }
+			private set {
+				var pre = MainHand;
+				_mainHand = value;
+				if(MainHandSet != null) MainHandSet(this, new WeaponSetEventArgs(pre, MainHand));
+			}
 		}
 		private Gear _offHand;
 		public Gear OffHand {
 			get { return _offHand ?? (MainHand.TwoH ? null : Owner.Fist); }
-			private set { _offHand = value; }
+			private set {
+				var pre = OffHand;
+				_offHand = value;
+				if (OffHandSet != null) OffHandSet(this, new WeaponSetEventArgs(pre, OffHand));
+			}
 		}
 
 		private void EquipS(Shield s) {

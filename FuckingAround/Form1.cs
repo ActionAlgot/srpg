@@ -49,7 +49,8 @@ namespace FuckingAround {
 			tajmEvent += (s, e) => Invalidate();
 			tajmer = new System.Threading.Timer(
 				(o) => {	//TODO something better than try catch?
-					try { this.Invoke(new fuckinghellCallback(tajmEvent), new object[] { o, EventArgs.Empty }); } catch (ObjectDisposedException) { tajmer.Dispose(); }
+					try { this.Invoke(new fuckinghellCallback(tajmEvent), new object[] { o, EventArgs.Empty }); }
+					catch (ObjectDisposedException) { tajmer.Dispose(); }
 				},
 				null, 100, 1000 / 60);
 			Disposed += (s, e) => tajmer.Dispose();
@@ -59,7 +60,7 @@ namespace FuckingAround {
 			Turners = new List<ITurnHaver>();
 			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6] });
 			((Being)Turners[0]).AddPassiveSkill(Passives.All[3]);
-			//((Being)Turners[0]).AddPassiveSkill(Passives.All[4]);
+			((Being)Turners[0]).AddPassiveSkill(Passives.All[4]);
 			((Being)Turners[0]).Inventory[0] = new Spear(12);
 			var b1 = new Being(1, 7, 6) { Place = tileSet[7, 8] };
 			//b1.Skills = new ObsoleteSkill[] { new Blackify(b1), new SpeedupChanneling(b1) };

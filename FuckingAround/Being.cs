@@ -37,8 +37,28 @@ namespace FuckingAround {
 		}
 
 		public StatSet Stats { get; protected set; }
+		public Stat this[StatType asdf] { get { return Stats.GetStat(asdf); } }
+
+		public StatSet MainHandStats { get; protected set; }
+		public StatSet OffHandStats { get; protected set; }
+		public void OnMainHandChanged(object s, PersonalInventory.WeaponSetEventArgs e) {
+			if (e.Previous != null)
+				foreach (var m in e.Previous.GlobalMods)
+					m.Unaffect(MainHandStats);
+			if (e.New != null)
+				foreach (var m in e.New.GlobalMods)
+					m.Affect(MainHandStats);
+		}
+		public void OnOffHandChanged(object s, PersonalInventory.WeaponSetEventArgs e) {
+			if (e.Previous != null)
+				foreach (var m in e.Previous.GlobalMods)
+					m.Unaffect(OffHandStats);
+			if (e.New != null)
+				foreach (var m in e.New.GlobalMods)
+					m.Affect(OffHandStats);
+		}
+
 		public Dictionary<object, StatSet> OtherStats { get; protected set; }
-		public Stat this[StatType asdf]{ get { return Stats.GetStat(asdf); } }
 		public IEnumerable<Mod> Mods {
 			get {
 				return PSkills

@@ -22,9 +22,12 @@ namespace FuckingAround {
 
 			//snapshot
 			foreach (var dmgt in StatTypeStuff.DamageTypes.Select(asgf => asgf | StatType.DamageOverTime)) {
-				new AdditionMod(dmgt, asdfg[dmgt]).Affect(Damages);
-				var pen = dmgt.AsPenetration();
-				new AdditionMod(pen, asdfg[pen]).Affect(Damages);
+				var dmg = asdfg[dmgt];
+				if (dmg != 0) {
+					new AdditionMod(dmgt, asdfg[dmgt]).Affect(Damages);
+					StatType pen = dmgt.AsPenetration();
+					new AdditionMod(pen, asdfg[pen]).Affect(Damages);
+				}
 			}
 		}
 	}
@@ -47,8 +50,11 @@ namespace FuckingAround {
 				return DoTs
 					.Select(DoT => {
 						double r = 0;
-						foreach(var DoTT in StatTypeStuff.DamageTypes.Select(asgf => asgf | StatType.DamageOverTime))
-							r += DoT.Damages[DoTT] * (1 - (Target[DoTT.AsResistance()].Value - DoT.Damages[DoTT.AsPenetration()]));
+						foreach (var DoTT in StatTypeStuff.DamageTypes.Select(asgf => asgf | StatType.DamageOverTime)) {
+							var dmg = DoT.Damages[DoTT];
+							if(dmg != 0)
+								r += dmg * (1 - (Target[DoTT.AsResistance()].Value - DoT.Damages[DoTT.AsPenetration()]));
+						}
 						return r;
 					})
 					.Aggregate(0.0, (a, b) => a + b);

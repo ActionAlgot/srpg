@@ -9,21 +9,34 @@ namespace FuckingAround {
 
 		public string Name { get; protected set; }
 		protected Func<Skill, SkillUser, Tile, bool> _ValidTarget { get; set; }
-		protected Func<Skill, SkillUser, IEnumerable<Tile>> _Range { get; set; }
-		protected Func<Skill, SkillUser, Tile, IEnumerable<Tile>> _GetAreaOfEffect { get; set; }
-		protected Action<Skill, SkillUser, Tile> _Effect { get; set; }
+		protected Func<object, SkillUser, IEnumerable<Tile>> _Range { get; set; }
+		protected Func<object, SkillUser, Tile, IEnumerable<Tile>> _GetAreaOfEffect { get; set; }
+		protected Action<object, SkillUser, Tile> _Effect { get; set; }
 
 		public bool ValidTarget(SkillUser su, Tile target) { return _ValidTarget(this, su, target); }
-		public IEnumerable<Tile> Range(SkillUser su) { return _Range(this, su); }
+		public IEnumerable<Tile> Range(SkillUser su) {
+			//init statset here because
+			//this is always first method called on skill
+			if (!su.OtherStats.ContainsKey(this)) {
+				su.OtherStats[this] = new StatSet();
+				su.OtherStats[this].AddSubSet(su.Stats);
+				foreach (var m in Mods)
+					m.Affect(su.OtherStats[this]);
+			}
+			return _Range(this, su);
+		}
 		public IEnumerable<Tile> AoE(SkillUser su, Tile target) { return _GetAreaOfEffect(this, su, target); }
 		public void Apply(SkillUser su, Tile target) { _Effect(this, su, target); }
-		//public void Apply(SkillUser su, Tile target, IEnumerable<Mod> mods) {
-		//	_Effect(this.GetModdedInstance(mods), su, target);
-		//}
 
 		public IEnumerable<Mod> Mods { get; protected set; }
 
 		public virtual bool Do(SkillUser doer, Tile target) {
+			if (!doer.OtherStats.ContainsKey(this)) {
+				doer.OtherStats[this] = new StatSet();
+				doer.OtherStats[this].AddSubSet(doer.Stats);
+				foreach (var m in Mods)
+					m.Affect(doer.OtherStats[this]);
+			}
 			if(ValidTarget(doer, target) && Range(doer).Any(t => t == target)){
 				foreach (Tile t in _GetAreaOfEffect(this, doer, target))
 					_Effect(this, doer, t);
@@ -41,16 +54,16 @@ namespace FuckingAround {
 
 		public Skill(string name,
 			Func<Skill, SkillUser, Tile, bool> targetValidator,
-			Func<Skill, SkillUser, IEnumerable<Tile>> rangeGetter,
-			Func<Skill, SkillUser, Tile, IEnumerable<Tile>> aoeGetter,
-			Action<Skill, SkillUser, Tile> effect)
+			Func<object, SkillUser, IEnumerable<Tile>> rangeGetter,
+			Func<object, SkillUser, Tile, IEnumerable<Tile>> aoeGetter,
+			Action<object, SkillUser, Tile> effect)
 			: this(name, targetValidator, rangeGetter, aoeGetter, effect, new Mod[0]) { }
 
 		public Skill(string name,
 			Func<Skill, SkillUser, Tile, bool> targetValidator,
-			Func<Skill, SkillUser, IEnumerable<Tile>> rangeGetter,
-			Func<Skill, SkillUser, Tile, IEnumerable<Tile>> aoeGetter,
-			Action<Skill, SkillUser, Tile> effect,
+			Func<object, SkillUser, IEnumerable<Tile>> rangeGetter,
+			Func<object, SkillUser, Tile, IEnumerable<Tile>> aoeGetter,
+			Action<object, SkillUser, Tile> effect,
 			IEnumerable<Mod> mods) {
 				Name = name;
 				_ValidTarget = targetValidator;
@@ -58,19 +71,6 @@ namespace FuckingAround {
 				_GetAreaOfEffect = aoeGetter;
 				_Effect = effect;
 				Mods = mods.ToList();
-		}
-		public StatSet GetStatSet(SkillUser su) {
-			if (!su.OtherStats.ContainsKey(this)) {
-				su.OtherStats[this] = new StatSet();
-				su.OtherStats[this].AddSubSet(su.Stats);
-				foreach (var m in this.Mods)
-					m.Affect(su.OtherStats[this]);
-			}
-			return su.OtherStats[this];
-		}
-
-		public double GetStat(StatType st, SkillUser su) {
-			return GetStatSet(su)[st];
 		}
 	}
 
@@ -91,59 +91,66 @@ namespace FuckingAround {
 			}
 		}
 		private static class Range {
-			public static IEnumerable<Tile> UseWeaponRange(Skill skill, SkillUser su){
-				return ((Being)su).MainHand.Range(skill, su);
+			public static IEnumerable<Tile> UseWeaponRange(object key, SkillUser su) {
+				return ((Being)su).MainHand.Range(key, su);
 			}
-			public static IEnumerable<Tile> GetFromMods(Skill skill, SkillUser su) {
-				return su.Place.GetArea((int)skill.GetStat(StatType.Range, su));
+			public static IEnumerable<Tile> GetFromMods(object key, SkillUser su) {
+				return su.Place.GetArea((int)su.OtherStats[key][StatType.Range]);
 			}
 		}
 		private static class AoE {
 
-			public static IEnumerable<Tile> UseWeapon(Skill skill, SkillUser su, Tile target) {
-				return ((Being)su).MainHand.AoE(skill, su, target);
+			public static IEnumerable<Tile> UseWeapon(object key, SkillUser su, Tile target) {
+				return ((Being)su).MainHand.AoE(key, su, target);
 			}
 
-			public static IEnumerable<Tile> TargetOnly(Skill skill, SkillUser su, Tile target) {
+			public static IEnumerable<Tile> TargetOnly(object key, SkillUser su, Tile target) {
 				return new Tile[] { target };
 			}
-			public static IEnumerable<Tile> FromMods(Skill skill, SkillUser su, Tile target) {
-				return target.GetArea((int)skill.GetStat(StatType.AreaOfEffect, su));
+			public static IEnumerable<Tile> FromMods(object key, SkillUser su, Tile target) {
+				return target.GetArea((int)su.OtherStats[key][StatType.AreaOfEffect]);
 			}
 		}
 		private static class Effect {
-			public static void Damage(Skill skill, SkillUser su, Tile target) {
-				if(target.Inhabitant != null) target.Inhabitant.TakeDamage(skill.GetStatSet(su));
+			public static void Damage(object key, SkillUser su, Tile target) {
+				if(target.Inhabitant != null) target.Inhabitant.TakeDamage(su.OtherStats[key]);
 			}
 
-			public static Action<Skill, SkillUser, Tile> Channel(Skill skill) {
-				return (s, su, t) => {
+			public static Action<object, SkillUser, Tile> Channel(Skill skill) {
+				return (k, su, t) => {
 					if (t.ChannelingInstance == null) {
 						t.ChannelingInstance = new ChannelingInstance(su.GetChannelingMods(), skill, t);
 						TurnTracker.Add(t.ChannelingInstance);
 					} else throw new Exception("bullshit");
 				};
 			}
-			public static Action<Skill, SkillUser, Tile> AddModsToChannel(IEnumerable<Mod> mods) {
-				return (s, su, t) => {
+			public static Action<object, SkillUser, Tile> AddModsToChannel(IEnumerable<Mod> mods) {
+				return (k, su, t) => {
 					if (t.ChannelingInstance != null) {
 						foreach (var m in mods)
 							m.Affect(t.ChannelingInstance.Stats);
 					} else throw new Exception("bullshit");
 				};
 			}
-			public static Action<Skill, SkillUser, Tile> AddStatusEffect(Func<Being, StatSet, StatusEffect> suC) {
-				return (s, su, t) => {
+			public static Action<object, SkillUser, Tile> AddStatusEffect(Func<Being, StatSet, StatusEffect> statEffConstr) {
+				return (k, su, t) => {
 					var target = t.Inhabitant;
-					if (target != null) target.AddStatusEffect(suC(target, su.Stats));
+					if (target != null) target.AddStatusEffect(statEffConstr(target, su.Stats));
 					else throw new Exception("bullshit");
 				};
 			}
 
-			public static Action<Skill, SkillUser, Tile> DoWithWeapon(Action<Skill, SkillUser, Tile> effect) {
-				return (s, su, t) => {
+			public static Action<object, SkillUser, Tile> DoWithWeapon(Action<object, SkillUser, Tile> effect) {
+				return (k, su, t) => {
 					var b = su as Being;
-					b.MainHand.Affect(s, su, t, effect);
+					b.MainHand.AffectEffect(k, su, t, effect);
+				};
+			}
+			public static Action<object, SkillUser, Tile> DoWithWeapons(Action<object, SkillUser, Tile> effect) {
+				return (k, su, t) => {
+					var b = su as Being;
+					b.MainHand.AffectEffect(k, su, t, effect);
+					if(b.OffHand is Weapon) ((Weapon)b.OffHand).AffectEffect(k, su, t, effect);
 				};
 			}
 		}
@@ -158,7 +165,7 @@ namespace FuckingAround {
 			Validation.AnyAliveBeingInArea,
 			Range.GetFromMods,
 			AoE.FromMods,
-			(s, su, t) => { if(t.Inhabitant != null) t.Inhabitant.Brush = new System.Drawing.SolidBrush(System.Drawing.Color.Black);},
+			(k, su, t) => { if(t.Inhabitant != null) t.Inhabitant.Brush = new System.Drawing.SolidBrush(System.Drawing.Color.Black);},
 			new Mod[]{
 				new AdditionMod(StatType.Range, 6),
 				new AdditionMod(StatType.AreaOfEffect, 2)

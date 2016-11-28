@@ -35,17 +35,17 @@ namespace FuckingAround {
 		} }
 	}
 
-	public class ArmourButNotNecessarilyArmour : Gear {
+	public class Armour : Gear {
 		private AdditionMod BaseArmour;
 		public override IEnumerable<Mod> LocalBaseMods { get { yield return BaseArmour; } }
 		public override IEnumerable<Mod> GlobalBaseMods { get { yield break; } }
-		public ArmourButNotNecessarilyArmour(int armour) {
+		public Armour(int armour) {
 			BaseArmour = new AdditionMod(StatType.Armour, armour);
 			LocalEnchantments = new List<Mod>();
 			GlobalEnchantments = new List<Mod>();
 		}
 	}
-	public class Shield : ArmourButNotNecessarilyArmour {
+	public class Shield : Armour {
 		public Shield(int armour) : base(armour) { }
 	}
 
@@ -54,19 +54,26 @@ namespace FuckingAround {
 		private Mod BaseDamage;
 		public override IEnumerable<Mod> LocalBaseMods { get { yield return BaseDamage; } }
 		public override IEnumerable<Mod> GlobalBaseMods { get { yield break; } }
-		public virtual void Affect(Skill skill, SkillUser su, Tile target, Action<Skill, SkillUser, Tile> effect) {
-			effect(skill.GetModdedInstance(PrivMods), su, target);
+		public virtual void AffectEffect(object key, SkillUser su, Tile target, Action<object, SkillUser, Tile> effect) {
+			var nKey = new {s = key, w = this};
+			if (!su.OtherStats.ContainsKey(nKey)) {
+				su.OtherStats[nKey] = new StatSet();
+				su.OtherStats[nKey].AddSubSet(su.OtherStats[key]);
+				foreach (var m in PrivMods)
+					m.Affect(su.OtherStats[nKey]);
+			}
+			effect(nKey, su, target);
 		}
-
+		public IEnumerable<Mod> LocalMods { get { return LocalBaseMods.Concat(LocalEnchantments); } }
 		public override IEnumerable<Mod> GlobalMods { get {
 				return GlobalBaseMods
 					.Concat(GlobalEnchantments);
 		}	}
 
-		public virtual IEnumerable<Tile> Range(Skill skill, SkillUser su) {
+		public virtual IEnumerable<Tile> Range(object key, SkillUser su) {
 			return su.Place.Adjacent;
 		}
-		public virtual IEnumerable<Tile> AoE(Skill skill, SkillUser su, Tile target) {
+		public virtual IEnumerable<Tile> AoE(object key, SkillUser su, Tile target) {
 			yield return target;
 		}
 		public Weapon(int dmg) {
@@ -78,15 +85,15 @@ namespace FuckingAround {
 
 	public class ProjectileWeapon : Weapon {
 		public ProjectileWeapon(int dmg) : base(dmg) { }
-		public override IEnumerable<Tile> Range(Skill skill, SkillUser su) {
-			return su.Place.GetArea((int)skill.GetStat(StatType.WeaponRange, su));
+		public override IEnumerable<Tile> Range(object key, SkillUser su) {
+			return su.Place.GetArea((int)su.OtherStats[key][StatType.WeaponRange]);
 		}
 	}
 
 	public class Spear : Weapon {
 		public Spear(int dmg) : base(dmg) { }
 
-		public override IEnumerable<Tile> Range(Skill skill, SkillUser su) {
+		public override IEnumerable<Tile> Range(object key, SkillUser su) {
 			if (su.Place == null) throw new ArgumentException("SkillUser must be placed.");
 			Tile t;
 			t = su.Place.North;
@@ -114,7 +121,7 @@ namespace FuckingAround {
 				if (t != null) yield return t;
 			}
 		}
-		public override IEnumerable<Tile> AoE(Skill skill, SkillUser su, Tile target) {
+		public override IEnumerable<Tile> AoE(object key, SkillUser su, Tile target) {
 			if (su == null) throw new Exception("fcdasgdscfvdfshdsgvdfskjbvndkljs vdsb viudsvjdsnyibedi bvd");
 			Tile place = su.Place;
 			if (place == null) throw new ArgumentException("SkillUser must be placed.");
@@ -145,16 +152,24 @@ namespace FuckingAround {
 			}
 		}
 
-		public override void Affect(Skill skill, SkillUser su, Tile target, Action<Skill, SkillUser, Tile> effect) {
+		private MultiplierMod SecondaryTargetMod = new MultiplierMod(StatType.Damage, 0.5);
+		public override void AffectEffect(object key, SkillUser su, Tile target, Action<object, SkillUser, Tile> effect) {
 			if (target.Inhabitant != null) {
 				int dif = su.Place.X - target.X;
 				if (dif == 0) dif = su.Place.Y - target.Y;
-				var mods = PrivMods;
-				if (Math.Abs(dif) != 1)
-					mods = PrivMods.Concat(	//halve effect v targets 2 tiles away
-						new Mod[] { new MultiplierMod(StatType.Damage, 0.50) });
+				dif = Math.Abs(dif);
 
-				effect(skill.GetModdedInstance(mods), su, target);
+				var nKey = new {s = key, w = this, dist = dif};
+				if (!su.OtherStats.ContainsKey(nKey)) {
+					su.OtherStats[nKey] = new StatSet();
+					su.OtherStats[nKey].AddSubSet(su.OtherStats[key]);
+					foreach (var m in PrivMods)
+						m.Affect(su.OtherStats[nKey]);
+					if (dif == 2)	//halve effect v targets 2 tiles away
+						SecondaryTargetMod.Affect(su.OtherStats[nKey]);
+				}
+
+				effect(nKey, su, target);
 			}
 		} 
 	}
