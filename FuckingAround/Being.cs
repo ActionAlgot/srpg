@@ -14,11 +14,10 @@ namespace FuckingAround {
 		private List<StatusEffect> StatusEffects = new List<StatusEffect>();
 		public void AddStatusEffect(StatusEffect se) {
 			StatusEffects.Add(se);
-			se.Affect(this);
 		}
 		public void RemoveStatusEffect(StatusEffect se) {
 			StatusEffects.Remove(se);
-			se.UnAffect(this);
+			se.UnAffect();
 		}
 
 		private List<PassiveSkill> PSkills;
@@ -254,7 +253,7 @@ namespace FuckingAround {
 			Brush = new SolidBrush(Color.DarkOrange);
 
 			foreach (var se in StatusEffects)
-				se.UnAffect(this);
+				se.UnAffect();
 			StatusEffects.Clear();
 		}
 		public void TakeDamage(StatSet damages) {
@@ -268,7 +267,7 @@ namespace FuckingAround {
 					double threshold = this[dmgType.AsThreshold()].Value;
 					crap *= (1 - (resist - penetration));
 					if (Math.Abs(crap) < threshold) crap = 0;	//don't negate more than absolute damage
-					else crap -= crap < 0 ? -1 : 1 * threshold;	//negate flat amount regardless of negative or positive damage
+					else crap -= (crap < 0 ? -1 : 1) * threshold;	//negate flat amount regardless of negative or positive damage
 					ConsoleLoggerHandlerOrWhatever.Log(crap + " " + dmgType);
 					total += crap;	//apply all at once later to avoid potentially annoying stuff when multitype damage with >100% res which may damage and heal at once
 			}	}

@@ -25,24 +25,33 @@ namespace FuckingAround {
 		private static List<ITurnHaver> TurnHavers = new List<ITurnHaver>();
 
 		public static void Add(ITurnHaver fuck){
-			TurnHavers.Add(fuck);
+			if (!enumerating) TurnHavers.Add(fuck);
+			else doAfterEnumerating.Add(() => TurnHavers.Add(fuck));
 		}
 
 		public static void AddRange(IEnumerable<ITurnHaver> fuckers) {
-			TurnHavers.AddRange(fuckers);
+			if (!enumerating) TurnHavers.AddRange(fuckers);
+			else doAfterEnumerating.Add(() => TurnHavers.AddRange(fuckers));
 		}
 
 		public static void Remove(ITurnHaver fuck){
-			TurnHavers.Remove(fuck);
+			if (!enumerating) TurnHavers.Remove(fuck);
+			else doAfterEnumerating.Add(() => TurnHavers.Remove(fuck));
 		}
-
+		private static List<Action> doAfterEnumerating = new List<Action>();
+		private static bool enumerating = false;
 		private static ITurnHaver _currentTurnHaver;
 		public static ITurnHaver CurrentTurnHaver {
 			get {	//automatically forward time if time to do so
 				if (_currentTurnHaver == null || _currentTurnHaver.GetTimeToWait() > 0) {
 					_currentTurnHaver = TurnHavers.Aggregate((t1, t2) => t1.GetTimeToWait() <= t2.GetTimeToWait() ? t1 : t2);
 					var dsgfsdf = _currentTurnHaver.GetTimeToWait();
+
+					enumerating = true;
 					foreach (var t in TurnHavers) t.Await(dsgfsdf);
+					foreach (var f in doAfterEnumerating) f();
+					doAfterEnumerating.Clear();
+					enumerating = false;
 
 					ConsoleLoggerHandlerOrWhatever.Log("_____________");
 					foreach (var t in TurnHavers) ConsoleLoggerHandlerOrWhatever.Log(t.ToString() + " " + t.Awaited + " + " + t.Speed);

@@ -11,23 +11,29 @@ namespace FuckingAround {
 	public class DamageOverTime : OverTime {
 
 		protected double BaseDmg;	//per 100 time units
-		public StatSet Damages = new StatSet();
+		public StatSet Damages;
 
 
-		public DamageOverTime(StatSet ss, double BaseDmg, StatType DmgType) {
+		public DamageOverTime(StatSet ss, double BaseDmg, StatType DmgType)
+			: this(ss, BaseDmg, DmgType, true) { }
 
+		public DamageOverTime(StatSet ss, double BaseDmg, StatType DmgType, bool snapshotStats) {
 			var asdfg = new StatSet();
 			asdfg.AddSubSet(ss);
 			new AdditionMod(DmgType, BaseDmg).Affect(asdfg);
 
-			//snapshot
-			foreach (var dmgt in StatTypeStuff.DamageTypes.Select(asgf => asgf | StatType.DamageOverTime)) {
-				var dmg = asdfg[dmgt];
-				if (dmg != 0) {
-					new AdditionMod(dmgt, asdfg[dmgt]).Affect(Damages);
-					StatType pen = dmgt.AsPenetration();
-					new AdditionMod(pen, asdfg[pen]).Affect(Damages);
+			if (snapshotStats) {
+				Damages = new StatSet();
+				foreach (var dmgt in StatTypeStuff.DamageTypes.Select(asgf => asgf | StatType.DamageOverTime)) {
+					var dmg = asdfg[dmgt];
+					if (dmg != 0) {
+						new AdditionMod(dmgt, asdfg[dmgt]).Affect(Damages);
+						StatType pen = dmgt.AsPenetration();
+						new AdditionMod(pen, asdfg[pen]).Affect(Damages);
+					}
 				}
+			} else {
+				Damages = asdfg;
 			}
 		}
 	}
