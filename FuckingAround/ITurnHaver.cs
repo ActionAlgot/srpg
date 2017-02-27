@@ -56,6 +56,10 @@ namespace FuckingAround {
 					ConsoleLoggerHandlerOrWhatever.Log("_____________");
 					foreach (var t in TurnHavers) ConsoleLoggerHandlerOrWhatever.Log(t.ToString() + " " + t.Awaited + " + " + t.Speed);
 
+					//TODO get rid of this filth
+					if (TurnHavers.All(th => th != _currentTurnHaver))	//check if current has been removed
+						return CurrentTurnHaver;
+
 					_currentTurnHaver.StartTurn();
 				}
 				return _currentTurnHaver;

@@ -24,12 +24,18 @@ namespace FuckingAround {
 
 			if (snapshotStats) {
 				Damages = new StatSet();
-				foreach (var dmgt in StatTypeStuff.DamageTypes.Select(asgf => asgf | StatType.DamageOverTime)) {
+
+				var DamageTypes = StatTypeStuff.DamageTypes
+					.Select(asgf => asgf | StatType.DamageOverTime);
+
+				foreach (var dmgt in DamageTypes) {
 					var dmg = asdfg[dmgt];
 					if (dmg != 0) {
-						new AdditionMod(dmgt, asdfg[dmgt]).Affect(Damages);
+						new AdditionMod(dmgt, asdfg[dmgt])
+							.Affect(Damages);
 						StatType pen = dmgt.AsPenetration();
-						new AdditionMod(pen, asdfg[pen]).Affect(Damages);
+						new AdditionMod(pen, asdfg[pen])
+							.Affect(Damages);
 					}
 				}
 			} else {
@@ -48,6 +54,7 @@ namespace FuckingAround {
 		}
 		public void Remove(DamageOverTime DoT) {
 			DoTs.Remove(DoT);
+			DoT.Damages.Dispose();
 		}
 
 		private double leftover;

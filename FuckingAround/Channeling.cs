@@ -18,7 +18,7 @@ namespace FuckingAround {
 		public Weapon Weapon { get { return null; } }	//Kill me
 
 		public StatSet Stats { get; protected set; }
-		public Dictionary<object, StatSet> OtherStats { get; protected set; }
+		public Dictionary<object, StatSet> SkillUsageStats { get; protected set; }
 
 		private Tile _place;
 		public Tile Place {
@@ -48,7 +48,7 @@ namespace FuckingAround {
 
 		public ChannelingInstance(IEnumerable<Mod> mods, Skill skill, Tile place, Func<Tile> targetSelector) {
 			Stats = new StatSet();
-			OtherStats = new Dictionary<object, StatSet>();
+			SkillUsageStats = new Dictionary<object, StatSet>();
 
 			Skill = skill;
 			Place = place;

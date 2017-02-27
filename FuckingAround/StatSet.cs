@@ -58,6 +58,11 @@ namespace FuckingAround {
 			}
 		}
 
+		public void Dispose() {	//really should implement iDisposable yada yada
+			foreach(var ss in SubSets)
+				ss.ValueUpdated -= this.ValueUpdated;
+		}
+
 		private IEnumerable<StatType> GetInstantiatedStatTypes() {
 			return MainSet.Keys.Union(SubSets.SelectMany(ss => ss.GetInstantiatedStatTypes()));
 		}

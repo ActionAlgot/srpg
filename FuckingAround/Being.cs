@@ -17,7 +17,6 @@ namespace FuckingAround {
 		}
 		public void RemoveStatusEffect(StatusEffect se) {
 			StatusEffects.Remove(se);
-			se.UnAffect();
 		}
 
 		private List<PassiveSkill> PSkills;
@@ -57,7 +56,7 @@ namespace FuckingAround {
 					m.Affect(OffHandStats);
 		}
 
-		public Dictionary<object, StatSet> OtherStats { get; protected set; }
+		public Dictionary<object, StatSet> SkillUsageStats { get; protected set; }
 		public IEnumerable<Mod> Mods {
 			get {
 				return PSkills
@@ -252,9 +251,10 @@ namespace FuckingAround {
 			Awaited = 0;
 			Brush = new SolidBrush(Color.DarkOrange);
 
-			foreach (var se in StatusEffects)
+			//TODO don't fucking ToList
+			foreach (var se in StatusEffects.ToList())
 				se.UnAffect();
-			StatusEffects.Clear();
+			//StatusEffects.Clear();
 		}
 		public void TakeDamage(StatSet damages) {
 			int preHP = HP;
@@ -285,7 +285,7 @@ namespace FuckingAround {
 		public Being(int team, double speed, int mp) {
 
 			Stats = new StatSet();
-			OtherStats = new Dictionary<object, StatSet>();
+			SkillUsageStats = new Dictionary<object, StatSet>();
 
 			Inventory = new PersonalInventory(this);
 			PSkills = Passives.Default.ToList();

@@ -56,11 +56,11 @@ namespace FuckingAround {
 		public override IEnumerable<Mod> GlobalBaseMods { get { yield break; } }
 		public virtual void AffectEffect(object key, SkillUser su, Tile target, Action<object, SkillUser, Tile> effect) {
 			var nKey = new {s = key, w = this};
-			if (!su.OtherStats.ContainsKey(nKey)) {
-				su.OtherStats[nKey] = new StatSet();
-				su.OtherStats[nKey].AddSubSet(su.OtherStats[key]);
+			if (!su.SkillUsageStats.ContainsKey(nKey)) {
+				su.SkillUsageStats[nKey] = new StatSet();
+				su.SkillUsageStats[nKey].AddSubSet(su.SkillUsageStats[key]);
 				foreach (var m in PrivMods)
-					m.Affect(su.OtherStats[nKey]);
+					m.Affect(su.SkillUsageStats[nKey]);
 			}
 			effect(nKey, su, target);
 		}
@@ -86,7 +86,7 @@ namespace FuckingAround {
 	public class ProjectileWeapon : Weapon {
 		public ProjectileWeapon(int dmg) : base(dmg) { }
 		public override IEnumerable<Tile> Range(object key, SkillUser su) {
-			return su.Place.GetArea((int)su.OtherStats[key][StatType.WeaponRange]);
+			return su.Place.GetArea((int)su.SkillUsageStats[key][StatType.WeaponRange]);
 		}
 	}
 
@@ -160,13 +160,13 @@ namespace FuckingAround {
 				dif = Math.Abs(dif);
 
 				var nKey = new {s = key, w = this, dist = dif};
-				if (!su.OtherStats.ContainsKey(nKey)) {
-					su.OtherStats[nKey] = new StatSet();
-					su.OtherStats[nKey].AddSubSet(su.OtherStats[key]);
+				if (!su.SkillUsageStats.ContainsKey(nKey)) {
+					su.SkillUsageStats[nKey] = new StatSet();
+					su.SkillUsageStats[nKey].AddSubSet(su.SkillUsageStats[key]);
 					foreach (var m in PrivMods)
-						m.Affect(su.OtherStats[nKey]);
+						m.Affect(su.SkillUsageStats[nKey]);
 					if (dif == 2)	//halve effect v targets 2 tiles away
-						SecondaryTargetMod.Affect(su.OtherStats[nKey]);
+						SecondaryTargetMod.Affect(su.SkillUsageStats[nKey]);
 				}
 
 				effect(nKey, su, target);

@@ -47,13 +47,6 @@ namespace FuckingAround {
 			this.Width = 550;
 			DoubleBuffered = true;
 			tajmEvent += (s, e) => Invalidate();
-			tajmer = new System.Threading.Timer(
-				(o) => {	//TODO something better than try catch?
-					try { this.Invoke(new fuckinghellCallback(tajmEvent), new object[] { o, EventArgs.Empty }); }
-					catch (ObjectDisposedException) { tajmer.Dispose(); }
-				},
-				null, 100, 1000 / 60);
-			Disposed += (s, e) => tajmer.Dispose();
 			tileSet = new TileSet(30, 30);
 			MouseMove += (s, e) => MMouseHover = tileSet.SelectTile(e.X - TileSetOffsetX, e.Y - TileSetOffsetY);
 
@@ -114,6 +107,15 @@ namespace FuckingAround {
 			txtbx.Anchor = AnchorStyles.Top | AnchorStyles.Right;
 			ConsoleLoggerHandlerOrWhatever.OnLog += (sender, s) => txtbx.Text += s + "\r\n";
 			GameEventLogger.OnNewLog += (s, ge) => txtbx.Text += ge.ToString() + "\r\n";
+
+
+			tajmer = new System.Threading.Timer(
+				(o) => {    //TODO something better than try catch?
+					try { this.Invoke(new fuckinghellCallback(tajmEvent), new object[] { o, EventArgs.Empty }); }
+					catch (ObjectDisposedException) { tajmer.Dispose(); }
+				},
+				null, 100, 1000 / 60);
+			Disposed += (s, e) => tajmer.Dispose();
 		}
 
 		protected override void OnPaint(PaintEventArgs e) {
