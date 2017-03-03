@@ -161,23 +161,6 @@ namespace FuckingAround {
 			Range.UseWeaponRange,
 			AoE.UseWeapon,
 			Effect.DoWithWeapon(Effect.Damage));
-		public static Skill Blackify = new Skill("Blackify",
-			Validation.AnyAliveBeingInArea,
-			Range.GetFromMods,
-			AoE.FromMods,
-			(k, su, t) => { if(t.Inhabitant != null) t.Inhabitant.Brush = new System.Drawing.SolidBrush(System.Drawing.Color.Black);},
-			new Mod[]{
-				new AdditionMod(StatType.Range, 6),
-				new AdditionMod(StatType.AreaOfEffect, 2)
-			});
-		public static Skill BlackifyChannel = new Skill("Blackify channeling",
-			Validation.NoChannelingInstance,
-			Range.GetFromMods,
-			AoE.TargetOnly,
-			Effect.Channel(Blackify),
-			new Mod[]{
-				new AdditionMod(StatType.Range, 6)
-			});
 		public static Skill ChannelSpeedUp = new Skill("Channel speedup",
 			Validation.AnyChannelingInstanceInArea,
 			Range.GetFromMods,
@@ -205,8 +188,6 @@ namespace FuckingAround {
 
 		public static IEnumerable<Skill> Default = new Skill[]{
 			StandardAttack,
-			Blackify,
-			BlackifyChannel,
 			ChannelSpeedUp,
 			GrantPhysResistance,
 			Bleed

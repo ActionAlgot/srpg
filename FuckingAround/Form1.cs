@@ -1,26 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Diagnostics;
 
 namespace FuckingAround {
 	public partial class Form1 : Form {
 
-		private TileSet tileSet;
-		private List<ITurnHaver> Turners;
-		//private ITurnHaver _currentTurnHaver;
-		private ITurnHaver CurrentTurnHaver { get { return TurnTracker.CurrentTurnHaver; } }
-		private Being activeBeing { get { return CurrentTurnHaver as Being; } }	//return null if current turn does not belong to a being
-		private IEnumerable<Being> Beings { get { return Turners.Where(t => t is Being).Cast<Being>(); } }
 		private Menu BeingMenu;
 		private MenuItem SkillMenu;
-		private TextBox txtbx= new TextBox();
+		private TextBox txtbx = new TextBox();
+
+		private Battle Battle;
+		private TileSet tileSet { get { return Battle.TileSet; } }
+		private Being activeBeing { get { return Battle.activeBeing; } }
+
 		private event EventHandler MouseHoverChanged;
 		private Tile _mouseHover;
 		private Tile MMouseHover {
@@ -28,76 +24,73 @@ namespace FuckingAround {
 			set {
 				if (value != _mouseHover) {
 					_mouseHover = value;
-					if(MouseHoverChanged != null)MouseHoverChanged(this, EventArgs.Empty);
+					if (MouseHoverChanged != null) MouseHoverChanged(this, EventArgs.Empty);
 				}
 			}
 		}
 
+		public int TileSize = 15;
 		private int TileSetOffsetX = 0;
 		private int TileSetOffsetY = 0;
 
-
 		private event EventHandler tajmEvent;
-
 		delegate void fuckinghellCallback(object sender, EventArgs e);
 		private System.Threading.Timer tajmer;
 
-		public Form1() {
+		private void SetSkillMenu(object s, EventArgs e) {
+			if (s is Being) {
+				Being newBeing = s as Being;
+				SkillMenu.MenuItems.Clear();
+				foreach (var skill in newBeing.Skills) {
+					SkillMenu.MenuItems.Add(
+						new MenuItem(
+							skill.Name,
+							(s2, e2) => {   //TODO don't create a new func every single fucking time
+								if (!newBeing.ActionTaken) newBeing.SelectedAction = skill;
+								Refresh();
+							}
+						));
+				}
+			}
+		}
+
+		private Tile GetMousedTile(MouseEventArgs e) {
+			int x = (e.X - TileSetOffsetX) / TileSize;
+			int y = (e.Y - TileSetOffsetY) / TileSize;
+			if (x >= 0 && x < tileSet.XLength && y >= 0 && y < tileSet.YLength)   //within tileset area
+				return tileSet[x, y];
+			else return null;
+		}
+
+		public Form1(Battle battle) {
 			InitializeComponent();
+
+			Battle = battle;
+
 			this.Width = 550;
 			DoubleBuffered = true;
 			tajmEvent += (s, e) => Invalidate();
-			tileSet = new TileSet(30, 30);
-			MouseMove += (s, e) => MMouseHover = tileSet.SelectTile(e.X - TileSetOffsetX, e.Y - TileSetOffsetY);
+			MouseMove += (s, e) => MMouseHover = GetMousedTile(e);
 
-			Turners = new List<ITurnHaver>();
-			Turners.Add(new Being(1, 5, 5) { Place = tileSet[5, 6] });
-			((Being)Turners[0]).AddPassiveSkill(Passives.All[3]);
-			((Being)Turners[0]).AddPassiveSkill(Passives.All[4]);
-			((Being)Turners[0]).Inventory[0] = new Spear(12);
-			var b1 = new Being(1, 7, 6) { Place = tileSet[7, 8] };
-			//b1.Skills = new ObsoleteSkill[] { new Blackify(b1), new SpeedupChanneling(b1) };
-			//b1.AddPassiveSkill(Passives.All[4]);
-			Turners.Add(b1);
-			var b2 = new Being(2, 8, 7) { Place = tileSet[9, 10] };
-			//b2.Skills = new ObsoleteSkill[] { new ChannelingSpell(b2, new Blackify(b2), t => () => t, fuckpiss) };
-			Turners.Add(b2);
-
-			TurnTracker.AddRange(Turners);
-
-			foreach (var b in Beings) {
-				b.TurnStarted += (s, e) => {
-					SkillMenu.MenuItems.Clear();
-					foreach (var skill in activeBeing.Skills) {
-						SkillMenu.MenuItems.Add(
-							new MenuItem(
-								skill.Name,
-								(s2, e2) => {
-									if (!activeBeing.ActionTaken) activeBeing.SelectedAction = skill;
-									Refresh();
-				}	)	);	}	};
-
-				EventHandler fun = (s, e) => b.GraphicMove(5);
-				b.MoveStarted += (s, e) => tajmEvent += fun;
-				b.MoveFinished += (s, e) => tajmEvent -= fun;
-			}
-
-			tileSet.TileClicked += (o, e) => { if (activeBeing != null) activeBeing.Command(this, e); };
+			TurnTracker.TurnStarted += SetSkillMenu;
+			Battle.BeingMoved += BeginDrawingBeingMove;
 
 			this.MouseClick += (s, e) => {
-				//modify e.X and Y for grpahic offset
-				tileSet.ClickTile(new MouseEventArgs(e.Button, e.Clicks, e.X - TileSetOffsetX, e.Y - TileSetOffsetY , e.Delta));
-				this.Invalidate();
+				var tile = GetMousedTile(e);
+				if (tile != null) {
+					tileSet.SelectTile(tile);
+					this.Invalidate();
+				}
 			};
 
 			SkillMenu = new MenuItem("Skills");
 			BeingMenu = new MainMenu();
 			BeingMenu.MenuItems.Add(new MenuItem("End turn", (s, e) => {
-				if(activeBeing != null) activeBeing.EndTurn();
+				Battle.EndTurn();
 				this.Refresh();
-				}));
+			}));
 			BeingMenu.MenuItems.Add(SkillMenu);
-			
+
 			Menu = (MainMenu)BeingMenu;
 
 			this.Controls.Add(txtbx);
@@ -118,58 +111,176 @@ namespace FuckingAround {
 			Disposed += (s, e) => tajmer.Dispose();
 		}
 
+		private class MovingBeingStuff {
+			public List<Tile> Path;
+			public int PathIndex;
+			public Rectangle MovingRect;
+			
+			public MovingBeingStuff(List<Tile> path, Rectangle movingRect) {
+				Path = path;
+				PathIndex = 0;
+				MovingRect = movingRect;
+			}
+		}
+		private Dictionary<Being, MovingBeingStuff> movingBeingStuffs = new Dictionary<Being, MovingBeingStuff>();
+		private void BeginDrawingBeingMove(object s, Being.MovedArgs e) {
+			Being being = s as Being;
+			movingBeingStuffs[being] = new MovingBeingStuff(e.Path, GetRectangle(being.Place));
+		}
+
 		protected override void OnPaint(PaintEventArgs e) {
 			base.OnPaint(e);
 			DrawShit(e);
 		}
-
+		
 		private void DrawShit(PaintEventArgs e) {
-			Graphics graphics = e.Graphics;
-			//var grafconatber = graphics.BeginContainer();
-			//graphics.TranslateTransform(TileSetOffsetX, TileSetOffsetY);
-			
+			var graphics = e.Graphics;
+
 			foreach (var tile in tileSet.AsEnumerable())
-				tile.Draw(graphics);
-			
-			SolidBrush fuckyoubrush = new SolidBrush(Color.FromArgb(128, 0, 0, 255));
+				Draw(tile, graphics);
+
+			//Highlight area available for movement or skill usage
 			if (activeBeing != null) {
-				foreach (var tile in activeBeing.SelectedAction == null
-						? tileSet.GetTraversalArea(activeBeing.Place, activeBeing, activeBeing.MovementPoints)
-						: activeBeing.SelectedAction.Range(activeBeing))
-					graphics.FillRectangle(fuckyoubrush, tile.Rectangle);
-				fuckyoubrush.Dispose();
+				var tiles = activeBeing.SelectedAction == null
+					? tileSet.GetTraversalArea(activeBeing.Place, activeBeing, activeBeing.MovementPoints)
+					: activeBeing.SelectedAction.Range(activeBeing);
+				HighlightArea(tiles, graphics);
 			}
-			if (tileSet.ClickedTile != null)
-				graphics.FillRectangle(tileSet.SelectedBrush, tileSet.ClickedTile.Rectangle);
 
-			Pen lineGridPen = new Pen(Color.Black);
+			//if (tileSet.ClickedTile != null)
+			//	currentGraphics.FillRectangle(tileSet.SelectedBrush, GetRectangle(tileSet.ClickedTile));
+
+			DrawLineGrid(graphics);
+
+			foreach (var being in Battle.Beings)
+				Draw(being, graphics);
+
+			foreach (var ci in TurnTracker.GETCHANNELINGINSTANCES())
+				Draw(ci, graphics);
+
+			HighlightPath(graphics);
+
+			graphics = null;
+		}
+
+		Rectangle GetRectangle(Tile tile) {
+			return new Rectangle(
+				tile.X * TileSize,
+				tile.Y * TileSize,
+				TileSize, TileSize);
+		}
+
+		private SolidBrush TileBrush = new SolidBrush(Color.BlanchedAlmond);
+		private void Draw(Tile tile, Graphics graphics) {
+			graphics.FillRectangle(TileBrush, GetRectangle(tile));
+		}
+
+		private SolidBrush BeingBrush = new SolidBrush(Color.Green);
+		private SolidBrush DeadBeingBrush = new SolidBrush(Color.DarkOrange);
+		private void Draw(Being being, Graphics graphics) {
+			var UsedBrush = being.IsAlive ? BeingBrush : DeadBeingBrush;
+			if (movingBeingStuffs.ContainsKey(being)
+				&& GraphicMoveBeing(being))
+				graphics.FillEllipse(UsedBrush, movingBeingStuffs[being].MovingRect);
+			else graphics.FillEllipse(UsedBrush, GetRectangle(being.Place));
+		}
+		private int MoveSpeed = 3;
+		private bool GraphicMoveBeing(Being being) {
+			var stuff = movingBeingStuffs[being];
+			var Path = stuff.Path;
+			var PathIndex = stuff.PathIndex;
+			var MovingRect = stuff.MovingRect;
+
+			int move = MoveSpeed;   //TODO apply time.delta
+			while (true) {
+				if (PathIndex+1 >= Path.Count) {
+					movingBeingStuffs.Remove(being);
+					return false;
+				}
+				int xDiff = Path[PathIndex].X - Path[PathIndex + 1].X;
+				if (xDiff != 0) {
+					if (xDiff < 0) {
+						MovingRect.X += move;
+						if (MovingRect.X >= GetRectangle(Path[PathIndex + 1]).X) {
+							move = MovingRect.X - GetRectangle(Path[PathIndex + 1]).X;
+							MovingRect.X = GetRectangle(Path[PathIndex + 1]).X;
+							PathIndex++;
+							continue;
+						}
+					}
+					else {
+						MovingRect.X -= move;
+						if (MovingRect.X <= GetRectangle(Path[PathIndex + 1]).X) {
+							move = -(MovingRect.X - GetRectangle(Path[PathIndex + 1]).X);
+							MovingRect.X = GetRectangle(Path[PathIndex + 1]).X;
+							PathIndex++;
+							continue;
+						}
+					}
+				}
+				else {
+					int yDiff = Path[PathIndex].Y - Path[PathIndex + 1].Y;
+					if (yDiff < 0) {
+						MovingRect.Y += move;
+						if (MovingRect.Y >= GetRectangle(Path[PathIndex + 1]).Y) {
+							move = MovingRect.Y - GetRectangle(Path[PathIndex + 1]).Y;
+							MovingRect.Y = GetRectangle(Path[PathIndex + 1]).Y;
+							PathIndex++;
+							continue;
+						}
+					}
+					else {
+						MovingRect.Y -= move;
+						if (MovingRect.Y <= GetRectangle(Path[PathIndex + 1]).Y) {
+							move = -(MovingRect.Y - GetRectangle(Path[PathIndex + 1]).Y);
+							MovingRect.Y = GetRectangle(Path[PathIndex + 1]).Y;
+							PathIndex++;
+							continue;
+						}
+					}
+				}
+				break;
+			}
+			stuff.MovingRect = MovingRect;
+			return true;
+		}
+
+		private Pen LineGridPen = new Pen(Color.Black);
+		private void DrawLineGrid(Graphics graphics) {
 			for (int x = 0; x <= tileSet.XLength; x++)
-				graphics.DrawLine(lineGridPen,
-					x * Tile.Size,
+				graphics.DrawLine(LineGridPen,
+					x * TileSize,
 					0,
-					x * Tile.Size,
-					tileSet.YLength * Tile.Size);
+					x * TileSize,
+					tileSet.YLength * TileSize);
 			for (int y = 0; y <= tileSet.YLength; y++)
-				graphics.DrawLine(lineGridPen,
+				graphics.DrawLine(LineGridPen,
 					0,
-					y * Tile.Size,
-					tileSet.XLength * Tile.Size,
-					y * Tile.Size);
-			lineGridPen.Dispose();
-			
-			foreach (var t in Beings)
-				t.Draw(graphics);
+					y * TileSize,
+					tileSet.XLength * TileSize,
+					y * TileSize);
+		}
 
-			foreach (var fuck in TurnTracker.GETCHANNELINGINSTANCES())
-				fuck.Draw(graphics);
-
+		private SolidBrush PathHighlightBrush = new SolidBrush(Color.Black);
+		private void HighlightPath(Graphics graphics) {
 			if (activeBeing != null && MMouseHover != null && activeBeing.SelectedAction == null) {
-				var gfsde = new SolidBrush(Color.Black);
-				var fuck = tileSet.GetPath(activeBeing.Place, MMouseHover, activeBeing.GetTraversalCost);
-				foreach(var fgdsa in fuck){
-					graphics.FillRectangle(gfsde, fgdsa.Rectangle);
+				var tiles = tileSet.GetPath(activeBeing.Place, MMouseHover, activeBeing.GetTraversalCost);
+				foreach (var tile in tiles) {
+					graphics.FillRectangle(PathHighlightBrush, GetRectangle(tile));
 				}
 			}
 		}
+
+		private SolidBrush AreaHighlightBrush = new SolidBrush(Color.FromArgb(128, 0, 0, 255));
+		private void HighlightArea(IEnumerable<Tile> tiles, Graphics graphics) {
+			foreach (var tile in tiles)
+				graphics.FillRectangle(AreaHighlightBrush, GetRectangle(tile));
+		}
+
+		private SolidBrush ChannelingBrush = new SolidBrush(Color.Pink);
+		private void Draw(ChannelingInstance ci, Graphics graphics) {
+			graphics.FillRectangle(ChannelingBrush, GetRectangle(ci.Place));
+		}
+
 	}
 }

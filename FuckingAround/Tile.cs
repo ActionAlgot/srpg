@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 
 namespace FuckingAround {
 	public class Tile {
-		public static int Size = 15;
-		public static Pen BorderPen = new Pen(Color.Black);
 		private Being _inhabitant;
 		public Being Inhabitant {
 			get { return _inhabitant; }
@@ -35,7 +33,6 @@ namespace FuckingAround {
 		public int X;
 		public int Y;
 		public int TraverseCost;
-		public SolidBrush Brush;
 		private TileSet Owner;
 		public IEnumerable<Tile> GetArea(int range) {
 			return Owner.GetArea(this, range);
@@ -45,10 +42,6 @@ namespace FuckingAround {
 		}
 		public Func<Being, int, IEnumerable<Tile>> GetShit {
 			get { return (b, n) => Owner.GetTraversalArea(this, b, n); }
-		}
-		public Action<Graphics> Draw;
-		public Rectangle Rectangle {
-			get { return new Rectangle(X * Size, Y * Size, Size, Size); }
 		}
 		public Tile North	{ get { return Y+1 < Owner.YLength ? Owner[X, Y+1] : null; } }
 		public Tile East	{ get { return X+1 < Owner.XLength ? Owner[X+1, Y] : null; } }
@@ -68,13 +61,11 @@ namespace FuckingAround {
 			return "(X: " + X + ", Y: " + Y + ")";
 		}
 
-		public Tile(int x, int y, TileSet owner, SolidBrush brush) {
+		public Tile(int x, int y, TileSet owner) {
 			Inhabitant = null;
 			X = x;
 			Y = y;
 			Owner = owner;
-			Brush = brush;
-			Draw = g => g.FillRectangle(Brush, Rectangle);
 		}
 	}
 }

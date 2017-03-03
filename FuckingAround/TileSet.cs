@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace FuckingAround {
 	public class TileClickedEventArgs : EventArgs {
-		public MouseEventArgs MouseEventArgs;
 		public Tile Tile;
-		public TileClickedEventArgs(MouseEventArgs mea, Tile tile) {
-			MouseEventArgs = mea;
+		public TileClickedEventArgs(Tile tile) {
 			Tile = tile;
 		}
 	}
@@ -21,33 +17,20 @@ namespace FuckingAround {
 		public Tile this[int x, int y]{
 			get { return Tiles[x, y]; }
 		}
-		public Tile ClickedTile;
 		public int XLength { get { return Tiles.GetLength(0); } }
 		public int YLength { get { return Tiles.GetLength(1); } }
-		public SolidBrush SelectedBrush = new SolidBrush(Color.Red);
 		public event EventHandler<TileClickedEventArgs> TileClicked;
 
 		public TileSet(int x, int y) {
-			var defaultBrush = new SolidBrush(Color.BlanchedAlmond);
 			Tiles = new Tile[x, y];
 			for (int ix = 0; ix < x; ix++)
 				for (int iy = 0; iy < y; iy++)
-					Tiles[ix, iy] = new Tile(ix, iy, this, defaultBrush);
+					Tiles[ix, iy] = new Tile(ix, iy, this);
 			foreach (var tile in Tiles) tile.TraverseCost = 1;
 		}
 
-		public bool ClickTile(MouseEventArgs e) {
-			ClickedTile = SelectTile(e.X, e.Y);
-			if (ClickedTile != null) {
-				TileClicked(this, new TileClickedEventArgs(e, ClickedTile));
-				return true;
-			} else return false;
-		}
-
-		public Tile SelectTile(int x, int y) {
-			if (x >= 0 && x < Tiles.GetLength(0) * Tile.Size && y >= 0 && y < Tiles.GetLength(1) * Tile.Size)	//within tileset area
-				return Tiles[x / Tile.Size, y / Tile.Size];
-			else return null;
+		public void SelectTile(Tile tile) {
+			TileClicked(this, new TileClickedEventArgs(tile));
 		}
 
 		public IEnumerable<Tile> GetPath(Tile start, Tile destination, Func<Tile, int> travCostCalc) {	//TODO properly reuse code from 'GetTraversalArea' rather than copypasta
@@ -56,8 +39,12 @@ namespace FuckingAround {
 			var prev = new Dictionary<Tile, Tile>();
 			var tils = new LinkedList<Tile>();
 
-			Action<LinkedListNode<Tile>> AddAdjTiles = (node) => {
-				foreach (var adjT in node.Value.Adjacent)
+			accumTravCost.Add(start, 0);
+			tils.AddFirst(start);
+			for (var node = tils.First; node != null; node = node.Next) {
+				if (node.Value == destination) break;
+				
+				foreach (var adjT in node.Value.Adjacent) {
 					if (accumTravCost.ContainsKey(adjT) == false) {
 						int adjTravCost = travCostCalc(adjT);
 						if (adjTravCost >= 0) {
@@ -71,15 +58,7 @@ namespace FuckingAround {
 								}
 							if (!added) tils.AddLast(adjT);
 							prev[adjT] = node.Value;
-						}
-					}
-			};
-
-			accumTravCost.Add(start, 0);
-			tils.AddFirst(start);
-			for (var node = tils.First; node != null; node = node.Next) {
-				if (node.Value == destination) break;
-				AddAdjTiles(node);
+				}	}	}
 			}
 			var tindex = destination;
 			var rList = new List<Tile>();
@@ -95,8 +74,13 @@ namespace FuckingAround {
 			var accumTravCost = new Dictionary<Tile, int>();    //dictionary for accumulated traversal cost
 			var tils = new LinkedList<Tile>();
 
-			Action<LinkedListNode<Tile>> AddAdjTiles = (node) => {
-				foreach (var adjT in node.Value.Adjacent) {
+			accumTravCost.Add(start, 0);
+			tils.AddFirst(start);
+			for (var node = tils.First; node != null; node = node.Next) {
+				if(node.Value != start)
+					yield return node.Value;
+
+				foreach (var adjT in node.Value.Adjacent) {	//insert tiles adjacent to current node
 					if (accumTravCost.ContainsKey(adjT) == false) {
 						int adjTravCost = travCostCalc(adjT);
 						if (adjTravCost >= 0) {
@@ -109,17 +93,10 @@ namespace FuckingAround {
 										added = true;
 										tils.AddBefore(node2, adjT);
 										break;
-								}	}
+									}
+								}
 								if (!added) tils.AddLast(adjT);
 				}	}	}	}
-			};
-
-			accumTravCost.Add(start, 0);
-			tils.AddFirst(start);
-			AddAdjTiles(tils.First);    //skip 'start'
-			for (var node = tils.First.Next; node != null; node = node.Next) {
-				yield return node.Value;
-				AddAdjTiles(node);
 			}
 		}
 
@@ -142,12 +119,6 @@ namespace FuckingAround {
 					yield return Tiles[x, y];
 				}
 			}
-		}
-
-		public IEnumerable<Tile> GetTraversalArea(Being b, int mp) {
-			return ClickedTile != null
-				? GetTraversalArea(ClickedTile, b, mp)
-				: new Tile[0];
 		}
 
 		public IEnumerable<Tile> AsEnumerable() {

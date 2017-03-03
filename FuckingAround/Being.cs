@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace FuckingAround {
 	public class Being : ITurnHaver, SkillUser {
@@ -35,7 +33,7 @@ namespace FuckingAround {
 		}
 
 		public StatSet Stats { get; protected set; }
-		public Stat this[StatType asdf] { get { return Stats.GetStat(asdf); } }
+		public Stat this[StatType st] { get { return Stats.GetStat(st); } }
 
 		public StatSet MainHandStats { get; protected set; }
 		public StatSet OffHandStats { get; protected set; }
@@ -174,82 +172,29 @@ namespace FuckingAround {
 				this.EndTurn();
 		}
 
-
-		public bool Moving;
-		public int PathIndex;
-		public List<Tile> Path;
-		private Rectangle MovingRect;
-
-
-		public void GraphicMove(int n) {
-			if (PathIndex + 1 >= Path.Count) {
-				Moving = false;
-				if (MoveFinished != null)
-					MoveFinished(this, EventArgs.Empty);
-				return;
-			}
-
-			int xDiff = Path[PathIndex].X - Path[PathIndex + 1].X;
-			if (xDiff != 0) {
-				if (xDiff < 0) {
-					MovingRect.X += n;
-					if (MovingRect.X >= Path[PathIndex + 1].Rectangle.X) {
-						MovingRect.X = Path[PathIndex + 1].Rectangle.X;
-						PathIndex++;
-						GraphicMove(MovingRect.X - Path[PathIndex].Rectangle.X);
-					}
-				} else {
-					MovingRect.X -= n;
-					if (MovingRect.X <= Path[PathIndex + 1].Rectangle.X) {
-						MovingRect.X = Path[PathIndex + 1].Rectangle.X;
-						PathIndex++;
-						GraphicMove(MovingRect.X - Path[PathIndex].Rectangle.X);
-					}
-				}
-			} else {
-				int yDiff = Path[PathIndex].Y - Path[PathIndex + 1].Y;
-				if (yDiff < 0) {
-					MovingRect.Y += n;
-					if (MovingRect.Y >= Path[PathIndex + 1].Rectangle.Y) {
-						MovingRect.Y = Path[PathIndex + 1].Rectangle.Y;
-						PathIndex++;
-						GraphicMove(MovingRect.Y - Path[PathIndex].Rectangle.Y);
-					}
-				} else {
-					MovingRect.Y -= n;
-					if (MovingRect.Y <= Path[PathIndex + 1].Rectangle.Y) {
-						MovingRect.Y = Path[PathIndex + 1].Rectangle.Y;
-						PathIndex++;
-						GraphicMove(MovingRect.Y - Path[PathIndex].Rectangle.Y);
-					}
-				}
+		public class MovedArgs {
+			public List<Tile> Path { get; protected set; }
+			public MovedArgs(List<Tile> path) {
+				Path = path;
 			}
 		}
-
-		public event EventHandler MoveFinished;
-		public event EventHandler MoveStarted;
+		public event EventHandler<MovedArgs> MoveStarted;
 		public void Move(object sender, TileClickedEventArgs e) {
 			if (movementArea.Any(t => t == e.Tile)
 					&& e.Tile.Inhabitant == null) {
-
-				Moving = true;
-				MovingRect = Place.Rectangle;
-				PathIndex = 0;
-				Path = Place.GetPath(e.Tile, GetTraversalCost).ToList();
-				if (MoveStarted != null) MoveStarted(this, EventArgs.Empty);
+				
+				var path = Place.GetPath(e.Tile, GetTraversalCost).ToList();
+				if(MoveStarted != null) MoveStarted(this, new MovedArgs(path));
 
 				Place = e.Tile;
 				Moved = true;
 			}
 		}
 		public int MovementPoints;
-		public Action<Graphics> Draw;
-		public SolidBrush Brush;
 
 		public void Die() {
 			HP = 0;
 			Awaited = 0;
-			Brush = new SolidBrush(Color.DarkOrange);
 
 			//TODO don't fucking ToList
 			foreach (var se in StatusEffects.ToList())
@@ -260,16 +205,16 @@ namespace FuckingAround {
 			int preHP = HP;
 			double total = 0.0;
 			foreach (StatType dmgType in StatTypeStuff.DirectDamageTypeApplicationTypes) {
-				double crap = damages.GetStat(dmgType).Value;
-				if (crap != 0) {
+				double dmg = damages.GetStat(dmgType).Value;
+				if (dmg != 0) {
 					double resist = this[dmgType.AsResistance()].Value;
 					double penetration = damages[dmgType.AsPenetration()];
 					double threshold = this[dmgType.AsThreshold()].Value;
-					crap *= (1 - (resist - penetration));
-					if (Math.Abs(crap) < threshold) crap = 0;	//don't negate more than absolute damage
-					else crap -= (crap < 0 ? -1 : 1) * threshold;	//negate flat amount regardless of negative or positive damage
-					ConsoleLoggerHandlerOrWhatever.Log(crap + " " + dmgType);
-					total += crap;	//apply all at once later to avoid potentially annoying stuff when multitype damage with >100% res which may damage and heal at once
+					dmg *= (1 - (resist - penetration));
+					if (Math.Abs(dmg) < threshold) dmg = 0;	//don't negate more than absolute damage
+					else dmg -= (dmg < 0 ? -1 : 1) * threshold;	//negate flat amount regardless of negative or positive damage
+					ConsoleLoggerHandlerOrWhatever.Log(dmg + " " + dmgType);
+					total += dmg;	//apply all at once later to avoid potentially annoying stuff when multitype damage with >100% res which may damage and heal at once
 			}	}
 			HP -= (int)total;
 			ConsoleLoggerHandlerOrWhatever.Log(preHP + " => " + HP);
@@ -299,11 +244,6 @@ namespace FuckingAround {
 			Skills = SkillsRepo.Default.ToList();
 			MovementPoints = mp;
 			_team = team;
-			Brush = new SolidBrush(Color.Green);
-			Draw = g => {
-				if (Moving) g.FillEllipse(Brush, MovingRect);
-				else g.FillEllipse(Brush, Place.Rectangle);
-			};
 			_command += OnCommand;
 
 			HP = MaxHP;
@@ -312,7 +252,7 @@ namespace FuckingAround {
 		public event EventHandler TurnStarted;
 
 		public void StartTurn() {
-			TurnStarted(this, EventArgs.Empty);
+			if(TurnStarted != null) TurnStarted(this, EventArgs.Empty);
 		}
 	}
 }

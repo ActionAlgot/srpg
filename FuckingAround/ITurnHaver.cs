@@ -22,23 +22,45 @@ namespace FuckingAround {
 	}
 
 	public static class TurnTracker {
+
+		//lmao can't fucking connect eventhandler and keep shit dynamic
+		private static void _TurnStarted(object s, EventArgs e) {
+			if(TurnStarted != null) TurnStarted(s, e);
+		}
+		public static event EventHandler TurnStarted;
+		public static event EventHandler TurnFinished;
+
 		private static List<ITurnHaver> TurnHavers = new List<ITurnHaver>();
 
 		public static void Add(ITurnHaver fuck){
-			if (!enumerating) TurnHavers.Add(fuck);
-			else doAfterEnumerating.Add(() => TurnHavers.Add(fuck));
+			if (!enumerating) {
+				TurnHavers.Add(fuck);
+				fuck.TurnStarted += _TurnStarted;
+				fuck.TurnFinished += TurnFinished;
+			}
+			else doAfterEnumerating.Enqueue(() => Add(fuck));
 		}
 
 		public static void AddRange(IEnumerable<ITurnHaver> fuckers) {
-			if (!enumerating) TurnHavers.AddRange(fuckers);
-			else doAfterEnumerating.Add(() => TurnHavers.AddRange(fuckers));
+			if (!enumerating) {
+				TurnHavers.AddRange(fuckers);
+				foreach(var fuck in fuckers) {
+					fuck.TurnStarted += _TurnStarted;
+					fuck.TurnFinished += TurnFinished;
+				}
+			}
+			else doAfterEnumerating.Enqueue(() => AddRange(fuckers));
 		}
 
 		public static void Remove(ITurnHaver fuck){
-			if (!enumerating) TurnHavers.Remove(fuck);
-			else doAfterEnumerating.Add(() => TurnHavers.Remove(fuck));
+			if (!enumerating) {
+				TurnHavers.Remove(fuck);
+				fuck.TurnStarted -= _TurnStarted;
+				fuck.TurnFinished -= TurnFinished;
+			}
+			else doAfterEnumerating.Enqueue(() => Remove(fuck));
 		}
-		private static List<Action> doAfterEnumerating = new List<Action>();
+		private static Queue<Action> doAfterEnumerating = new Queue<Action>();
 		private static bool enumerating = false;
 		private static ITurnHaver _currentTurnHaver;
 		public static ITurnHaver CurrentTurnHaver {
@@ -48,18 +70,15 @@ namespace FuckingAround {
 					var dsgfsdf = _currentTurnHaver.GetTimeToWait();
 
 					enumerating = true;
-					foreach (var t in TurnHavers) t.Await(dsgfsdf);
-					foreach (var f in doAfterEnumerating) f();
-					doAfterEnumerating.Clear();
+					foreach (var t in TurnHavers)
+						t.Await(dsgfsdf);
 					enumerating = false;
+					while (doAfterEnumerating.Any())
+						doAfterEnumerating.Dequeue()();
 
 					ConsoleLoggerHandlerOrWhatever.Log("_____________");
 					foreach (var t in TurnHavers) ConsoleLoggerHandlerOrWhatever.Log(t.ToString() + " " + t.Awaited + " + " + t.Speed);
-
-					//TODO get rid of this filth
-					if (TurnHavers.All(th => th != _currentTurnHaver))	//check if current has been removed
-						return CurrentTurnHaver;
-
+					
 					_currentTurnHaver.StartTurn();
 				}
 				return _currentTurnHaver;

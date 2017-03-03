@@ -15,7 +15,7 @@ namespace FuckingAround {
 			_awaited += Speed * time;
 		}
 		#endregion
-		public Weapon Weapon { get { return null; } }	//Kill me
+		public Weapon Weapon { get { return null; } }	//TODO Kill me
 
 		public StatSet Stats { get; protected set; }
 		public Dictionary<object, StatSet> SkillUsageStats { get; protected set; }
@@ -36,8 +36,6 @@ namespace FuckingAround {
 		protected Skill Skill;
 		protected Func<Tile> TargetSelector;
 
-		public Action<System.Drawing.Graphics> Draw { get; protected set; }
-
 		public void OnTurnStarted(object s, EventArgs e) {
 			if (!Skill.Do(this, TargetSelector()))
 				ConsoleLoggerHandlerOrWhatever.Log(this.ToString() + " cast " + Skill.Name + " and hit nothing.");
@@ -56,8 +54,7 @@ namespace FuckingAround {
 
 			foreach (var m in mods)
 				m.Affect(Stats);
-
-			Draw = g => g.FillRectangle(new System.Drawing.SolidBrush(System.Drawing.Color.Pink), Place.Rectangle);
+			
 			TurnFinished += (s, e) => TurnTracker.Remove(this);
 			TurnStarted += OnTurnStarted;
 		}
