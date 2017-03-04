@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FuckingAround {
+namespace srpg {
 	public class StatusEffect {
 		protected Being Target;
 

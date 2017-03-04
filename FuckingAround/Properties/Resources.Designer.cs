@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace FuckingAround.Properties {
+namespace srpg.Properties {
 
 
 	/// <summary>

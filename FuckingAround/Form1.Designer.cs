@@ -1,4 +1,4 @@
-﻿namespace FuckingAround {
+﻿namespace srpg {
 	partial class Form1 {
 		/// <summary>
 		/// Required designer variable.

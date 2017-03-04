@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FuckingAround {
+namespace srpg {
 	
 	public abstract class Mod {
 		public StatType TargetStatType { get; protected set; }

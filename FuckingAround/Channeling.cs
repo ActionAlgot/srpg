@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FuckingAround {
+namespace srpg {
 	public class ChannelingInstance : ITurnHaver, SkillUser {
 		#region ITurnHaver
 		public event EventHandler TurnFinished;

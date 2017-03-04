@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FuckingAround {
+namespace srpg {
 	public class Being : ITurnHaver, SkillUser {
 
 		private List<StatusEffect> StatusEffects = new List<StatusEffect>();

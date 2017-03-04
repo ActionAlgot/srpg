@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FuckingAround {
+namespace srpg {
 	public class Tile {
 		private Being _inhabitant;
 		public Being Inhabitant {

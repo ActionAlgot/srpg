@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FuckingAround {
+namespace srpg {
 	public abstract class Gear {
 		public abstract IEnumerable<Mod> LocalBaseMods { get; }
 		public abstract IEnumerable<Mod> GlobalBaseMods { get; }

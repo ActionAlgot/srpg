@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FuckingAround {
+namespace srpg {
 	public class Skill {	//TODO handle wether 'doer' is using weapon
 
 		public string Name { get; protected set; }

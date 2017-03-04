@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FuckingAround", "FuckingAround\FuckingAround.csproj", "{C573E709-BF49-4437-A23C-0971263BC3FE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "srpg", "FuckingAround\srpg.csproj", "{C573E709-BF49-4437-A23C-0971263BC3FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

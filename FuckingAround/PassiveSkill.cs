@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FuckingAround {
+namespace srpg {
 	public class PassiveSkill {
 		private List<Mod> _mods;
 		public IEnumerable<Mod> Mods { get { return _mods; } }

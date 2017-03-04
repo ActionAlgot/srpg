@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FuckingAround{
+namespace srpg{
 	public class PersonalInventory : IEnumerable<Gear> {
 		private Being Owner;
 		private Gear[] gear = new Gear[5];

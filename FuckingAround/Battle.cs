@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FuckingAround {
+namespace srpg {
 	public class Battle {
 		public TileSet TileSet { get; private set; }
 		private TurnTracker _TurnTracker = new TurnTracker();
