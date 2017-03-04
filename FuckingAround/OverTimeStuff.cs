@@ -99,8 +99,10 @@ namespace FuckingAround {
 		}
 
 		public void Await(double time) {
+			
 			double dmg = Effect * (time / 100.0) + leftover;
 			leftover = dmg - (int)dmg;
+			if (Target.HP - (int)dmg == 1 && leftover > 0.99999) dmg += 1;	//for shitty double maths 
 			if((int)dmg != 0) Target.TakeRawDamage((int)dmg);
 		}
 	}
