@@ -15,8 +15,9 @@ namespace FuckingAround {
 			_awaited += Speed * time;
 		}
 		#endregion
-		public Weapon Weapon { get { return null; } }	//TODO Kill me
+		public Weapon Weapon { get { return null; } }   //TODO Kill me
 
+		public Battle Battle { get; private set; }
 		public StatSet Stats { get; protected set; }
 		public Dictionary<object, StatSet> SkillUsageStats { get; protected set; }
 
@@ -44,9 +45,11 @@ namespace FuckingAround {
 			Place = null;
 		}
 
-		public ChannelingInstance(IEnumerable<Mod> mods, Skill skill, Tile place, Func<Tile> targetSelector) {
+		public ChannelingInstance(Battle battle, IEnumerable<Mod> mods, Skill skill, Tile place, Func<Tile> targetSelector) {
 			Stats = new StatSet();
 			SkillUsageStats = new Dictionary<object, StatSet>();
+			Battle = battle;
+			Battle.Add(this);
 
 			Skill = skill;
 			Place = place;
@@ -55,10 +58,11 @@ namespace FuckingAround {
 			foreach (var m in mods)
 				m.Affect(Stats);
 			
-			TurnFinished += (s, e) => TurnTracker.Remove(this);
+			TurnFinished += (s, e) => Battle.Remove(this);
 			TurnStarted += OnTurnStarted;
 		}
-		public ChannelingInstance(IEnumerable<Mod> mods, Skill skill, Tile place) : this(mods, skill, place, () => place) { }
+		public ChannelingInstance(Battle battle, IEnumerable<Mod> mods, Skill skill, Tile place)
+			: this(battle, mods, skill, place, () => place) { }
 
 		public event EventHandler TurnStarted;
 

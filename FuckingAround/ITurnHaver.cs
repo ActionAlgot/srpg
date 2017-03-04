@@ -21,18 +21,18 @@ namespace FuckingAround {
 		}
 	}
 
-	public static class TurnTracker {
+	public class TurnTracker {
 
 		//lmao can't fucking connect eventhandler and keep shit dynamic
-		private static void _TurnStarted(object s, EventArgs e) {
+		private void _TurnStarted(object s, EventArgs e) {
 			if(TurnStarted != null) TurnStarted(s, e);
 		}
-		public static event EventHandler TurnStarted;
+		public event EventHandler TurnStarted;
 		public static event EventHandler TurnFinished;
 
-		private static List<ITurnHaver> TurnHavers = new List<ITurnHaver>();
+		private List<ITurnHaver> TurnHavers = new List<ITurnHaver>();
 
-		public static void Add(ITurnHaver fuck){
+		public void Add(ITurnHaver fuck){
 			if (!enumerating) {
 				TurnHavers.Add(fuck);
 				fuck.TurnStarted += _TurnStarted;
@@ -41,7 +41,7 @@ namespace FuckingAround {
 			else doAfterEnumerating.Enqueue(() => Add(fuck));
 		}
 
-		public static void AddRange(IEnumerable<ITurnHaver> fuckers) {
+		public void AddRange(IEnumerable<ITurnHaver> fuckers) {
 			if (!enumerating) {
 				TurnHavers.AddRange(fuckers);
 				foreach(var fuck in fuckers) {
@@ -52,7 +52,7 @@ namespace FuckingAround {
 			else doAfterEnumerating.Enqueue(() => AddRange(fuckers));
 		}
 
-		public static void Remove(ITurnHaver fuck){
+		public void Remove(ITurnHaver fuck){
 			if (!enumerating) {
 				TurnHavers.Remove(fuck);
 				fuck.TurnStarted -= _TurnStarted;
@@ -60,10 +60,10 @@ namespace FuckingAround {
 			}
 			else doAfterEnumerating.Enqueue(() => Remove(fuck));
 		}
-		private static Queue<Action> doAfterEnumerating = new Queue<Action>();
-		private static bool enumerating = false;
-		private static ITurnHaver _currentTurnHaver;
-		public static ITurnHaver CurrentTurnHaver {
+		private Queue<Action> doAfterEnumerating = new Queue<Action>();
+		private bool enumerating = false;
+		private ITurnHaver _currentTurnHaver;
+		public ITurnHaver CurrentTurnHaver {
 			get {	//automatically forward time if time to do so
 				if (_currentTurnHaver == null || _currentTurnHaver.GetTimeToWait() > 0) {
 					_currentTurnHaver = TurnHavers.Aggregate((t1, t2) => t1.GetTimeToWait() <= t2.GetTimeToWait() ? t1 : t2);
@@ -83,10 +83,6 @@ namespace FuckingAround {
 				}
 				return _currentTurnHaver;
 			}
-		}
-
-		public static IEnumerable<ChannelingInstance> GETCHANNELINGINSTANCES() {
-			return TurnHavers.Where(t => t is ChannelingInstance).Cast<ChannelingInstance>();
 		}
 	}
 }

@@ -106,8 +106,7 @@ namespace FuckingAround {
 			public static Action<object, SkillUser, Tile> Channel(Skill skill) {
 				return (k, su, t) => {
 					if (t.ChannelingInstance == null) {
-						t.ChannelingInstance = new ChannelingInstance(su.GetChannelingMods(), skill, t);
-						TurnTracker.Add(t.ChannelingInstance);
+						t.ChannelingInstance = new ChannelingInstance(su.Battle, su.GetChannelingMods(), skill, t);
 					} else throw new Exception("bullshit");
 				};
 			}
@@ -119,10 +118,10 @@ namespace FuckingAround {
 					} else throw new Exception("bullshit");
 				};
 			}
-			public static Action<object, SkillUser, Tile> AddStatusEffect(Func<Being, StatSet, StatusEffect> statEffConstr) {
+			public static Action<object, SkillUser, Tile> AddStatusEffect(Func<Battle, Being, StatSet, StatusEffect> statEffConstr) {
 				return (k, su, t) => {
 					var target = t.Inhabitant;
-					if (target != null) target.AddStatusEffect(statEffConstr(target, su.Stats));
+					if (target != null) target.AddStatusEffect(statEffConstr(su.Battle, target, su.Stats));
 					else throw new Exception("bullshit");
 				};
 			}
@@ -138,19 +137,6 @@ namespace FuckingAround {
 					var b = su as Being;
 					b.MainHand.AffectEffect(k, su, t, effect);
 					if(b.OffHand is Weapon) ((Weapon)b.OffHand).AffectEffect(k, su, t, effect);
-				};
-			}
-		}
-		private static class Do {
-			public static Action<object, SkillUser, IEnumerable<Tile>> Default(Action<object, SkillUser, Tile> effect) {
-				return (o, su, ts) => {
-					foreach (Tile t in ts) effect(o, su, t);
-				};
-			}
-			public static Action<object, SkillUser, IEnumerable<Tile>> Default<T>(Func<object, SkillUser, T> tGetter, Action<T, object, SkillUser, Tile> effect) {
-				return (o, su, ts) => {
-					T t = tGetter(o, su);
-					foreach (Tile tile in ts) effect(t, o, su, tile);
 				};
 			}
 		}
@@ -173,7 +159,7 @@ namespace FuckingAround {
 			Validation.AnyAliveBeingInArea,
 			Range.GetFromMods,
 			AoE.TargetOnly,
-			Effect.AddStatusEffect((t, ss) => new TimedStatusEffect(t, new AdditionMod(StatType.Armour, 1), ss, 20)),
+			Effect.AddStatusEffect((b, t, ss) => new TimedStatusEffect(b, t, new AdditionMod(StatType.Armour, 1), ss, 20)),
 			new Mod[]{
 				new AdditionMod(StatType.Range, 6)
 			});
@@ -181,7 +167,7 @@ namespace FuckingAround {
 			Validation.AnyAliveBeingInArea,
 			Range.GetFromMods,
 			AoE.TargetOnly,
-			Effect.AddStatusEffect((t, ss) => new TimedStatusEffect(t, new DamageOverTime(ss, 50, StatType.PhysicalDamage|StatType.DamageOverTime), ss, 100)),
+			Effect.AddStatusEffect((b, t, ss) => new TimedStatusEffect(b, t, new DamageOverTime(ss, 50, StatType.PhysicalDamage|StatType.DamageOverTime), ss, 100)),
 			new Mod[]{
 				new AdditionMod(StatType.Range, 6)
 			});
@@ -197,6 +183,7 @@ namespace FuckingAround {
 	public interface SkillUser {
 		Tile Place { get; }
 		//Weapon Weapon { get; }	//I'm a dumb fuck
+		Battle Battle { get; }
 		StatSet Stats { get; }
 		Dictionary<object, StatSet> SkillUsageStats { get; }	
 	}

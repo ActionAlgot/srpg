@@ -45,16 +45,17 @@ namespace FuckingAround {
 
 
 	public class TimedStatusEffect : StatusEffect, ITurnHaver {
+		private Battle _Battle;
 		private void initStuff(int EffectTime) {
 			Speed = 100.0 / EffectTime;
 			Awaited = 0;
-			TurnTracker.Add(this);
+			_Battle.Add(this);
 		}
 
 		public override void UnAffect() {
 			base.UnAffect();
 			Awaited = 0;
-			TurnTracker.Remove(this);
+			_Battle.Remove(this);
 		}
 
 		protected override void Affect(){
@@ -62,13 +63,15 @@ namespace FuckingAround {
 			TurnStarted += (s, e) => Target.RemoveStatusEffect(this);
 		}
 
-		public TimedStatusEffect(Being target, Mod mod, StatSet ss, int EffectTime) : this(target, new Mod[] { mod }, ss, EffectTime) { }
-		public TimedStatusEffect(Being target, IEnumerable<Mod> mods, StatSet ss, int EffectTime)
+		public TimedStatusEffect(Battle battle, Being target, Mod mod, StatSet ss, int EffectTime) : this(battle, target, new Mod[] { mod }, ss, EffectTime) { }
+		public TimedStatusEffect(Battle battle, Being target, IEnumerable<Mod> mods, StatSet ss, int EffectTime)
 			: base(target, mods, ss) {
-				initStuff(EffectTime);
+			_Battle = battle;	
+			initStuff(EffectTime);
 		}
-		public TimedStatusEffect(Being target, DamageOverTime DoT, StatSet ss, int EffectTime)
+		public TimedStatusEffect(Battle battle, Being target, DamageOverTime DoT, StatSet ss, int EffectTime)
 			: base(target, DoT, ss) {
+			_Battle = battle;
 			initStuff(EffectTime);
 		}
 

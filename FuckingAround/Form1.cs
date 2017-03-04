@@ -72,7 +72,7 @@ namespace FuckingAround {
 			tajmEvent += (s, e) => Invalidate();
 			MouseMove += (s, e) => MMouseHover = GetMousedTile(e);
 
-			TurnTracker.TurnStarted += SetSkillMenu;
+			Battle.TurnStarted += SetSkillMenu;
 			Battle.BeingMoved += BeginDrawingBeingMove;
 
 			this.MouseClick += (s, e) => {
@@ -155,7 +155,7 @@ namespace FuckingAround {
 			foreach (var being in Battle.Beings)
 				Draw(being, graphics);
 
-			foreach (var ci in TurnTracker.GETCHANNELINGINSTANCES())
+			foreach (var ci in Battle.ChannelingInstances)
 				Draw(ci, graphics);
 
 			HighlightPath(graphics);

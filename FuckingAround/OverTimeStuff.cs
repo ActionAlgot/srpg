@@ -74,9 +74,9 @@ namespace FuckingAround {
 			}
 		}
 
-		public OverTimeApplier(Being target) {
+		public OverTimeApplier(Battle battle, Being target) {
 			Target = target;
-			TurnTracker.Add(this);
+			battle.Add(this);
 		}
 
 		public event EventHandler TurnStarted;

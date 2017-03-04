@@ -108,6 +108,7 @@ namespace FuckingAround {
 
 		private int _team;
 		public int Team { get { return _team; } }
+		public Battle Battle { get; private set; }
 		public Skill SelectedAction;
 
 		public Weapon Fist = new Weapon(2);
@@ -227,7 +228,9 @@ namespace FuckingAround {
 			ConsoleLoggerHandlerOrWhatever.Log(preHP + " => " + HP);
 		}
 
-		public Being(int team, double speed, int mp) {
+		public Being(Battle battle, int team, double speed, int mp) {
+
+			Battle = battle;
 
 			Stats = new StatSet();
 			SkillUsageStats = new Dictionary<object, StatSet>();
@@ -235,7 +238,7 @@ namespace FuckingAround {
 			Inventory = new PersonalInventory(this);
 			PSkills = Passives.Default.ToList();
 
-			OverTimeApplier = new OverTimeApplier(this);
+			OverTimeApplier = new OverTimeApplier(Battle, this);
 
 			foreach (var m in Mods)
 				m.Affect(Stats);
@@ -247,6 +250,8 @@ namespace FuckingAround {
 			_command += OnCommand;
 
 			HP = MaxHP;
+
+			battle.Add(this);
 		}
 
 		public event EventHandler TurnStarted;

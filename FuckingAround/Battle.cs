@@ -7,14 +7,49 @@ using System.Threading.Tasks;
 namespace FuckingAround {
 	public class Battle {
 		public TileSet TileSet { get; private set; }
-		private List<ITurnHaver> Turners;
-		private ITurnHaver CurrentTurnHaver { get { return TurnTracker.CurrentTurnHaver; } }
+		private TurnTracker _TurnTracker = new TurnTracker();
+		private ITurnHaver CurrentTurnHaver { get { return _TurnTracker.CurrentTurnHaver; } }
 		public Being activeBeing { get { return CurrentTurnHaver as Being; } } //return null if current turn does not belong to a being
-		public IEnumerable<Being> Beings { get { return Turners.Where(t => t is Being).Cast<Being>(); } }   //TODO kill me
+
+		private List<Being> _Beings = new List<Being>();
+		public IEnumerable<Being> Beings { get { return _Beings.AsEnumerable(); } }
+
+		private List<ChannelingInstance> _ChannelingInstances = new List<ChannelingInstance>();
+		public IEnumerable<ChannelingInstance> ChannelingInstances { get { return _ChannelingInstances.AsEnumerable(); } }
+
+		public event EventHandler TurnStarted;
+		private void InvokeTurnStarted(object s, EventArgs e) {
+			if (TurnStarted != null) TurnStarted(s, e);
+		}
 
 		public event EventHandler<Being.MovedArgs> BeingMoved;
 		private void InvokeBeingMoved(object s, Being.MovedArgs e) {
 			if (BeingMoved != null) BeingMoved(s, e);
+		}
+
+		public void Add(ITurnHaver ith) {
+			if (ith is Being) AddB(ith as Being);
+			else if (ith is ChannelingInstance) AddCI(ith as ChannelingInstance);
+
+			_TurnTracker.Add(ith);
+		}
+		public void Remove(ITurnHaver ith) {
+			if (ith is ChannelingInstance) RemoveCI(ith as ChannelingInstance);
+
+			_TurnTracker.Remove(ith);
+		}
+
+		private void AddB(Being being) {
+			_Beings.Add(being);
+			being.MoveStarted += InvokeBeingMoved;
+		}
+
+		private void AddCI(ChannelingInstance ci) {
+			_ChannelingInstances.Add(ci);
+		}
+		private void RemoveCI(ChannelingInstance ci) {
+			_ChannelingInstances.Remove(ci);
+			_TurnTracker.Remove(ci);
 		}
 
 		public void EndTurn() {
@@ -24,20 +59,14 @@ namespace FuckingAround {
 		public Battle() {
 			TileSet = new TileSet(30, 30);
 
-			Turners = new List<ITurnHaver>();
-			Turners.Add(new Being(1, 5, 5) { Place = TileSet[5, 6] });
-			((Being)Turners[0]).AddPassiveSkill(Passives.All[3]);
-			((Being)Turners[0]).AddPassiveSkill(Passives.All[4]);
-			((Being)Turners[0]).Inventory[0] = new Spear(12);
-			var b1 = new Being(1, 7, 6) { Place = TileSet[7, 8] };
-			Turners.Add(b1);
-			var b2 = new Being(2, 8, 7) { Place = TileSet[9, 10] };
-			Turners.Add(b2);
-
-			foreach (var b in Beings)
-				b.MoveStarted += InvokeBeingMoved;
-
-			TurnTracker.AddRange(Turners);
+			var b = new Being(this, 1, 5, 5) { Place = TileSet[5, 6] };
+			b.AddPassiveSkill(Passives.All[3]);
+			b.AddPassiveSkill(Passives.All[4]);
+			b.Inventory[0] = new Spear(12);
+			new Being(this, 1, 7, 6) { Place = TileSet[7, 8] };
+			new Being(this, 2, 8, 7) { Place = TileSet[9, 10] };
+			
+			_TurnTracker.TurnStarted += InvokeTurnStarted;
 
 			TileSet.TileClicked += (o, e) => {
 				if (activeBeing != null)
