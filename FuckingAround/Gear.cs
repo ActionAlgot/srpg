@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace srpg {
 	public abstract class Gear {
@@ -31,6 +29,7 @@ namespace srpg {
 					else m.Affect(r);
 				return r.AsEnumerableStats()
 					.Select(stat => new AdditionMod(stat.StatType, stat.LoneValue))
+					.Cast<Mod>()
 					.Concat(r2);
 		} }
 	}

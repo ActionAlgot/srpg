@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace srpg {
 	public class ComboStat : astat {
@@ -58,17 +55,27 @@ namespace srpg {
 			return r;
 		}
 
-		private ObservableCollection<double> _multipliers = new ObservableCollection<double>();
-		public override ICollection<double> Multipliers { get { return _multipliers; } }
-		private void OnMultipliersChanged(object sender, NotifyCollectionChangedEventArgs e) {
-			if (e.Action != NotifyCollectionChangedAction.Move) {
-				Update(() => { });
-			}
+		//private ObservableCollection<double> _multipliers = new ObservableCollection<double>();
+		private Collection<double> _multipliers = new Collection<double>();
+		public override IEnumerable<double> Multipliers { get { return _multipliers.AsEnumerable(); } }
+		public override void AddMultiplier(double m) {
+			Update(() => _multipliers.Add(m)); }
+		public override void AddMultipliers(IEnumerable<double> ms) {
+			Update(() => { foreach (var m in ms) _multipliers.Add(m); });
 		}
+		public override bool RemoveMultiplier(double m) {
+			return Update(() => _multipliers.Remove(m));
+		}
+		//public override ICollection<double> Multipliers { get { return _multipliers; } }
+		//private void OnMultipliersChanged(object sender, NotifyCollectionChangedEventArgs e) {
+		//	if (e.Action != NotifyCollectionChangedAction.Move) {
+		//		Update(() => { });
+		//	}
+		//}
 
 		public ComboStat(StatType st) {
 			StatType = st;
-			_multipliers.CollectionChanged += OnMultipliersChanged;
+			//_multipliers.CollectionChanged += OnMultipliersChanged;
 		}
 
 		public ComboStat(params astat[] stats) : this(stats as IEnumerable<astat>) { }
@@ -80,12 +87,12 @@ namespace srpg {
 				this.Base += that.Base;
 				this.AdditiveMultipliers += that.AdditiveMultipliers;
 				foreach (var m in that.Multipliers)
-					this.Multipliers.Add(m);
+					this.AddMultiplier(m);
 				if (that is ComboStat)
 					this.components.AddRange((that as ComboStat).components);
 			}
 
-			_multipliers.CollectionChanged += OnMultipliersChanged;
+			//_multipliers.CollectionChanged += OnMultipliersChanged;
 			Recalc();
 		}
 	}

@@ -1,10 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace srpg {
 	
@@ -48,9 +42,9 @@ namespace srpg {
 
 	public class MultiplierMod : SuperStatCompatibleMod {
 		double Value;
-		public override void Affect(astat stat) { stat.Multipliers.Add(Value); }
+		public override void Affect(astat stat) { stat.AddMultiplier(Value); }
 		public override void UnAffect(astat stat) {
-			if (stat.Multipliers.Remove(Value)) return;
+			if (stat.RemoveMultiplier(Value)) return;
 			else throw new ArgumentException("No multiplier to be removed was found");
 		}
 

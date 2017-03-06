@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace srpg {
 	public class Being : ITurnHaver, SkillUser {
@@ -173,7 +169,7 @@ namespace srpg {
 				this.EndTurn();
 		}
 
-		public class MovedArgs {
+		public class MovedArgs : EventArgs{
 			public List<Tile> Path { get; protected set; }
 			public MovedArgs(List<Tile> path) {
 				Path = path;

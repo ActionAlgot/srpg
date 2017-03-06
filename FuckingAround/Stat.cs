@@ -4,8 +4,6 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace srpg {
 
@@ -34,7 +32,7 @@ namespace srpg {
 	}
 	public static class StatTypeExtensions {
 		public static bool Supports(this StatType stat, StatType target) {
-			return target.HasFlag(stat);
+			return (target&stat) == stat;
 		}
 		public static StatType AsPenetration(this StatType stat) {
 			return stat & ~StatType.Damage & ~StatType.Resistance & ~StatType.Threshold | StatType.Penetration;
@@ -55,7 +53,10 @@ namespace srpg {
 		public virtual double Value { get; protected set; }
 		public virtual double Base { get; set; }
 		public virtual double AdditiveMultipliers { get; set; }
-		public abstract ICollection<double> Multipliers { get; }
+		public abstract void AddMultiplier(double m);
+		public abstract void AddMultipliers(IEnumerable<double> ms);
+		public abstract bool RemoveMultiplier(double m);
+		public abstract IEnumerable<double> Multipliers { get; }
 		//public abstract astat Copy();
 	}
 
@@ -66,12 +67,12 @@ namespace srpg {
 			that.Base = this.Base;
 			that.AdditiveMultipliers = this.AdditiveMultipliers;
 			foreach(var m in this.Multipliers)
-				that.Multipliers.Add(m);
+				that.AddMultiplier(m);
 			that.Converters = this.Converters.ToList();
 		}
 
 		public Stat(StatType statType, StatSet owner){
-			_multipliers.CollectionChanged += OnMultipliersChanged;
+			//_multipliers.CollectionChanged += OnMultipliersChanged;
 			StatType = statType;
 			Owner = owner;
 			Owner.AddStat(this);
@@ -116,13 +117,21 @@ namespace srpg {
 		}
 
 
-		private ObservableCollection<double> _multipliers = new ObservableCollection<double>();
-		public override ICollection<double> Multipliers { get { return _multipliers; } }
-		private void OnMultipliersChanged(object sender, NotifyCollectionChangedEventArgs e) {
-			if (e.Action != NotifyCollectionChangedAction.Move) {
-				Update(() => { });
-			}
+		//private ObservableCollection<double> _multipliers = new ObservableCollection<double>();
+		private Collection<double> _multipliers = new Collection<double>();
+		public override IEnumerable<double> Multipliers { get { return _multipliers.AsEnumerable(); } }
+		public override void AddMultiplier(double m) {
+			Update(() => _multipliers.Add(m)); }
+		public override void AddMultipliers(IEnumerable<double> ms) {
+			Update(() => { foreach (var m in ms) _multipliers.Add(m); }); }
+		public override bool RemoveMultiplier(double m) {
+			return Update(() => _multipliers.Remove(m));
 		}
+		//private void OnMultipliersChanged(object sender, NotifyCollectionChangedEventArgs e) {
+		//	if (e.Action != NotifyCollectionChangedAction.Move) {
+		//		Update(() => { });
+		//	}
+		//}
 
 		public void RaiseUpdatedEvent() {
 			if (UpToDate) {
@@ -174,7 +183,7 @@ namespace srpg {
 		}
 
 		protected void UpdateFullStat() {
-			var r = new ComboStat(SupportingStats, this);
+			var r = new ComboStat(SupportingStats.Cast<astat>(), this);
 			ApplyConversions(r);
 			_fullStat = r;
 			UpToDate = true;
@@ -183,13 +192,13 @@ namespace srpg {
 
 			if (this.StatType.Supports(excluder)) return new ComboStat(this.StatType);
 
-			var r = new ComboStat(SupportingStats.Where(ss => !ss.StatType.Supports(excluder)), this);
+			var r = new ComboStat(SupportingStats.Where(ss => !ss.StatType.Supports(excluder)).Cast<astat>(), this);
 			ApplyConversions(r, excluder);
 			return r;
 		}
 		public double LoneValue { get { return Base * (1 + AdditiveMultipliers) * Multipliers.Aggregate(0.0, (a, b) => a * b); } }
 		public Stat() {
-			_multipliers.CollectionChanged += OnMultipliersChanged;
+			//_multipliers.CollectionChanged += OnMultipliersChanged;
 		}
 	}
 }

@@ -1,15 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace srpg {
 	public static class ConsoleLoggerHandlerOrWhatever {
-		public static event EventHandler<string> OnLog;
+		public class LogEventArgs : EventArgs{
+			public string text;
+			public LogEventArgs(string txt) {
+				text = txt;
+			}
+		}
+		public static event EventHandler<LogEventArgs> OnLog;
 		public static void Log(string input) {
 			if (OnLog != null) {
-				OnLog(null, input);
+				OnLog(null, new LogEventArgs(input));
 			}
 		}
 	}
