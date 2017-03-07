@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2015
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "srpgUnity", "srpgUnity.csproj", "{144CDCC2-0155-F300-B843-67E4998494DC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{144CDCC2-0155-F300-B843-67E4998494DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{144CDCC2-0155-F300-B843-67E4998494DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{144CDCC2-0155-F300-B843-67E4998494DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{144CDCC2-0155-F300-B843-67E4998494DC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

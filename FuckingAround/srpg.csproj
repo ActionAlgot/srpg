@@ -7,8 +7,8 @@
     <ProjectGuid>{C573E709-BF49-4437-A23C-0971263BC3FE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>FuckingAround</RootNamespace>
-    <AssemblyName>FuckingAround</AssemblyName>
+    <RootNamespace>srpg</RootNamespace>
+    <AssemblyName>srpg</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -42,7 +42,6 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -53,12 +52,6 @@
     <Compile Include="Channeling.cs" />
     <Compile Include="ComboStat.cs" />
     <Compile Include="ConsoleLoggerHandlerOrWhatever.cs" />
-    <Compile Include="Form1.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
-    </Compile>
     <Compile Include="GameEvent.cs" />
     <Compile Include="GameEventLogger.cs" />
     <Compile Include="Gear.cs" />
@@ -66,7 +59,6 @@
     <Compile Include="Mods.cs" />
     <Compile Include="PassiveSkill.cs" />
     <Compile Include="PersonalInventory.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Being.cs" />
     <Compile Include="Skill.cs" />

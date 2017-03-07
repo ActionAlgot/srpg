@@ -7,7 +7,7 @@ namespace srpg {
 		public abstract IEnumerable<Mod> LocalBaseMods { get; }
 		public abstract IEnumerable<Mod> GlobalBaseMods { get; }
 		public IEnumerable<Mod> BaseMods { get { return LocalBaseMods.Concat(GlobalBaseMods); } }
-
+		
 		public IEnumerable<Mod> LocalEnchantments { get; protected set; }
 		public IEnumerable<Mod> GlobalEnchantments { get; protected set; }
 		public IEnumerable<Mod> Enchantments { get { return LocalEnchantments.Concat(GlobalEnchantments); } }
@@ -121,11 +121,11 @@ namespace srpg {
 			}
 		}
 		public override IEnumerable<Tile> AoE(object key, SkillUser su, Tile target) {
-			if (su == null) throw new Exception("fcdasgdscfvdfshdsgvdfskjbvndkljs vdsb viudsvjdsnyibedi bvd");
+			if (su == null) throw new Exception("SkillUser is null");
 			Tile place = su.Place;
-			if (place == null) throw new ArgumentException("SkillUser must be placed.");
-			if (target == null) throw new ArgumentNullException("Fuck you");
-			if (place == target) throw new ArgumentException("vkjifbdhsb gfknbrbvdfhdrtbcx gfd ");
+			if (place == null) throw new ArgumentException("SkillUser place is null");
+			if (target == null) throw new ArgumentNullException("target is null");
+			if (place == target) throw new ArgumentException("target is SkillUserPlace");
 
 			int Dif = target.X - place.X;
 			if (Dif != 0) {
