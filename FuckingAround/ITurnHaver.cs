@@ -23,12 +23,17 @@ namespace srpg {
 
 		//lmao can't fucking connect eventhandler and keep shit dynamic
 		private void _TurnStarted(object s, EventArgs e) {
-			if(TurnStarted != null) TurnStarted(s, e);
-		}
+			if(TurnStarted != null) TurnStarted(s, e); }
+		private void _TurnFinished(object s, EventArgs e) {
+			if (TurnFinished != null) TurnFinished(s, e); }
 		public event EventHandler TurnStarted;
 		public static event EventHandler TurnFinished;
 
 		private List<ITurnHaver> TurnHavers = new List<ITurnHaver>();
+
+		public TurnTracker() {
+			TurnFinished += (s, e) => { var imDumb = CurrentTurnHaver; };
+		}
 
 		public void Add(ITurnHaver fuck){
 			if (!enumerating) {

@@ -5,7 +5,7 @@ using UnityEngine;
 using srpg;
 
 public class GBeingMover : MonoBehaviour {
-	public static float MoveSpeed = 1;
+	public static float MoveSpeed = 5;
 
 	private List<Tile> Path;
 	private int PathIndex;

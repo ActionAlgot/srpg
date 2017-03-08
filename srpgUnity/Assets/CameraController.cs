@@ -19,7 +19,7 @@ public class CameraController : MonoBehaviour {
 	void Update () {
 
 		var zoom = Input.mouseScrollDelta.y * ZoomSpeed * Time.deltaTime;
-		GetComponent<Camera>().orthographicSize += zoom;
+		GetComponent<Camera>().orthographicSize = Mathf.Clamp(GetComponent<Camera>().orthographicSize + zoom, 2, 12);
 
 		if (Input.GetMouseButtonDown(1))
 			Cursor.lockState = CursorLockMode.Locked;

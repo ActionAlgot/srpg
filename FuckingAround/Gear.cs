@@ -125,7 +125,7 @@ namespace srpg {
 			Tile place = su.Place;
 			if (place == null) throw new ArgumentException("SkillUser place is null");
 			if (target == null) throw new ArgumentNullException("target is null");
-			if (place == target) throw new ArgumentException("target is SkillUserPlace");
+			if (place == target) throw new ArgumentException("target is SkillUserPlacefdasfasd");
 
 			int Dif = target.X - place.X;
 			if (Dif != 0) {

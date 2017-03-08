@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace srpg {
 	public class Being : ITurnHaver, SkillUser {
+		public string Name { get; private set;}
 
 		private List<StatusEffect> StatusEffects = new List<StatusEffect>();
 		public void AddStatusEffect(StatusEffect se) {
@@ -70,19 +71,27 @@ namespace srpg {
 			get { return _hp; }
 			protected set {
 				bool wasAlive = this.IsAlive;
+				int prev = HP;
 				_hp = value;
 				if (_hp <= 0) {
 					_hp = 0;
 					if(wasAlive) this.Die();
 				}
 				else if (_hp > MaxHP) _hp = MaxHP;
-				/*
-				if (!wasAlive && IsAlive) {
-					//Ressurected event?
-				}
-				*/
+				//if (!wasAlive && IsAlive) Ressurected event?
+
+				if (prev != HP && HPChanged != null)
+					HPChanged(this, new HPChangedEventArgs(prev, HP));
 			}
 		}
+		public class HPChangedEventArgs : EventArgs {
+			public int Prev;
+			public int Curr;
+			public HPChangedEventArgs(int prev, int curr) {
+				Prev = prev; Curr = curr;
+			}
+		}
+		public EventHandler<HPChangedEventArgs> HPChanged;
 
 		protected double _speed;
 		
@@ -162,7 +171,7 @@ namespace srpg {
 				SelectedAction = null;
 			} else if (SelectedAction == null && e.Tile.Inhabitant == null && !Moved)
 				Move(sender, e);
-			else if (!ActionTaken && e.Tile.Inhabitant != null)
+			else if (!ActionTaken && e.Tile.Inhabitant != null && e.Tile != Place)
 				if (Skills.First().Do(this, e.Tile))
 					ActionTaken = true;
 			if (ActionTaken && Moved)
@@ -224,9 +233,10 @@ namespace srpg {
 			ConsoleLoggerHandlerOrWhatever.Log(preHP + " => " + HP);
 		}
 
-		public Being(Battle battle, int team, double speed, int mp) {
-
+		public Being(Battle battle, int team, string name, double speed, int mp) {
 			Battle = battle;
+
+			Name = name;
 
 			Stats = new StatSet();
 			SkillUsageStats = new Dictionary<object, StatSet>();
