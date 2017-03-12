@@ -31,8 +31,20 @@ namespace srpg {
 
 		private List<ITurnHaver> TurnHavers = new List<ITurnHaver>();
 
+		private bool _paused = true;
+		public bool Paused {
+			get { return _paused; }
+			set {
+				_paused = value;
+				ForwardTime();
+			}
+		}
+
 		public TurnTracker() {
-			TurnFinished += (s, e) => { var imDumb = CurrentTurnHaver; };
+			TurnFinished += (s, e) => {
+				CurrentTurnHaver = null;
+				ForwardTime();
+			};
 		}
 
 		public void Add(ITurnHaver fuck){
@@ -65,26 +77,28 @@ namespace srpg {
 		}
 		private Queue<Action> doAfterEnumerating = new Queue<Action>();
 		private bool enumerating = false;
-		private ITurnHaver _currentTurnHaver;
-		public ITurnHaver CurrentTurnHaver {
-			get {	//automatically forward time if time to do so
-				if (_currentTurnHaver == null || _currentTurnHaver.GetTimeToWait() > 0) {
-					_currentTurnHaver = TurnHavers.Aggregate((t1, t2) => t1.GetTimeToWait() <= t2.GetTimeToWait() ? t1 : t2);
-					var dsgfsdf = _currentTurnHaver.GetTimeToWait();
+		public ITurnHaver CurrentTurnHaver { get; private set; }
 
-					enumerating = true;
-					foreach (var t in TurnHavers)
-						t.Await(dsgfsdf);
-					enumerating = false;
-					while (doAfterEnumerating.Any())
-						doAfterEnumerating.Dequeue()();
+		private void ForwardTime() {
+			if (CurrentTurnHaver == null || CurrentTurnHaver.GetTimeToWait() > 0) {
+				if (Paused) return;
+				if (TurnHavers.Any() == false)
+					return;
 
-					ConsoleLoggerHandlerOrWhatever.Log("_____________");
-					foreach (var t in TurnHavers) ConsoleLoggerHandlerOrWhatever.Log(t.ToString() + " " + t.Awaited + " + " + t.Speed);
-					
-					_currentTurnHaver.StartTurn();
-				}
-				return _currentTurnHaver;
+					CurrentTurnHaver = TurnHavers.Aggregate((t1, t2) => t1.GetTimeToWait() <= t2.GetTimeToWait() ? t1 : t2);
+				var dsgfsdf = CurrentTurnHaver.GetTimeToWait();
+
+				enumerating = true;
+				foreach (var t in TurnHavers)
+					t.Await(dsgfsdf);
+				enumerating = false;
+				while (doAfterEnumerating.Any())
+					doAfterEnumerating.Dequeue()();
+
+				ConsoleLoggerHandlerOrWhatever.Log("_____________");
+				foreach (var t in TurnHavers) ConsoleLoggerHandlerOrWhatever.Log(t.ToString() + " " + t.Awaited + " + " + t.Speed);
+
+				CurrentTurnHaver.StartTurn();
 			}
 		}
 	}

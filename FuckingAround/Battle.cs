@@ -37,9 +37,17 @@ namespace srpg {
 			_TurnTracker.Remove(ith);
 		}
 
+		public class BeingAddedArgs : EventArgs {
+			public Being Being;
+			public BeingAddedArgs(Being being) {
+				Being = being;
+			}
+		}
+		public event EventHandler<BeingAddedArgs> BeingAdded;
 		private void AddB(Being being) {
 			_Beings.Add(being);
 			being.MoveStarted += InvokeBeingMoved;
+			if (BeingAdded != null) BeingAdded(this, new BeingAddedArgs(being));
 		}
 
 		private void AddCI(ChannelingInstance ci) {
@@ -56,13 +64,6 @@ namespace srpg {
 
 		public Battle() {
 			TileSet = new TileSet(30, 30);
-
-			var b = new Being(this, 1, "being0", 5, 5) { Place = TileSet[5, 6] };
-			b.AddPassiveSkill(Passives.All[3]);
-			b.AddPassiveSkill(Passives.All[4]);
-			b.Inventory[0] = new Spear(12);
-			new Being(this, 1, "being1", 7, 6) { Place = TileSet[7, 8] };
-			new Being(this, 2, "being2", 8, 7) { Place = TileSet[9, 10] };
 			
 			_TurnTracker.TurnStarted += InvokeTurnStarted;
 
@@ -70,6 +71,11 @@ namespace srpg {
 				if (activeBeing != null)
 					activeBeing.Command(this, e);
 			};
+		}
+
+		public bool Paused {
+			get { return _TurnTracker.Paused; }
+			set { _TurnTracker.Paused = value; }
 		}
 	}
 }

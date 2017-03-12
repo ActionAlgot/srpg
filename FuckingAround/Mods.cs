@@ -28,6 +28,13 @@ namespace srpg {
 			TargetStatType = targetStat;
 			Value = value;
 		}
+		public override string ToString() {
+			return String.Format(
+				"{0} additional {1}.",
+				Value,
+				TargetStatType
+			);
+		}
 	}
 
 	public class AdditiveMultiplierMod : SuperStatCompatibleMod {
@@ -37,6 +44,13 @@ namespace srpg {
 		public AdditiveMultiplierMod(StatType targetStat, double value) {
 			TargetStatType = targetStat;
 			Value = value;
+		}
+		public override string ToString() {
+			return string.Format(
+				"{0}% additional {1}",
+				Value * 100,
+				TargetStatType
+			);
 		}
 	}
 
@@ -51,6 +65,14 @@ namespace srpg {
 		public MultiplierMod(StatType targetStat, double value) {
 			TargetStatType = targetStat;
 			Value = value;
+		}
+
+		public override string ToString() {
+			return string.Format(
+				"{0}% more {1}",
+				Value * 100,
+				TargetStatType
+			);
 		}
 	}
 
@@ -110,6 +132,15 @@ namespace srpg {
 
 			Conversion = new Conversion(sourceStat, TargetStatType, Converter);
 		}
+
+		public override string ToString() {
+			return string.Format(
+				"{0}% of {1} converted to {2}",
+				Effectiveness * 100,
+				SourceType,
+				TargetStatType
+			);
+		}
 	}
 
 	public class ConversionToAdditiveMultiplierMod : InterStatularMod {
@@ -125,6 +156,15 @@ namespace srpg {
 		}
 		public override void UnAffect(Stat stat) {
 			stat.Converters.Remove(Conversion);
+		}
+
+		public override string ToString() {
+			return string.Format(
+				"{0}% additional {1} for each point in {2}",
+				Effectiveness * 100,
+				TargetStatType,
+				SourceType
+			);
 		}
 	}
 
@@ -149,6 +189,15 @@ namespace srpg {
 		}
 		public override void UnAffect(Stat stat) {
 			stat.Converters.Remove(Conversion);
+		}
+
+		public override string ToString() {
+			return string.Format(
+				"{0}% of {1} gained as {2}",
+				Effectiveness * 100,
+				SourceType,
+				TargetStatType
+			);
 		}
 	}
 }

@@ -6,19 +6,15 @@ namespace srpg {
 	public class Being : ITurnHaver, SkillUser {
 		public string Name { get; private set;}
 
+		public SkillTree SkillTree { get { return SkillTreeshit.Basic; } }
+		public SkillTreeFiller SkillTreeFilling;
+
 		private List<StatusEffect> StatusEffects = new List<StatusEffect>();
 		public void AddStatusEffect(StatusEffect se) {
 			StatusEffects.Add(se);
 		}
 		public void RemoveStatusEffect(StatusEffect se) {
 			StatusEffects.Remove(se);
-		}
-
-		private List<PassiveSkill> PSkills;
-		public void AddPassiveSkill(PassiveSkill passiveSkill) {
-			PSkills.Add(passiveSkill);
-			foreach (var m in passiveSkill.Mods)
-				m.Affect(Stats);
 		}
 
 		protected OverTimeApplier OverTimeApplier;
@@ -54,8 +50,8 @@ namespace srpg {
 		public Dictionary<object, StatSet> SkillUsageStats { get; protected set; }
 		public IEnumerable<Mod> Mods {
 			get {
-				return PSkills
-					.SelectMany(ps => ps.Mods)
+				return SkillTreeFilling.Taken
+					.SelectMany(node => node.Mods)
 					.Concat(Inventory
 						.Where(g => g != null)
 						.SelectMany(g => g.GlobalMods))
@@ -196,7 +192,7 @@ namespace srpg {
 				Moved = true;
 			}
 		}
-		public int MovementPoints;
+		public int MovementPoints { get { return (int)this[StatType.MovementPoints].Value; } }
 
 		public void Die() {
 			HP = 0;
@@ -233,8 +229,16 @@ namespace srpg {
 			ConsoleLoggerHandlerOrWhatever.Log(preHP + " => " + HP);
 		}
 
-		public Being(Battle battle, int team, string name, double speed, int mp) {
+		public Being(Battle battle, int team, string name, int x, int y, SkillTreeFiller stf)
+			: this(battle, team, name, x, y) {
+			SkillTreeFilling = stf;
+		}
+		public Being(Battle battle, int team, string name, int x, int y) {
 			Battle = battle;
+			Place = Battle.TileSet[x, y];
+
+			if (SkillTreeFilling == null)
+				SkillTreeFilling = new SkillTreeFiller(SkillTree);
 
 			Name = name;
 
@@ -242,16 +246,13 @@ namespace srpg {
 			SkillUsageStats = new Dictionary<object, StatSet>();
 
 			Inventory = new PersonalInventory(this);
-			PSkills = Passives.Default.ToList();
 
 			OverTimeApplier = new OverTimeApplier(Battle, this);
 
 			foreach (var m in Mods)
 				m.Affect(Stats);
-
-			_speed = speed;
+			
 			Skills = SkillsRepo.Default.ToList();
-			MovementPoints = mp;
 			_team = team;
 			_command += OnCommand;
 
