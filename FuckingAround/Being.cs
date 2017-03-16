@@ -25,7 +25,7 @@ namespace srpg {
 			OverTimeApplier.Remove(DoT);
 		}
 
-		public StatSet Stats { get; protected set; }
+		public StatSet Stats { get; protected set; } = new StatSet();
 		public Stat this[StatType st] { get { return Stats.GetStat(st); } }
 
 		public StatSet MainHandStats { get; protected set; }
@@ -47,7 +47,7 @@ namespace srpg {
 					m.Affect(OffHandStats);
 		}
 
-		public Dictionary<object, StatSet> SkillUsageStats { get; protected set; }
+		public Dictionary<object, StatSet> SkillUsageStats { get; protected set; } = new Dictionary<object, StatSet>();
 		public IEnumerable<Mod> Mods {
 			get {
 				return SkillTreeFilling.Taken
@@ -229,40 +229,47 @@ namespace srpg {
 			ConsoleLoggerHandlerOrWhatever.Log(preHP + " => " + HP);
 		}
 
-		public Being(Battle battle, int team, string name, int x, int y, SkillTreeFiller stf)
-			: this(battle, team, name, x, y) {
-			SkillTreeFilling = stf;
-		}
-		public Being(Battle battle, int team, string name, int x, int y) {
+		public void AddToBattle(Battle battle, int x, int y) {
+			if (Battle != null)
+				throw new ArgumentException("I don't know what the fuck I'm doing");
 			Battle = battle;
+			OverTimeApplier = new OverTimeApplier(Battle, this);
+			HP = MaxHP;
 			Place = Battle.TileSet[x, y];
+			Battle.Add(this);
+		}
 
-			if (SkillTreeFilling == null)
-				SkillTreeFilling = new SkillTreeFiller(SkillTree);
-
+		public Being(int team, string name) {
 			Name = name;
-
-			Stats = new StatSet();
-			SkillUsageStats = new Dictionary<object, StatSet>();
 
 			Inventory = new PersonalInventory(this);
 
-			OverTimeApplier = new OverTimeApplier(Battle, this);
-
+			if (SkillTreeFilling == null)
+				SkillTreeFilling = new SkillTreeFiller(SkillTree);
 			foreach (var m in Mods)
 				m.Affect(Stats);
-			
+
+
 			Skills = SkillsRepo.Default.ToList();
 			_team = team;
 			_command += OnCommand;
 
 			HP = MaxHP;
-
-			battle.Add(this);
+		}
+		public Being(int team, string name, SkillTreeFiller stf) 
+			: this(team, name) {
+			SkillTreeFilling = stf;
+		}
+		public Being(Battle battle, int team, string name, int x, int y)
+			:this(team, name) {
+			AddToBattle(battle, x, y);
+		}
+		public Being(Battle battle, int team, string name, int x, int y, SkillTreeFiller stf) 
+			: this(team, name, stf) {
+			AddToBattle(battle, x, y);
 		}
 
 		public event EventHandler TurnStarted;
-
 		public void StartTurn() {
 			if(TurnStarted != null) TurnStarted(this, EventArgs.Empty);
 		}

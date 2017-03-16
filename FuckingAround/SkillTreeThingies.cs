@@ -115,6 +115,9 @@ namespace srpg {
 		public IEnumerable<SkillNode> Available {
 			get { return AvailableDic.Where(kvp => kvp.Value).Select(kvp => kvp.Key); } }
 
+		private bool _Taken(SkillNode n) {
+			return TakenDic.ContainsKey(n) && TakenDic[n];
+		}
 		public bool Take(SkillNode skN) {
 			if (TakenDic.ContainsKey(skN) && TakenDic[skN] == true)
 				return false;
@@ -125,9 +128,9 @@ namespace srpg {
 			TakenDic[skN] = true;
 			AvailableDic[skN] = false;
 			foreach (var p in skN.Paths)
-				if (p.Node0 == skN)
+				if (p.Node0 == skN && !_Taken(p.Node1))
 					AvailableDic[p.Node1] = true;
-				else if (!p.OneWay)
+				else if (!p.OneWay && !_Taken(p.Node0))
 					AvailableDic[p.Node0] = true;
 			return true;
 		}

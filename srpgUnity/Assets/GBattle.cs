@@ -3,57 +3,59 @@ using System.Collections.Generic;
 using UnityEngine;
 using srpg;
 using System.Linq;
+using System;
 
 public class GBattle : MonoBehaviour {
 
-	public GameObject GTile;
+	public GTileSetShit GTileSet;
 	public GameObject GBeing;
 	public GameObject BeingInfoPanel;
 	public GameObject BeingInfoText;
 	public GameObject BeingCommandPanel;
-	public GameObject CommandMenuHandler;
+	public CommanMenuHandler CommandMenuHandler;
+	public GBeingSelection BeingSelector;
 
-	// Use this for initialization
+	private Battle battle;
+
 	public void Start () {
-		var battle = new Battle();
-		foreach (var t in battle.TileSet.AsEnumerable()) {
-			var c = Instantiate(GTile);
-			var old = c.transform.position;
-			c.GetComponent<GTileOnClick>().OnClick += (s, e) => battle.TileSet.SelectTile(t);
-			c.transform.position = new Vector3(t.X, old.y - 0.5f, t.Y);
-			
-		}
+		battle = new Battle();
+
+		GTileSet.Build(battle.TileSet);
+		GTileSet.Clicked += TileClickHandler;
+
 		foreach(var b in battle.Beings) {
-			DrawBeing(b);
+			BeingSetUp(Instantiate(GBeing), b);
 		}
 
-		battle.BeingAdded += (s, e) => DrawBeing(e.Being);
+		battle.BeingAdded += (s, e) => BeingSetUp(gbeingToAdd ?? Instantiate(GBeing), e.Being);
 
-		var stf = new SkillTreeFiller(SkillTreeshit.Basic);
-		var av = stf.Available.ToList();
-		stf.Take(av[2]);
-		av = stf.Available.ToList();
-		stf.Take(av[2]);
+		//var stf = new SkillTreeFiller(SkillTreeshit.Basic);
+		//var av = stf.Available.ToList();
+		//stf.Take(av[2]);
+		//av = stf.Available.ToList();
+		//stf.Take(av[2]);
 
-		foreach (Mod m in stf.Taken.SelectMany(sn => sn.Mods))
-			Debug.Log(m);
+		////foreach (Mod m in stf.Taken.SelectMany(sn => sn.Mods))
+		////	Debug.Log(m);
 
-		var ben = new Being(battle, 1, "being0", 5, 6, stf);
-		
-		//b.AddPassiveSkill(Passives.All[3]);
-		//b.AddPassiveSkill(Passives.All[4]);
-		ben.Inventory[0] = new Spear(12);
-		new Being(battle, 1, "being1", 7, 8);
-		new Being(battle, 2, "being2", 9, 10);
+		//var ben = new Being(battle, 1, "being0", 5, 6, stf);
 
-		battle.Paused = false;
+		////b.AddPassiveSkill(Passives.All[3]);
+		////b.AddPassiveSkill(Passives.All[4]);
+		//ben.Inventory[0] = new Spear(12);
+		//new Being(battle, 1, "being1", 7, 8);
+		//new Being(battle, 2, "being2", 9, 10);
+
+		BeingSelector.Populate();
+
+		//battle.Paused = false;
 	}
-
-	private void DrawBeing(Being b) {
-		var gb = Instantiate(GBeing);
+	
+	private void BeingSetUp(GameObject gb, Being b) {
 		var old = gb.transform.position;
-		b.MoveStarted += (s, e) => gb.GetComponent<GBeingMover>().Move(e.Path);
 		gb.transform.position = new Vector3(b.Place.X, old.y, b.Place.Y);
+
+		b.MoveStarted += (s, e) => gb.GetComponent<GBeingMover>().Move(e.Path);
 
 		var binft = Instantiate(BeingInfoText);
 		var binft2 = binft.GetComponent<BeingToTextHandler>();
@@ -65,14 +67,31 @@ public class GBattle : MonoBehaviour {
 
 		var cmh = Instantiate(CommandMenuHandler);
 		cmh.transform.SetParent(BeingCommandPanel.transform, false);
-		cmh.GetComponent<CommanMenuHandler>().CreateItems(b);
+		cmh.CreateItems(b);
 		cmh.transform.position -= new Vector3(0, 100000, 0);
 		b.TurnStarted += (s, e) => cmh.transform.position += new Vector3(0, 100000, 0);
 		b.TurnFinished += (s, e) => cmh.transform.position -= new Vector3(0, 100000, 0);
 	}
 	
-	// Update is called once per frame
-	void Update () {
-		
+	public GameObject DrawBeing(Being b) {
+		return Instantiate(GBeing);
+	}
+	private GameObject gbeingToAdd;
+	public void AddBeing(Being b, GameObject gb = null) {
+		gbeingToAdd = gb;
+		battle.Add(b);
+	}
+
+	public Action<object, TileClickedEventArgs> TileCLickHappening;
+	private void TileClickHandler(object s, TileClickedEventArgs e) {
+		if(TileCLickHappening != null) {
+			TileCLickHappening(s, e);
+		}
+		else
+			battle.TileSet.SelectTile(e.Tile);
+	}
+
+	public void StartBattle() {
+		battle.Paused = false;
 	}
 }

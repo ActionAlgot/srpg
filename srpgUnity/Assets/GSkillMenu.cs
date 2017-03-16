@@ -8,8 +8,8 @@ using srpg;
 public class GSkillMenu : MonoBehaviour {
 	public GameObject GSkillNode;
 	public GameObject Path;
-
-	private Dictionary<SkillTreePath, int> paths = new Dictionary<SkillTreePath, int>();
+	
+	private Dictionary<SkillNode, GameObject> nodeDic = new Dictionary<SkillNode, GameObject>();
 	private List<Vector3> placements = new List<Vector3> {
 		new Vector3(-20, -20),
 		new Vector3(20, 60),
@@ -31,8 +31,12 @@ public class GSkillMenu : MonoBehaviour {
 		var nodes = st.AllNodes.ToList();
 		var fuckUnity = new List<GameObject>();
 
+		var paths = new Dictionary<SkillTreePath, int>();
+		GameObject gO;
 		for (int i = 0; i < nodes.Count; i++) {
-			fuckUnity.Add(BuildNode(nodes[i], placements[i]));
+			gO = BuildNode(nodes[i], placements[i]);
+			nodeDic[nodes[i]] = gO;
+			fuckUnity.Add(gO);
 			foreach (var p in nodes[i].Paths)
 				if (paths.ContainsKey(p))
 					DrawPath(placements[paths[p]], placements[i]);
@@ -75,5 +79,31 @@ public class GSkillMenu : MonoBehaviour {
 		var angle = Vector2.Angle(Vector2.right, diference) * sign;
 
 		path.transform.rotation = Quaternion.Euler(0, 0, angle -90);
+	}
+
+	public void SetSkillTreeFiller(SkillTreeFiller stf) {
+		UnloadSkillTreeFiller();
+		foreach (var n in stf.Taken)
+			nodeDic[n].transform.GetChild(1).gameObject.GetComponent<Text>().text = "1";
+		setAvailable(stf);
+	}
+	private void setAvailable(SkillTreeFiller stf) {
+		foreach (var n in stf.Available) {
+			var sn = nodeDic[n];
+			sn.GetComponentInChildren<Text>().text = "0";
+			UnityEngine.Events.UnityAction f = () => {
+				stf.Take(n);
+				sn.transform.GetChild(1).gameObject.GetComponent<Text>().text = "1";
+				sn.GetComponent<Button>().onClick.RemoveAllListeners();
+				setAvailable(stf);
+			};
+			sn.GetComponent<Button>().onClick.AddListener(f);
+		}
+	}
+	public void UnloadSkillTreeFiller() {
+		foreach(var gsn in nodeDic.Values) {
+			gsn.GetComponentInChildren<Text>().text = "!";
+			gsn.GetComponent<Button>().onClick.RemoveAllListeners();
+		}
 	}
 }
