@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 namespace srpg {
+	[Serializable]
 	public class SkillNode {
 		private List<Mod> _Mods = new List<Mod>();
 		public IEnumerable<Mod> Mods { get { return _Mods.AsEnumerable(); } }
@@ -22,6 +23,7 @@ namespace srpg {
 		}
 	}
 
+	[Serializable]
 	public class SkillTreePath {
 		public SkillNode Node0 { get; private set; }
 		public SkillNode Node1 { get; private set; }
@@ -38,6 +40,7 @@ namespace srpg {
 		}
 	}
 
+	[Serializable]
 	public class SkillTree {
 		public SkillNode Start { get; private set; }
 		private List<SkillNode> _AllNodes = new List<SkillNode>();
@@ -47,7 +50,7 @@ namespace srpg {
 		public void AddNode(SkillNode node) {
 			_AllNodes.Add(node);
 			foreach (var p in node.Paths)
-				_AllPaths.Add(p);	}
+				if(!AllPaths.Contains(p)) _AllPaths.Add(p);	}
 		public void AddNodes(IEnumerable<SkillNode> nodes) {
 			foreach (var n in nodes)
 				AddNode(n);
@@ -149,6 +152,7 @@ namespace srpg {
 				AvailableDic[n] = true;
 		}
 
+		[Serializable]
 		public class SkillTreeFillerSave {
 			public int Target;
 			public List<int> Taken = new List<int>();

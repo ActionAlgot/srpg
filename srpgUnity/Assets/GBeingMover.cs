@@ -24,7 +24,8 @@ public class GBeingMover : MonoBehaviour {
 		var position = transform.position;
 		while (true) {
 			if (PathIndex + 1 >= Path.Count) {
-				Path = null;
+				transform.position = position;
+				Path = null;	//stop moving
 				PathIndex = 0;
 				return;
 			}
