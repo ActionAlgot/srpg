@@ -92,7 +92,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y C:\Users\Joel\Source\Repos\srpg\FuckingAround\bin\Debug\srpg.dll C:\Users\Joel\Source\Repos\srpg\srpgUnity\Assets</PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(TargetDir)srpg.dll" "$(TargetDir)..\..\..\srpgUnity\Assets\srpg.dll"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

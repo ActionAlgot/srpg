@@ -8,9 +8,11 @@ using srpg;
 public class GSkillMenu : MonoBehaviour {
 	public GameObject GSkillNode;
 	public GameObject Path;
+
+	public SkillTree NonGSkilltree;
 	
 	private Dictionary<SkillNode, GameObject> nodeDic = new Dictionary<SkillNode, GameObject>();
-	private List<Vector3> placements = new List<Vector3> {
+	/*private List<Vector3> placements = new List<Vector3> {
 		new Vector3(-20, -20),
 		new Vector3(20, 60),
 		new Vector3(-60, 60),
@@ -18,42 +20,53 @@ public class GSkillMenu : MonoBehaviour {
 		new Vector3(-140, -100),
 		new Vector3(-180, -20),
 		new Vector3(60, 140)
-	};
+	};*/
 
 	public void Start() {
-		for (int i = 0; i < placements.Count; i++)	//I'm a fun loving and not autistic guy apparently
-			placements[i] += new Vector3((Random.value * 20) - 10, (Random.value * 20) - 10);
+		//for (int i = 0; i < placements.Count; i++)	//I'm a fun loving and not autistic guy apparently
+		//	placements[i] += new Vector3((Random.value * 20) - 10, (Random.value * 20) - 10);
 		Build();
 	}
 
-	public void Build() {
-		var st = SkillTreeshit.Basic;
-		var nodes = st.AllNodes.ToList();
+	public void Build(SkillTree skillTree) {
+
+		DESTROYALLCHILDREN();
+
+		NonGSkilltree = skillTree;
+
+		var nodes = skillTree.AllNodes.ToList();
 		var fuckUnity = new List<GameObject>();
 
 		var paths = new Dictionary<SkillTreePath, int>();
 		GameObject gO;
 		for (int i = 0; i < nodes.Count; i++) {
-			gO = BuildNode(nodes[i], placements[i]);
+			gO = BuildNode(nodes[i], new Vector3(nodes[i].X, nodes[i].Y));
 			nodeDic[nodes[i]] = gO;
 			fuckUnity.Add(gO);
 			foreach (var p in nodes[i].Paths)
 				if (paths.ContainsKey(p))
-					DrawPath(placements[paths[p]], placements[i]);
+					DrawPath(
+						new Vector3(nodes[paths[p]].X, nodes[paths[p]].Y),
+						new Vector3(nodes[i].X, nodes[i].Y));
 				else paths[p] = i;
 		}
 		foreach (var go in fuckUnity)	//draw on top of path objects
 			go.transform.SetAsLastSibling();
 	}
 
+	public void Build() {
+		Build(SkillTreeshit.Basic);
+	}
+
 	private GameObject BuildNode(SkillNode node, Vector3 placement) {
 		var sn = Instantiate(GSkillNode);
 
-		string hoverInfo = node.Mods
-			.Select(m => m.ToString() + "\n")
-			.Aggregate((s0, s1) => s0 + s1);
-		if (hoverInfo.Length != 0)
-			hoverInfo = hoverInfo.Substring(0, hoverInfo.Length - 1);
+		string hoverInfo;
+		if (node.Mods.Any())
+			hoverInfo = node.Mods
+				.Select(m => m.ToString())
+				.Aggregate((s0, s1) => s0 + "\n" + s1);
+		else hoverInfo = "NULL";
 
 		var textObj = sn.transform.GetChild(0).GetChild(0).gameObject.GetComponent<Text>();
 		textObj.text = hoverInfo;
@@ -105,5 +118,11 @@ public class GSkillMenu : MonoBehaviour {
 			gsn.GetComponentInChildren<Text>().text = "!";
 			gsn.GetComponent<Button>().onClick.RemoveAllListeners();
 		}
+	}
+
+	private void DESTROYALLCHILDREN() {
+		var l = new List<GameObject>();
+		foreach (Transform c in transform) l.Add(c.gameObject);
+		foreach (var c in l) Destroy(c);
 	}
 }

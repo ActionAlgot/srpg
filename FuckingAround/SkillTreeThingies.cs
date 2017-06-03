@@ -1,32 +1,64 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace srpg {
-	[Serializable]
+	[Serializable()]
 	public class SkillNode {
+
+		public void AddMod(Mod mod) {
+			_Mods.Add(mod);
+		}
+
+		public int X, Y;
+		
 		private List<Mod> _Mods = new List<Mod>();
 		public IEnumerable<Mod> Mods { get { return _Mods.AsEnumerable(); } }
+		[NonSerialized]
 		private List<SkillTreePath> _Paths = new List<SkillTreePath>();
 		public IEnumerable<SkillTreePath> Paths { get { return _Paths.AsEnumerable(); } }
 
-		public SkillNode(Mod mod) {
+		public SkillNode(int x, int y) { X = x; Y = y; }
+		public SkillNode(int x, int y, Mod mod) {
+			X = x; Y = y;
 			_Mods.Add(mod);
 		}
-		public SkillNode(IEnumerable<Mod> mods) {
+		public SkillNode(int x, int y, IEnumerable<Mod> mods) {
+			X = x; Y = y;
 			_Mods.AddRange(mods);
 		}
 
 		public void AddPath(SkillTreePath path) {
 			_Paths.Add(path);
 		}
+
+		[OnDeserialized()]
+		protected void OnDeserialized(StreamingContext context) {
+			_Paths = new List<SkillTreePath>();
+		}
 	}
 
 	[Serializable]
 	public class SkillTreePath {
-		public SkillNode Node0 { get; private set; }
-		public SkillNode Node1 { get; private set; }
+		[NonSerialized]
+		private SkillNode _Node0, _Node1;
+		public SkillNode Node0 { get { return _Node0; } private set { _Node0 = value; } }
+		public SkillNode Node1 { get { return _Node1; } private set { _Node1 = value; } }
+
+		public void SetNodes(SkillNode node0, SkillNode node1) {
+			if (!(Node0 == null && Node1 == null))
+				throw new ArgumentException("Nodes already set");
+
+			Node0 = node0;
+			Node1 = node1;
+		}
+		public void FinalizeDeserialization() {
+			Node0.AddPath(this);
+			Node1.AddPath(this);
+		}
+
 		public bool OneWay { get; private set; }
 		public SkillTreePath(SkillNode node0, SkillNode node1)
 			: this(node0, node1, false) { }
@@ -41,36 +73,67 @@ namespace srpg {
 	}
 
 	[Serializable]
-	public class SkillTree {
+	public class SkillTree : ISerializable, IDeserializationCallback {
+
+		protected SkillTree(SerializationInfo info, StreamingContext context) {
+			_AllNodes = (List<SkillNode>)info.GetValue("nodes", typeof(List<SkillNode>));
+			Start = _AllNodes[info.GetInt32("Start")];
+			
+			var paths = (List<SkillTreePath>)info.GetValue("paths", typeof(List<SkillTreePath>));
+			var nodePairs = (List<int[]>)info.GetValue("pathsNodePairs", typeof(List<int[]>));
+			for(int i = 0; i<paths.Count; i++) {
+				paths[i].SetNodes(
+					_AllNodes[nodePairs[i][0]],
+					_AllNodes[nodePairs[i][1]] );
+				_AllPaths.Add(paths[i]);
+			}
+		}
+
+		public virtual void GetObjectData(SerializationInfo info, StreamingContext context) {
+			info.AddValue("Start", _AllNodes.IndexOf(Start));
+			info.AddValue("nodes", _AllNodes);
+
+			var paths = _AllPaths.ToList();		//ensure order as hashset enumeration may be poopy
+			var nodePairs = new List<int[]>();
+			for(int i = 0; i<paths.Count; i++) {
+				var p = paths[i];
+				nodePairs.Add(new int[]{
+					_AllNodes.IndexOf(p.Node0),
+					_AllNodes.IndexOf(p.Node1) });
+			}
+
+			info.AddValue("paths", paths);
+			info.AddValue("pathsNodePairs", nodePairs);
+
+		}
+
 		public SkillNode Start { get; private set; }
 		private List<SkillNode> _AllNodes = new List<SkillNode>();
 		private HashSet<SkillTreePath> _AllPaths = new HashSet<SkillTreePath>();
 		public IEnumerable<SkillTreePath> AllPaths { get { return _AllPaths.AsEnumerable(); } }
 		public IEnumerable<SkillNode> AllNodes { get { return _AllNodes.AsEnumerable(); } }
+
 		public void AddNode(SkillNode node) {
 			_AllNodes.Add(node);
 			foreach (var p in node.Paths)
-				if(!AllPaths.Contains(p)) _AllPaths.Add(p);	}
+				if(!_AllPaths.Contains(p)) _AllPaths.Add(p);
+		}
 		public void AddNodes(IEnumerable<SkillNode> nodes) {
 			foreach (var n in nodes)
 				AddNode(n);
 		}
 
 		public SkillTree(SkillNode start) {
+			AddNode(start);
 			Start = start;
-			AddNode(Start);
-		}
-
-		public IEnumerable<int> GetNodesForSave(IEnumerable<SkillNode> nodes) {
-			for (int i = 0; i < _AllNodes.Count; i++) {
-				foreach (var n in nodes) {
-					if (_AllNodes[i] == n) {
-						yield return i;
-						break;
-			}	}	}
 		}
 		public IEnumerable<SkillNode> GetNodes(IEnumerable<int> indexs) {
 			return indexs.Select(i => _AllNodes[i]);
+		}
+
+		void IDeserializationCallback.OnDeserialization(object sender) {
+			foreach (var p in _AllPaths)
+				p.FinalizeDeserialization();
 		}
 	}
 
@@ -82,7 +145,7 @@ namespace srpg {
 				return _basic;
 		}	}
 		private static void BuildBasic() {
-			_basic = new SkillTree( new SkillNode(new Mod[] {
+			_basic = new SkillTree( new SkillNode(-20, -20, new Mod[] {
 				new AdditionMod(StatType.Strength, 10),
 				new AdditionMod(StatType.Speed, 5),
 				new AdditionMod(StatType.HP, 20),
@@ -91,12 +154,12 @@ namespace srpg {
 				new AdditionMod(StatType.MovementPoints, 5)
 			}));
 			var nodes = new SkillNode[] {
-				/*0*/new SkillNode(new AdditionMod(StatType.HP, 5)),
-				/*1*/new SkillNode(new AdditionMod(StatType.Speed, 1)),
-				/*2*/new SkillNode(new AdditiveMultiplierMod(StatType.Strength, 0.20)),
-				/*3*/new SkillNode(new GainMod(StatType.FireDamage, 0.10, StatType.PhysicalDamage)),
-				/*4*/new SkillNode(new ConversionMod(StatType.FireDamage, 0.50, StatType.PhysicalDamage)),
-				/*5*/new SkillNode(new AdditionMod(StatType.FireResistance, 0.50))
+				/*0*/new SkillNode(20, 60, new AdditionMod(StatType.HP, 5)),
+				/*1*/new SkillNode(-60, 60, new AdditionMod(StatType.Speed, 1)),
+				/*2*/new SkillNode(-100, -20, new AdditiveMultiplierMod(StatType.Strength, 0.20)),
+				/*3*/new SkillNode(-140, -100, new GainMod(StatType.FireDamage, 0.10, StatType.PhysicalDamage)),
+				/*4*/new SkillNode(-180, -20, new ConversionMod(StatType.FireDamage, 0.50, StatType.PhysicalDamage)),
+				/*5*/new SkillNode(60, 140, new AdditionMod(StatType.FireResistance, 0.50))
 			};
 			new SkillTreePath(Basic.Start, nodes[0]);
 			new SkillTreePath(_basic.Start, nodes[1]);
@@ -142,21 +205,6 @@ namespace srpg {
 			Target = target;
 			AvailableDic[Target.Start] = true;
 			Take(Target.Start);
-		}
-
-		public SkillTreeFiller(SkillTreeFillerSave sts) {
-			//Target = GetTarget(sts.Target);
-			foreach (var n in Target.GetNodes(sts.Taken))
-				TakenDic[n] = true;
-			foreach (var n in Target.GetNodes(sts.Available))
-				AvailableDic[n] = true;
-		}
-
-		[Serializable]
-		public class SkillTreeFillerSave {
-			public int Target;
-			public List<int> Taken = new List<int>();
-			public List<int> Available = new List<int>();
 		}
 	}
 }

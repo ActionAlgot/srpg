@@ -54,8 +54,7 @@ namespace srpg {
 				ValueUpdated(this, new ValueUpdatedEventArgs(prevVal));
 			return r;
 		}
-
-		//private ObservableCollection<double> _multipliers = new ObservableCollection<double>();
+		
 		private Collection<double> _multipliers = new Collection<double>();
 		public override IEnumerable<double> Multipliers { get { return _multipliers.AsEnumerable(); } }
 		public override void AddMultiplier(double m) {
@@ -66,16 +65,9 @@ namespace srpg {
 		public override bool RemoveMultiplier(double m) {
 			return Update(() => _multipliers.Remove(m));
 		}
-		//public override ICollection<double> Multipliers { get { return _multipliers; } }
-		//private void OnMultipliersChanged(object sender, NotifyCollectionChangedEventArgs e) {
-		//	if (e.Action != NotifyCollectionChangedAction.Move) {
-		//		Update(() => { });
-		//	}
-		//}
 
 		public ComboStat(StatType st) {
 			StatType = st;
-			//_multipliers.CollectionChanged += OnMultipliersChanged;
 		}
 
 		public ComboStat(params astat[] stats) : this(stats as IEnumerable<astat>) { }
@@ -91,8 +83,7 @@ namespace srpg {
 				if (that is ComboStat)
 					this.components.AddRange((that as ComboStat).components);
 			}
-
-			//_multipliers.CollectionChanged += OnMultipliersChanged;
+			
 			Recalc();
 		}
 	}

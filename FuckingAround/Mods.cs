@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace srpg {
-	
+
+	[Serializable]
 	public abstract class Mod {
 		public StatType TargetStatType { get; protected set; }
 		public abstract void Affect(Stat stat);
@@ -13,6 +15,7 @@ namespace srpg {
 			UnAffect(statD.GetStat(TargetStatType));
 		}
 	}
+	[Serializable]
 	public abstract class SuperStatCompatibleMod : Mod {
 		public abstract void Affect(astat stat);
 		public abstract void UnAffect(astat stat);
@@ -20,6 +23,7 @@ namespace srpg {
 		public override void UnAffect(Stat stat) { UnAffect(stat as astat); }
 	}
 
+	[Serializable]
 	public class AdditionMod : SuperStatCompatibleMod {
 		double Value;
 		public override void Affect(astat stat) { stat.Base += Value; }
@@ -37,6 +41,7 @@ namespace srpg {
 		}
 	}
 
+	[Serializable]
 	public class AdditiveMultiplierMod : SuperStatCompatibleMod {
 		double Value;
 		public override void Affect(astat stat) { stat.AdditiveMultipliers += Value; }
@@ -54,6 +59,7 @@ namespace srpg {
 		}
 	}
 
+	[Serializable]
 	public class MultiplierMod : SuperStatCompatibleMod {
 		double Value;
 		public override void Affect(astat stat) { stat.AddMultiplier(Value); }
@@ -75,7 +81,7 @@ namespace srpg {
 			);
 		}
 	}
-
+	
 	public class Conversion{
 		public StatType SourceType;
 		public StatType TargetType;
@@ -92,15 +98,21 @@ namespace srpg {
 		}
 	}
 
-	public abstract class InterStatularMod : Mod {
+	[Serializable()]
+	public abstract class InterStatularMod : Mod, IDeserializationCallback {
 		public double Effectiveness { get; protected set; }
 		public StatType SourceType { get; protected set; }
-		public Conversion Conversion { get; protected set; }
+		[NonSerialized]
+		private Conversion _Conversion;
+		public Conversion Conversion { get { return _Conversion; } protected set { _Conversion = value; } }
+		
+		public abstract void OnDeserialization(object sender);
 	}
 
+	[Serializable]
 	public class ConversionMod : InterStatularMod {
-		private SuperStatCompatibleMod SourceMod;
-		private SuperStatCompatibleMod ResultMod;
+		[NonSerialized]
+		private SuperStatCompatibleMod SourceMod, ResultMod;
 
 		private Action<ComboStat> Converter(astat source) {
 			SourceMod.UnAffect(source);
@@ -127,10 +139,13 @@ namespace srpg {
 			TargetStatType = targetStat;
 			Effectiveness = value;
 			SourceType = sourceStat;
-			SourceMod = new MultiplierMod(sourceStat, 1 - value);
-			ResultMod = new MultiplierMod(targetStat, value);
+		}
+		
+		public override void OnDeserialization(object sender) {
+			SourceMod = new MultiplierMod(SourceType, 1 - Effectiveness);
+			ResultMod = new MultiplierMod(TargetStatType, Effectiveness);
 
-			Conversion = new Conversion(sourceStat, TargetStatType, Converter);
+			Conversion = new Conversion(SourceType, TargetStatType, Converter);
 		}
 
 		public override string ToString() {
@@ -143,6 +158,7 @@ namespace srpg {
 		}
 	}
 
+	[Serializable]
 	public class ConversionToAdditiveMultiplierMod : InterStatularMod {
 		public ConversionToAdditiveMultiplierMod(StatType targetStat, double value, StatType sourceStat) {
 			TargetStatType = targetStat;
@@ -157,6 +173,10 @@ namespace srpg {
 		public override void UnAffect(Stat stat) {
 			stat.Converters.Remove(Conversion);
 		}
+		
+		public override void OnDeserialization(object sender) {
+			Conversion = new Conversion(SourceType, TargetStatType, source => target => target.AdditiveMultipliers += Effectiveness * source.Value);
+		}
 
 		public override string ToString() {
 			return string.Format(
@@ -168,7 +188,9 @@ namespace srpg {
 		}
 	}
 
+	[Serializable]
 	public class GainMod : InterStatularMod {
+		[NonSerialized]
 		private SuperStatCompatibleMod targetMod;
 
 		public GainMod(StatType targetStat, double value, StatType sourceStat) {
@@ -189,6 +211,15 @@ namespace srpg {
 		}
 		public override void UnAffect(Stat stat) {
 			stat.Converters.Remove(Conversion);
+		}
+		
+		public override void OnDeserialization(object sender) {
+			targetMod = new MultiplierMod(TargetStatType, Effectiveness);
+
+			Conversion = new Conversion(SourceType, TargetStatType, source => target => {
+				targetMod.Affect(source);
+				target.AddComponent(source);
+			});
 		}
 
 		public override string ToString() {

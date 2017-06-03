@@ -2,9 +2,9 @@
   "ExpandedNodes": [
     "",
     "\\FuckingAround",
-    "\\srpgUnity",
-    "\\srpgUnity\\Assets"
+    "\\FuckingAround\\Properties",
+    "\\srpgUnity"
   ],
-  "SelectedNode": "\\FuckingAround\\srpg.csproj",
+  "SelectedNode": "\\FuckingAround",
   "PreviewInSolutionExplorer": false
 }

@@ -73,7 +73,6 @@ namespace srpg {
 		}
 
 		public Stat(StatType statType, StatSet owner){
-			//_multipliers.CollectionChanged += OnMultipliersChanged;
 			StatType = statType;
 			Owner = owner;
 			Owner.AddStat(this);
@@ -90,19 +89,15 @@ namespace srpg {
 
 		private void Update(Action setter) {
 			setter();
-			//if (UpToDate) {
 			UpToDate = false;
 			if (ValueUpdated != null)
 				ValueUpdated(this, new ValueUpdatedEventArgs(StatType));
-			//}
 		}
 		private T Update<T>(Func<T> setter) {
 			T r = setter();
-			//if (UpToDate) {
 			UpToDate = false;
 			if (ValueUpdated != null)
 				ValueUpdated(this, new ValueUpdatedEventArgs(StatType));
-			//}
 			return r;
 		}
 
@@ -117,8 +112,6 @@ namespace srpg {
 			set { Update(() => _additiveMultipliers = value); }
 		}
 
-
-		//private ObservableCollection<double> _multipliers = new ObservableCollection<double>();
 		private Collection<double> _multipliers = new Collection<double>();
 		public override IEnumerable<double> Multipliers { get { return _multipliers.AsEnumerable(); } }
 		public override void AddMultiplier(double m) {
@@ -128,11 +121,6 @@ namespace srpg {
 		public override bool RemoveMultiplier(double m) {
 			return Update(() => _multipliers.Remove(m));
 		}
-		//private void OnMultipliersChanged(object sender, NotifyCollectionChangedEventArgs e) {
-		//	if (e.Action != NotifyCollectionChangedAction.Move) {
-		//		Update(() => { });
-		//	}
-		//}
 
 		public void RaiseUpdatedEvent() {
 			if (UpToDate) {
@@ -198,8 +186,6 @@ namespace srpg {
 			return r;
 		}
 		public double LoneValue { get { return Base * (1 + AdditiveMultipliers) * Multipliers.Aggregate(0.0, (a, b) => a * b); } }
-		public Stat() {
-			//_multipliers.CollectionChanged += OnMultipliersChanged;
-		}
+		public Stat() { }
 	}
 }

@@ -20,24 +20,24 @@ public class GBeingSelection : MonoBehaviour {
 
 	public void Populate() {
 		float h = 0;
-		foreach(var b in LoadBeings()) {
+		foreach(var being in LoadBeings()) {
 			var gO = Instantiate(beingSelectDisplay);
 			var paneltem = gO.GetComponent<BeingSelectable>();
 
-			paneltem.Name.text = b.Name;
+			paneltem.Name.text = being.Name;
 			paneltem.Add.onClick.AddListener(() => {
-				var gb = gamecontroller.DrawBeing(b);
+				var gb = gamecontroller.DrawBeing(being);
 				EventHandler<TileClickedEventArgs> hoverF = (s, e) =>
 					gb.transform.position = new Vector3(e.Tile.X, gb.transform.position.y, e.Tile.Y);
 				gamecontroller.GTileSet.TileHoverEnter += hoverF;
 				gamecontroller.TileCLickHappening = (s, e) => {
 					gamecontroller.GTileSet.TileHoverEnter -= hoverF;
-					gamecontroller.AddBeing(b, e.Tile.X, e.Tile.Y, gb);
+					gamecontroller.AddBeing(being, e.Tile.X, e.Tile.Y, gb);
 					gamecontroller.TileCLickHappening = null;
 					Destroy(gO);
 				};
 			});
-			paneltem.Edit.onClick.AddListener(() => skilltree.SetSkillTreeFiller(b.SkillTreeFilling));
+			paneltem.Edit.onClick.AddListener(() => skilltree.SetSkillTreeFiller(being.SkillTreeFilling));
 			gO.transform.SetParent(this.transform, false);
 			gO.transform.position -= Vector3.up * h;
 			h += gO.GetComponent<RectTransform>().rect.height;
