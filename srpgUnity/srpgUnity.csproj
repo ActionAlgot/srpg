@@ -94,8 +94,9 @@
     <Compile Include="Assets\GSkillMenu.cs" />
     <Compile Include="Assets\GTileOnClick.cs" />
     <Compile Include="Assets\GTileSetShit.cs" />
-    <Compile Include="Assets\SaveSkilltreeS.cs" />
-    <Compile Include="Assets\SkilltreeLoader.cs" />
+    <Compile Include="Assets\SkilltreeEditor\SaveSkilltreeS.cs" />
+    <Compile Include="Assets\SkilltreeEditor\SkilltreeEditorController.cs" />
+    <Compile Include="Assets\SkilltreeEditor\SkilltreeLoader.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

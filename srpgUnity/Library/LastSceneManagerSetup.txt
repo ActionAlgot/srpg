@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/SkillTreeEditor.unity
+- path: Assets/SkilltreeEditor/SkillTreeEditor.unity
   isLoaded: 1
   isActive: 1

@@ -20,8 +20,6 @@ namespace srpg {
 	}
 
 	public class TurnTracker {
-
-		//lmao can't fucking connect eventhandler and keep shit dynamic
 		private void _TurnStarted(object s, EventArgs e) {
 			if(TurnStarted != null) TurnStarted(s, e); }
 		private void _TurnFinished(object s, EventArgs e) {

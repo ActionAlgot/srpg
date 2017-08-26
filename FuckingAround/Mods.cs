@@ -5,7 +5,7 @@ namespace srpg {
 
 	[Serializable]
 	public abstract class Mod {
-		public StatType TargetStatType { get; protected set; }
+		public StatType TargetStatType { get; /*protected*/ set; }
 		public abstract void Affect(Stat stat);
 		public abstract void UnAffect(Stat stat);
 		public virtual void Affect(StatSet statD){
@@ -24,8 +24,13 @@ namespace srpg {
 	}
 
 	[Serializable]
-	public class AdditionMod : SuperStatCompatibleMod {
-		double Value;
+	public abstract class ValueMod : SuperStatCompatibleMod {	//only exists for easy editor creation
+		public double Value;
+	}
+
+	[Serializable]
+	public class AdditionMod : ValueMod {
+		//protected double Value;
 		public override void Affect(astat stat) { stat.Base += Value; }
 		public override void UnAffect(astat stat) { stat.Base -= Value; }
 		public AdditionMod(StatType targetStat, double value) {
@@ -42,8 +47,8 @@ namespace srpg {
 	}
 
 	[Serializable]
-	public class AdditiveMultiplierMod : SuperStatCompatibleMod {
-		double Value;
+	public class AdditiveMultiplierMod : ValueMod {
+		//protected double Value;
 		public override void Affect(astat stat) { stat.AdditiveMultipliers += Value; }
 		public override void UnAffect(astat stat) { stat.AdditiveMultipliers -= Value; }
 		public AdditiveMultiplierMod(StatType targetStat, double value) {
@@ -60,8 +65,8 @@ namespace srpg {
 	}
 
 	[Serializable]
-	public class MultiplierMod : SuperStatCompatibleMod {
-		double Value;
+	public class MultiplierMod : ValueMod {
+		//protected double Value;
 		public override void Affect(astat stat) { stat.AddMultiplier(Value); }
 		public override void UnAffect(astat stat) {
 			if (stat.RemoveMultiplier(Value)) return;
@@ -100,8 +105,8 @@ namespace srpg {
 
 	[Serializable()]
 	public abstract class InterStatularMod : Mod, IDeserializationCallback {
-		public double Effectiveness { get; protected set; }
-		public StatType SourceType { get; protected set; }
+		public double Effectiveness { get; /*protected*/ set; }
+		public StatType SourceType { get; /*protected*/ set; }
 		[NonSerialized]
 		private Conversion _Conversion;
 		public Conversion Conversion { get { return _Conversion; } protected set { _Conversion = value; } }

@@ -8,9 +8,8 @@ namespace srpg {
 	[Serializable()]
 	public class SkillNode {
 
-		public void AddMod(Mod mod) {
-			_Mods.Add(mod);
-		}
+		public void AddMod(Mod mod) { _Mods.Add(mod); }
+		public void RemoveMod(Mod mod) { _Mods.Remove(mod); }
 
 		public int X, Y;
 		
