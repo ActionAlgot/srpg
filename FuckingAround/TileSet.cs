@@ -34,15 +34,15 @@ namespace srpg {
 
 			var accumTravCost = new Dictionary<Tile, int>();    //dictionary for accumulated traversal cost
 			var prev = new Dictionary<Tile, Tile>();
-			var tils = new LinkedList<Tile>();
+			var tiles = new LinkedList<Tile>();
 
 			accumTravCost.Add(start, 0);
-			tils.AddFirst(start);
-			for (var node = tils.First; node != null; node = node.Next) {
+			tiles.AddFirst(start);
+			for (var node = tiles.First; node != null; node = node.Next) {
 				if (node.Value == destination) break;
 				
 				foreach (var adjT in node.Value.Adjacent) {
-					if (accumTravCost.ContainsKey(adjT) == false) {
+					if (accumTravCost.ContainsKey(adjT) == false) {	//check if adjT has been handled
 						int adjTravCost = travCostCalc(adjT);
 						if (adjTravCost >= 0) {
 							accumTravCost.Add(adjT, accumTravCost[node.Value] + adjTravCost);
@@ -50,17 +50,18 @@ namespace srpg {
 							for (var node2 = node.Next; node2 != null; node2 = node2.Next)
 								if (accumTravCost[node2.Value] >= accumTravCost[adjT]) {
 									added = true;
-									tils.AddBefore(node2, adjT);
+									tiles.AddBefore(node2, adjT);
 									break;
 								}
-							if (!added) tils.AddLast(adjT);
+							if (!added) tiles.AddLast(adjT);
 							prev[adjT] = node.Value;
 				}	}	}
 			}
 			var tindex = destination;
 			var rList = new List<Tile>();
-			while (prev.ContainsKey(tindex)) {
+			while (true) {
 				rList.Add(tindex);
+				if (tindex == start) break;
 				tindex = prev[tindex];
 			}
 			rList.Reverse();

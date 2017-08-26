@@ -12,11 +12,31 @@ public class GBeingMover : MonoBehaviour {
 
 	public void Move(List<Tile> path) {
 		Path = path;
+		SetRotation();
 	}
 
 	void Update() {
 		if (Path != null)
 			_move();
+	}
+
+	private void SetRotation() {
+		if (PathIndex + 1 >= Path.Count) return;
+		Vector3 v = transform.rotation.eulerAngles;
+		switch (CardinalUtilities.GetMovementCardinal(Path[PathIndex], Path[PathIndex + 1])) {
+			case Cardinal.North:
+				transform.rotation = Quaternion.Euler(v.x, 0, v.z);
+				break;
+			case Cardinal.East:
+				transform.rotation = Quaternion.Euler(v.x, 90, v.z);
+				break;
+			case Cardinal.South:
+				transform.rotation = Quaternion.Euler(v.x, 180, v.z);
+				break;
+			case Cardinal.West:
+				transform.rotation = Quaternion.Euler(v.x, 270, v.z);
+				break;
+		}
 	}
 
 	private void _move() {
@@ -37,6 +57,7 @@ public class GBeingMover : MonoBehaviour {
 						move = position.x - Path[PathIndex + 1].X;
 						position.x = Path[PathIndex + 1].X;
 						PathIndex++;
+						SetRotation();
 						continue;
 					}
 				} else {
@@ -45,6 +66,7 @@ public class GBeingMover : MonoBehaviour {
 						move = -(position.x - Path[PathIndex + 1].X);
 						position.x = Path[PathIndex + 1].X;
 						PathIndex++;
+						SetRotation();
 						continue;
 					}
 				}
@@ -56,6 +78,7 @@ public class GBeingMover : MonoBehaviour {
 						move = position.z - Path[PathIndex + 1].Y;
 						position.z = Path[PathIndex + 1].Y;
 						PathIndex++;
+						SetRotation();
 						continue;
 					}
 				} else {
@@ -64,6 +87,7 @@ public class GBeingMover : MonoBehaviour {
 						move = -(position.z - Path[PathIndex + 1].Y);
 						position.z = Path[PathIndex + 1].Y;
 						PathIndex++;
+						SetRotation();
 						continue;
 			}	}	}
 			transform.position = position;

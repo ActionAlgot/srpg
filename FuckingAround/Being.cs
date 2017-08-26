@@ -4,7 +4,10 @@ using System.Linq;
 
 namespace srpg {
 	public class Being : ITurnHaver, SkillUser {
+
 		public string Name { get; private set;}
+
+		public Cardinal Direction;
 
 		public SkillTree SkillTree { get { return SkillTreeshit.Basic; } }
 		public SkillTreeFiller SkillTreeFilling;
@@ -190,8 +193,10 @@ namespace srpg {
 
 				Place = e.Tile;
 				Moved = true;
+				Direction = CardinalUtilities.GetMovementCardinal(path[path.Count - 2], path[path.Count - 1]);
 			}
 		}
+
 		public int MovementPoints { get { return (int)this[StatType.MovementPoints].Value; } }
 
 		public void Die() {
