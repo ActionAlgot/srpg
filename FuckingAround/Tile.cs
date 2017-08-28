@@ -28,12 +28,13 @@ namespace srpg {
 		}
 		public int X;
 		public int Y;
+		public int Height { get; protected set; }
 		public int TraverseCost;
 		private TileSet Owner;
 		public IEnumerable<Tile> GetArea(int range) {
 			return Owner.GetArea(this, range);
 		}
-		public IEnumerable<Tile> GetPath(Tile destination, Func<Tile, int> travCostCalc) {
+		public IEnumerable<Tile> GetPath(Tile destination, Func<Tile, Tile, int> travCostCalc) {
 			return Owner.GetPath(this, destination, travCostCalc);
 		}
 		public Func<Being, int, IEnumerable<Tile>> GetShit {
@@ -62,6 +63,11 @@ namespace srpg {
 			X = x;
 			Y = y;
 			Owner = owner;
+		}
+
+		public Tile(int x, int y, TileSet owner, int height)
+			: this(x, y, owner) {
+			Height = height;
 		}
 	}
 }

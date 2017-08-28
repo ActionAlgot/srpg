@@ -33,7 +33,7 @@ public class GBattle : MonoBehaviour {
 	
 	private void BeingSetUp(GameObject gb, Being b) {
 		var old = gb.transform.position;
-		gb.transform.position = new Vector3(b.Place.X, old.y, b.Place.Y);
+		gb.transform.position = new Vector3(b.Place.X, b.Place.Height*GTileS.HeightMultiplier, b.Place.Y);
 
 		b.MoveStarted += (s, e) => gb.GetComponent<GBeingMover>().Move(e.Path);
 

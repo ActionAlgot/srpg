@@ -92,6 +92,7 @@
     <Compile Include="Assets\GBeingMover.cs" />
     <Compile Include="Assets\GBeingSelection.cs" />
     <Compile Include="Assets\GSkillMenu.cs" />
+    <Compile Include="Assets\GTileS.cs" />
     <Compile Include="Assets\GTileOnClick.cs" />
     <Compile Include="Assets\GTileSetShit.cs" />
     <Compile Include="Assets\SkilltreeEditor\SaveSkilltreeS.cs" />

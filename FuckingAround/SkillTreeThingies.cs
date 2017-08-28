@@ -144,13 +144,14 @@ namespace srpg {
 				return _basic;
 		}	}
 		private static void BuildBasic() {
-			_basic = new SkillTree( new SkillNode(-20, -20, new Mod[] {
+			_basic = new SkillTree(new SkillNode(-20, -20, new Mod[] {
 				new AdditionMod(StatType.Strength, 10),
 				new AdditionMod(StatType.Speed, 5),
 				new AdditionMod(StatType.HP, 20),
 				new AdditionMod(StatType.ChannelingSpeed,  4),
 				new ConversionToAdditiveMultiplierMod( StatType.PhysicalDamage, 0.05, StatType.Strength),
-				new AdditionMod(StatType.MovementPoints, 5)
+				new AdditionMod(StatType.MovementPoints, 20),
+				new AdditionMod(StatType.Jump, 2)
 			}));
 			var nodes = new SkillNode[] {
 				/*0*/new SkillNode(20, 60, new AdditionMod(StatType.HP, 5)),

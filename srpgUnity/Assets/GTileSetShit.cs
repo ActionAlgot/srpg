@@ -28,7 +28,7 @@ public class GTileSetShit : MonoBehaviour {
 			blarg.OnMouseHoverExit += (s, e) => TileHoverExited(s, new TileClickedEventArgs(t));
 			blarg.OnClick += (s, e) => Click(s, new TileClickedEventArgs(t));
 			c.transform.SetParent(this.transform);
-			c.transform.localPosition = new Vector3(t.X, old.y - 0.5f, t.Y);
+			c.transform.localPosition = new Vector3(t.X, old.y + t.Height * GTileS.HeightMultiplier - 0.5f, t.Y);
 		}
 	}
 }

@@ -120,13 +120,14 @@ namespace srpg {
 		public Weapon MainHand { get { return Inventory.MainHand; } }
 		public Gear OffHand { get { return Inventory.OffHand; } }
 
-		public int GetTraversalCost(Tile t) {
-			if (t.Inhabitant != null && t.Inhabitant.IsAlive) {
-				if (t.Inhabitant.Team == this.Team)
-					return t.TraverseCost;
+		public int GetTraversalCost(Tile t1, Tile t2) {
+			if (t2.Inhabitant != null && t2.Inhabitant.IsAlive)
+				if (t2.Inhabitant.Team == this.Team)
+					return t2.TraverseCost;
 				else return -1;
-			}
-			return t.TraverseCost;
+			else if (t2.Height - t1.Height > this[StatType.Jump].Value)
+				return -1;
+			return t2.TraverseCost;
 		}
 
 		public bool ActionTaken { get; protected set; }

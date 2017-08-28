@@ -28,7 +28,7 @@ public class GBeingSelection : MonoBehaviour {
 			paneltem.Add.onClick.AddListener(() => {
 				var gb = gamecontroller.DrawBeing(being);
 				EventHandler<TileClickedEventArgs> hoverF = (s, e) =>
-					gb.transform.position = new Vector3(e.Tile.X, gb.transform.position.y, e.Tile.Y);
+					gb.transform.position = new Vector3(e.Tile.X, e.Tile.Height*GTileS.HeightMultiplier, e.Tile.Y);
 				gamecontroller.GTileSet.TileHoverEnter += hoverF;
 				gamecontroller.TileCLickHappening = (s, e) => {
 					gamecontroller.GTileSet.TileHoverEnter -= hoverF;

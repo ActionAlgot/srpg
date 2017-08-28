@@ -19,7 +19,7 @@ namespace srpg {
 		Armour = Resistance | Physical, FireResistance = Resistance | Fire, IceResistance = Resistance | Ice, LightningResistance = Resistance | Lightning,
 		ArmourPenetration = Penetration | Physical, FirePenetration = Penetration | Fire,
 		Range = 1 << 15, AreaOfEffect = 1 << 16, Weapon = 1 << 17, Spell = 1 << 18, WeaponRange = Weapon | Range,
-		MovementPoints = 1 << 19
+		MovementPoints = 1 << 19, Jump = 1 << 20
 	}
 	public static class StatTypeStuff {
 		public static readonly IEnumerable<StatType> DamageTypes = new StatType[]{

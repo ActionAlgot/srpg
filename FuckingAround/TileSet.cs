@@ -26,11 +26,20 @@ namespace srpg {
 			foreach (var tile in Tiles) tile.TraverseCost = 1;
 		}
 
+		public TileSet(int x, int y, int mHeight) {
+			Random rand = new Random();
+			Tiles = new Tile[x, y];
+			for (int ix = 0; ix < x; ix++)
+				for (int iy = 0; iy < y; iy++)
+					Tiles[ix, iy] = new Tile(ix, iy, this, rand.Next(0, mHeight));
+			foreach (var tile in Tiles) tile.TraverseCost = 1;
+		}
+
 		public void SelectTile(Tile tile) {
 			TileClicked(this, new TileClickedEventArgs(tile));
 		}
 
-		public IEnumerable<Tile> GetPath(Tile start, Tile destination, Func<Tile, int> travCostCalc) {	//TODO properly reuse code from 'GetTraversalArea' rather than copypasta
+		public IEnumerable<Tile> GetPath(Tile start, Tile destination, Func<Tile, Tile, int> travCostCalc) {	//TODO properly reuse code from 'GetTraversalArea' rather than copypasta
 
 			var accumTravCost = new Dictionary<Tile, int>();    //dictionary for accumulated traversal cost
 			var prev = new Dictionary<Tile, Tile>();
@@ -43,7 +52,7 @@ namespace srpg {
 				
 				foreach (var adjT in node.Value.Adjacent) {
 					if (accumTravCost.ContainsKey(adjT) == false) {	//check if adjT has been handled
-						int adjTravCost = travCostCalc(adjT);
+						int adjTravCost = travCostCalc(node.Value, adjT);
 						if (adjTravCost >= 0) {
 							accumTravCost.Add(adjT, accumTravCost[node.Value] + adjTravCost);
 							var added = false;
@@ -68,7 +77,7 @@ namespace srpg {
 			return rList;
 		}
 
-		public IEnumerable<Tile> GetTraversalArea(Tile start, Func<Tile, int> travCostCalc, int mp) {
+		public IEnumerable<Tile> GetTraversalArea(Tile start, Func<Tile, Tile, int> travCostCalc, int mp) {
 			var accumTravCost = new Dictionary<Tile, int>();    //dictionary for accumulated traversal cost
 			var tils = new LinkedList<Tile>();
 
@@ -80,7 +89,7 @@ namespace srpg {
 
 				foreach (var adjT in node.Value.Adjacent) {	//insert tiles adjacent to current node
 					if (accumTravCost.ContainsKey(adjT) == false) {
-						int adjTravCost = travCostCalc(adjT);
+						int adjTravCost = travCostCalc(node.Value, adjT);
 						if (adjTravCost >= 0) {
 							int _accumTravCost = accumTravCost[node.Value] + adjTravCost;
 							if (_accumTravCost <= mp) {
