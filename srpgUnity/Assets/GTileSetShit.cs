@@ -22,13 +22,15 @@ public class GTileSetShit : MonoBehaviour {
 	public void Build(TileSet ts) {
 		foreach(var t in ts.AsEnumerable()) {
 			var c = Instantiate(GTile);
-			var old = c.transform.position;
+			var old = c.transform.localScale;
 			var blarg = c.GetComponent<GTileOnClick>();
 			blarg.OnMouseHoverEnter += (s, e) => TileHoverEntered(s, new TileClickedEventArgs(t));
 			blarg.OnMouseHoverExit += (s, e) => TileHoverExited(s, new TileClickedEventArgs(t));
 			blarg.OnClick += (s, e) => Click(s, new TileClickedEventArgs(t));
 			c.transform.SetParent(this.transform);
-			c.transform.localPosition = new Vector3(t.X, old.y + t.Height * GTileS.HeightMultiplier - 0.5f, t.Y);
+			c.transform.localScale = new Vector3(old.x, old.y * (1 + t.Height * GTileS.HeightMultiplier), old.z);
+			old = c.transform.position;
+			c.transform.localPosition = new Vector3(t.X, old.y + t.Height * GTileS.HeightMultiplier - c.transform.localScale.y/2, t.Y);
 		}
 	}
 }
