@@ -49,6 +49,7 @@
     <Compile Include="Battle.cs" />
     <Compile Include="Cardinal.cs" />
     <Compile Include="OverTimeStuff.cs" />
+    <Compile Include="PathFinder.cs" />
     <Compile Include="SkillTreeThingies.cs" />
     <Compile Include="StatusEffect.cs" />
     <Compile Include="Channeling.cs" />

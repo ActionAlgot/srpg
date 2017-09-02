@@ -63,7 +63,7 @@ namespace srpg {
 		}
 
 		public Battle() {
-			TileSet = new TileSet(30, 30, 5);
+			TileSet = new TileSet(30, 30, 8);
 			
 			_TurnTracker.TurnStarted += InvokeTurnStarted;
 

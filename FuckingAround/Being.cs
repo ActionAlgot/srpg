@@ -120,16 +120,6 @@ namespace srpg {
 		public Weapon MainHand { get { return Inventory.MainHand; } }
 		public Gear OffHand { get { return Inventory.OffHand; } }
 
-		public int GetTraversalCost(Tile t1, Tile t2) {
-			if (t2.Inhabitant != null && t2.Inhabitant.IsAlive)
-				if (t2.Inhabitant.Team == this.Team)
-					return t2.TraverseCost;
-				else return -1;
-			else if (t2.Height - t1.Height > this[StatType.Jump].Value)
-				return -1;
-			return t2.TraverseCost;
-		}
-
 		public bool ActionTaken { get; protected set; }
 		public bool Moved { get; protected set; }
 		public void EndTurn() {
@@ -157,7 +147,7 @@ namespace srpg {
 			}
 		}
 		private IEnumerable<Tile> movementArea {
-			get { return Place.GetShit(this, MovementPoints); }
+			get { return PathFinder.GetTraversalArea(Place, this); }
 		}
 		public void Command(Object s, TileClickedEventArgs e) {
 			if(_command != null) _command(s, e);
@@ -188,8 +178,8 @@ namespace srpg {
 		public void Move(object sender, TileClickedEventArgs e) {
 			if (movementArea.Any(t => t == e.Tile)
 					&& e.Tile.Inhabitant == null) {
-				
-				var path = Place.GetPath(e.Tile, GetTraversalCost).ToList();
+
+				var path = PathFinder.GetPath(Place, e.Tile, this).ToList();
 				if(MoveStarted != null) MoveStarted(this, new MovedArgs(path));
 
 				Place = e.Tile;

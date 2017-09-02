@@ -6,10 +6,12 @@ using srpg;
 using System;
 
 public class GBeingMover : MonoBehaviour {
-	public static float MoveSpeed = 5;
+	public static float MoveSpeed = 4;
 
 	private List<Tile> Path;
 	private int PathIndex;
+	private Tile CurrentTile;
+	private Tile NextTile;
 
 	private Cardinal moveDir;
 
@@ -23,19 +25,20 @@ public class GBeingMover : MonoBehaviour {
 
 	public void Move(List<Tile> path) {
 		Path = path;
+		CurrentTile = Path[PathIndex];
+		NextTile = Path[PathIndex + 1];
 		SetMoveDir();
 		SetRotation();
-		if (Path[PathIndex].Height < Path[PathIndex + 1].Height)
-			BeginJump();
+		MaybeBeginJump();
 	}
 
 	private void SetMoveDir() {
-		int xDiff = Path[PathIndex].X - Path[PathIndex + 1].X;
+		int xDiff = CurrentTile.X - NextTile.X;
 		if (xDiff != 0)
 			if (xDiff < 0) moveDir = Cardinal.East;
 			else moveDir = Cardinal.West;
 		else {
-			int yDiff = Path[PathIndex].Y - Path[PathIndex + 1].Y;
+			int yDiff = CurrentTile.Y - NextTile.Y;
 			if (yDiff < 0) moveDir = Cardinal.North;
 			else moveDir = Cardinal.South;
 		}
@@ -60,30 +63,51 @@ public class GBeingMover : MonoBehaviour {
 		}
 	}
 
-	private void BeginJump() {
-		float s = Path[PathIndex].Height;
-		float e = Path[PathIndex + 1].Height;
+	private bool IsLongJump(Tile s, Tile d) {
+		switch (moveDir) {
+			case Cardinal.North:
+				return d.Y - s.Y == 2;
+			case Cardinal.East:
+				return d.X - s.X == 2;
+			case Cardinal.South:
+				return d.Y - s.Y == -2;
+			case Cardinal.West:
+				return d.X - s.X == -2;
+		}
+		throw new ArgumentException("Unhandled cardinal");
+	}
+
+	private void MaybeBeginJump() {
+		if (CurrentTile.Height != NextTile.Height || IsLongJump(CurrentTile, NextTile))
+			_BeginJump();
+	}
+	private void _BeginJump() {
+		float s = CurrentTile.Height;
+		float e = NextTile.Height;
 		float d = e-s;
 
 		jumping = true;
 		//TODO make a sensible jumping curve
-		jumpFunc = n => (s + (float)Math.Pow(n, (2.0f * d)) + (d + 1.0f) *n) * GTileS.HeightMultiplier;
+		if (d > 0) jumpFunc = x => (s + (float)Math.Pow(x, (2.0f * d)) + (d + 1.0f) * x) * GTileS.HeightMultiplier;
+		else if (IsLongJump(CurrentTile, NextTile))
+			jumpFunc = x => (s + (-d + 1) * -(float)Math.Pow((x / 2), 2.0f) + (x / 2)) * GTileS.HeightMultiplier;
+		else jumpFunc = x => (s + (-d + 1) * -(float)Math.Pow(x, 2.0f) + x) * GTileS.HeightMultiplier;
 	}
 
 	private void SetVert(ref Vector3 position) {
 		float distMoved = 0;
 		switch (moveDir) {
 			case Cardinal.North:
-				distMoved = position.z - Path[PathIndex].Y;
+				distMoved = position.z - CurrentTile.Y;
 				break;
 			case Cardinal.East:
-				distMoved = position.x - Path[PathIndex].X;
+				distMoved = position.x - CurrentTile.X;
 				break;
 			case Cardinal.South:
-				distMoved = Path[PathIndex].Y - position.z;
+				distMoved = CurrentTile.Y - position.z;
 				break;
 			case Cardinal.West:
-				distMoved = Path[PathIndex].X - position.x;
+				distMoved = CurrentTile.X - position.x;
 				break;
 		}
 		position.y = jumpFunc(distMoved);
@@ -98,40 +122,41 @@ public class GBeingMover : MonoBehaviour {
 			switch (moveDir) {
 				case Cardinal.North:
 					position.z += move;
-					if(position.z >= Path[PathIndex + 1].Y) {
+					if(position.z >= NextTile.Y) {
 						incPathIndex = true;
-						move = position.z - Path[PathIndex + 1].Y;
+						move = position.z - NextTile.Y;
 					}
 					break;
 				case Cardinal.East:
 					position.x += move;
-					if (position.x >= Path[PathIndex + 1].X) {
+					if (position.x >= NextTile.X) {
 						incPathIndex = true;
-						move = position.x - Path[PathIndex + 1].X;
+						move = position.x - NextTile.X;
 					}
 					break;
 				case Cardinal.South:
 					position.z -= move;
-					if (position.z <= Path[PathIndex + 1].Y) {
+					if (position.z <= NextTile.Y) {
 						incPathIndex = true;
-						move = -(position.z - Path[PathIndex + 1].Y);
+						move = -(position.z - NextTile.Y);
 					}
 					break;
 				case Cardinal.West:
 					position.x -= move;
-					if (position.x <= Path[PathIndex + 1].X) {
+					if (position.x <= NextTile.X) {
 						incPathIndex = true;
-						move = -(position.x - Path[PathIndex + 1].X);
+						move = -(position.x - NextTile.X);
 					}
 					break;
 			}
 
 			if (incPathIndex) {
 				PathIndex++;
-				position.x = Path[PathIndex].X;
-				position.z = Path[PathIndex].Y;
+				CurrentTile = NextTile;
+				position.x = CurrentTile.X;
+				position.z = CurrentTile.Y;
 				jumping = false;
-				position.y = Path[PathIndex].Height * GTileS.HeightMultiplier;
+				position.y = CurrentTile.Height * GTileS.HeightMultiplier;
 
 				if (PathIndex + 1 >= Path.Count) {
 					transform.position = position;
@@ -140,11 +165,12 @@ public class GBeingMover : MonoBehaviour {
 					return;
 				}
 
+				NextTile = Path[PathIndex + 1];
+				
 				SetMoveDir();
 				SetRotation();
 
-				if (Path[PathIndex].Height < Path[PathIndex + 1].Height)
-					BeginJump();
+				MaybeBeginJump();
 				continue;
 			}
 

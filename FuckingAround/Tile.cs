@@ -34,16 +34,20 @@ namespace srpg {
 		public IEnumerable<Tile> GetArea(int range) {
 			return Owner.GetArea(this, range);
 		}
-		public IEnumerable<Tile> GetPath(Tile destination, Func<Tile, Tile, int> travCostCalc) {
-			return Owner.GetPath(this, destination, travCostCalc);
-		}
-		public Func<Being, int, IEnumerable<Tile>> GetShit {
-			get { return (b, n) => Owner.GetTraversalArea(this, b, n); }
-		}
+
 		public Tile North	{ get { return Y+1 < Owner.YLength ? Owner[X, Y+1] : null; } }
 		public Tile East	{ get { return X+1 < Owner.XLength ? Owner[X+1, Y] : null; } }
 		public Tile West	{ get { return X-1 >= 0 ? Owner[X-1, Y] : null; } }
 		public Tile South	{ get { return Y-1 >= 0 ? Owner[X, Y-1] : null; } }
+		public Tile GetAdjacent(Cardinal dir) {
+			switch (dir) {
+				case Cardinal.North: return North;
+				case Cardinal.East: return East;
+				case Cardinal.South: return South;
+				case Cardinal.West: return West;
+			}
+			throw new ArgumentException("Unhandled cardinal");
+		}
 
 		public IEnumerable<Tile> Adjacent {
 			get {
