@@ -16,7 +16,7 @@ namespace srpg {
 		}
 		public int XLength { get { return Tiles.GetLength(0); } }
 		public int YLength { get { return Tiles.GetLength(1); } }
-		public event EventHandler<TileClickedEventArgs> TileClicked;
+		//public event EventHandler<TileClickedEventArgs> TileClicked;
 
 		public TileSet(int x, int y) {
 			Tiles = new Tile[x, y];
@@ -35,9 +35,9 @@ namespace srpg {
 			foreach (var tile in Tiles) tile.TraverseCost = 1;
 		}
 
-		public void SelectTile(Tile tile) {
-			TileClicked(this, new TileClickedEventArgs(tile));
-		}
+		//public void SelectTile(Tile tile) {
+		//	TileClicked(this, new TileClickedEventArgs(tile));
+		//}
 
 		public IEnumerable<Tile> GetArea(Tile start, int range) {
 			

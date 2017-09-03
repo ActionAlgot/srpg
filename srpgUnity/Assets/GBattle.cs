@@ -16,9 +16,10 @@ public class GBattle : MonoBehaviour {
 	public GBeingSelection BeingSelector;
 
 	private Battle battle;
+	private UnityCommanderIO commander = new UnityCommanderIO();
 
 	public void Start () {
-		battle = new Battle();
+		battle = new Battle(commander);
 
 		GTileSet.Build(battle.TileSet);
 		GTileSet.Clicked += TileClickHandler;
@@ -64,11 +65,11 @@ public class GBattle : MonoBehaviour {
 
 	public Action<object, TileClickedEventArgs> TileCLickHappening;
 	private void TileClickHandler(object s, TileClickedEventArgs e) {
-		if(TileCLickHappening != null) {
+		if (TileCLickHappening != null) {
 			TileCLickHappening(s, e);
 		}
 		else
-			battle.TileSet.SelectTile(e.Tile);
+			commander.Do(e.Tile);
 	}
 
 	public void StartBattle() {

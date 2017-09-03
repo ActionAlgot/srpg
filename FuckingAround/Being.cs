@@ -108,7 +108,7 @@ namespace srpg {
 		}
 
 		public event EventHandler TurnFinished;
-		private event EventHandler<TileClickedEventArgs> _command;
+		//private event EventHandler<TileClickedEventArgs> _command;
 
 		private int _team;
 		public int Team { get { return _team; } }
@@ -149,10 +149,18 @@ namespace srpg {
 		private IEnumerable<Tile> movementArea {
 			get { return PathFinder.GetTraversalArea(Place, this); }
 		}
-		public void Command(Object s, TileClickedEventArgs e) {
-			if(_command != null) _command(s, e);
-		}
+		//public void Command(Object s, TileClickedEventArgs e) {
+		//	if(_command != null) _command(s, e);
+		//}
 
+		public bool Perform(Skill skill, Tile target) {
+			if (skill.Do(this, target)) {
+				ActionTaken = true;
+				return true;
+			}
+			else return false;
+		}
+		/*
 		public void OnCommand(object sender, TileClickedEventArgs e) {
 			if (!ActionTaken && SelectedAction != null) {
 				if (SelectedAction.Do(this, e.Tile))
@@ -166,7 +174,7 @@ namespace srpg {
 					ActionTaken = true;
 			if (ActionTaken && Moved)
 				this.EndTurn();
-		}
+		}*/
 
 		public class MovedArgs : EventArgs{
 			public List<Tile> Path { get; protected set; }
@@ -175,6 +183,7 @@ namespace srpg {
 			}
 		}
 		public event EventHandler<MovedArgs> MoveStarted;
+		/*
 		public void Move(object sender, TileClickedEventArgs e) {
 			if (movementArea.Any(t => t == e.Tile)
 					&& e.Tile.Inhabitant == null) {
@@ -186,6 +195,22 @@ namespace srpg {
 				Moved = true;
 				Direction = CardinalUtilities.GetMovementCardinal(path[path.Count - 2], path[path.Count - 1]);
 			}
+		}*/
+
+		public bool Move(Tile destination) {
+			if (movementArea.Any(t => t == destination)
+					&& destination.Inhabitant == null) {
+
+				var path = PathFinder.GetPath(Place, destination, this).ToList();
+				if (MoveStarted != null) MoveStarted(this, new MovedArgs(path));
+
+				Place = destination;
+				Moved = true;
+				Direction = CardinalUtilities.GetMovementCardinal(path[path.Count - 2], path[path.Count - 1]);
+
+				return true;
+			}
+			return false;
 		}
 
 		public int MovementPoints { get { return (int)this[StatType.MovementPoints].Value; } }
@@ -248,7 +273,7 @@ namespace srpg {
 
 			Skills = SkillsRepo.Default.ToList();
 			_team = team;
-			_command += OnCommand;
+			//_command += OnCommand;
 
 			HP = MaxHP;
 		}

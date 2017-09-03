@@ -77,13 +77,23 @@ namespace srpg {
 		private bool enumerating = false;
 		public ITurnHaver CurrentTurnHaver { get; private set; }
 
+		private bool looping = false;
+		private void loop() {	//if not done like this autoending ITHs will recursively call each other
+			looping = true;
+			ITurnHaver fug = CurrentTurnHaver;
+			fug.StartTurn();
+			while (fug != CurrentTurnHaver)
+				fug.StartTurn();
+			looping = false;
+		}
+
 		private void ForwardTime() {
 			if (CurrentTurnHaver == null || CurrentTurnHaver.GetTimeToWait() > 0) {
 				if (Paused) return;
 				if (TurnHavers.Any() == false)
 					return;
 
-					CurrentTurnHaver = TurnHavers.Aggregate((t1, t2) => t1.GetTimeToWait() <= t2.GetTimeToWait() ? t1 : t2);
+				CurrentTurnHaver = TurnHavers.Aggregate((t1, t2) => t1.GetTimeToWait() <= t2.GetTimeToWait() ? t1 : t2);
 				var dsgfsdf = CurrentTurnHaver.GetTimeToWait();
 
 				enumerating = true;
@@ -96,7 +106,8 @@ namespace srpg {
 				ConsoleLoggerHandlerOrWhatever.Log("_____________");
 				foreach (var t in TurnHavers) ConsoleLoggerHandlerOrWhatever.Log(t.ToString() + " " + t.Awaited + " + " + t.Speed);
 
-				CurrentTurnHaver.StartTurn();
+				if (!looping)
+					loop();	//this calls StartTurn
 			}
 		}
 	}

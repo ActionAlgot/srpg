@@ -98,6 +98,7 @@
     <Compile Include="Assets\SkilltreeEditor\SaveSkilltreeS.cs" />
     <Compile Include="Assets\SkilltreeEditor\SkilltreeEditorController.cs" />
     <Compile Include="Assets\SkilltreeEditor\SkilltreeLoader.cs" />
+    <Compile Include="Assets\UnityCommanderIO.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

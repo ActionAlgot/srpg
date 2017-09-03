@@ -5,6 +5,7 @@ using System.Linq;
 namespace srpg {
 	public class Battle {
 		public TileSet TileSet { get; private set; }
+		public CommanderIO Commander { get; private set; }
 		private TurnTracker _TurnTracker = new TurnTracker();
 		private ITurnHaver CurrentTurnHaver { get { return _TurnTracker.CurrentTurnHaver; } }
 		public Being activeBeing { get { return CurrentTurnHaver as Being; } } //return null if current turn does not belong to a being
@@ -15,9 +16,9 @@ namespace srpg {
 		private List<ChannelingInstance> _ChannelingInstances = new List<ChannelingInstance>();
 		public IEnumerable<ChannelingInstance> ChannelingInstances { get { return _ChannelingInstances.AsEnumerable(); } }
 
-		public event EventHandler TurnStarted;
-		private void InvokeTurnStarted(object s, EventArgs e) {
-			if (TurnStarted != null) TurnStarted(s, e);
+		private void TryStartBeing(object s, EventArgs e) {	//TODO rename this
+			if (activeBeing != null)
+				Commander.SetSubject(activeBeing);
 		}
 
 		public event EventHandler<Being.MovedArgs> BeingMoved;
@@ -58,19 +59,11 @@ namespace srpg {
 			_TurnTracker.Remove(ci);
 		}
 
-		public void EndTurn() {
-			if (activeBeing != null) activeBeing.EndTurn();
-		}
-
-		public Battle() {
+		public Battle(CommanderIO commander) {
+			Commander = commander;
 			TileSet = new TileSet(30, 30, 8);
 			
-			_TurnTracker.TurnStarted += InvokeTurnStarted;
-
-			TileSet.TileClicked += (o, e) => {
-				if (activeBeing != null)
-					activeBeing.Command(this, e);
-			};
+			_TurnTracker.TurnStarted += TryStartBeing;
 		}
 
 		public bool Paused {
