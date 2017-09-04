@@ -80,10 +80,10 @@ namespace srpg {
 		private bool looping = false;
 		private void loop() {	//if not done like this autoending ITHs will recursively call each other
 			looping = true;
-			ITurnHaver fug = CurrentTurnHaver;
-			fug.StartTurn();
-			while (fug != CurrentTurnHaver)
-				fug.StartTurn();
+			ITurnHaver lastITH = CurrentTurnHaver;
+			lastITH.StartTurn();
+			while (lastITH != CurrentTurnHaver)	//this means if lastITHs turn ended immediately
+				CurrentTurnHaver.StartTurn();
 			looping = false;
 		}
 
