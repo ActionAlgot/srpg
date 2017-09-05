@@ -7,5 +7,8 @@ class UnityCommanderIO : srpg.CommanderIO {
 	public override void DisplayMovementArea() {
 		throw new NotImplementedException();
 	}
-	public UnityCommanderIO() { }
+
+	public override void DisplayAvailableSkills() {
+		throw new NotImplementedException();
+	}
 }

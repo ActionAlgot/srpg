@@ -78,12 +78,13 @@ namespace srpg {
 		public ITurnHaver CurrentTurnHaver { get; private set; }
 
 		private bool looping = false;
+		private bool shouldStartTurn = false;
 		private void loop() {	//if not done like this autoending ITHs will recursively call each other
 			looping = true;
-			ITurnHaver lastITH = CurrentTurnHaver;
-			lastITH.StartTurn();
-			while (lastITH != CurrentTurnHaver)	//this means if lastITHs turn ended immediately
+			while (shouldStartTurn) {   //this means if lastITHs turn ended immediately
+				shouldStartTurn = false;
 				CurrentTurnHaver.StartTurn();
+			}
 			looping = false;
 		}
 
@@ -106,6 +107,7 @@ namespace srpg {
 				ConsoleLoggerHandlerOrWhatever.Log("_____________");
 				foreach (var t in TurnHavers) ConsoleLoggerHandlerOrWhatever.Log(t.ToString() + " " + t.Awaited + " + " + t.Speed);
 
+				shouldStartTurn = true;
 				if (!looping)
 					loop();	//this calls StartTurn
 			}

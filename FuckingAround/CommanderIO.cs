@@ -24,6 +24,7 @@ namespace srpg {
 		public event EventHandler<SubjectChangedArg> SubjectChanged;
 
 		public abstract void DisplayMovementArea();
+		public abstract void DisplayAvailableSkills();
 
 		public Skill SelectedSkill;
 
