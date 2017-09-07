@@ -16,9 +16,10 @@ public class GBattle : MonoBehaviour {
 	public GBeingSelection BeingSelector;
 
 	private Battle battle;
-	private UnityCommanderIO commander = new UnityCommanderIO();
+	private UnityCommanderIO commander;
 
 	public void Start () {
+		commander = new UnityCommanderIO(GTileSet);
 		battle = new Battle(commander);
 
 		GTileSet.Build(battle.TileSet);

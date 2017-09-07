@@ -146,7 +146,7 @@ namespace srpg {
 				if(value != null) value.Inhabitant = this;
 			}
 		}
-		private IEnumerable<Tile> movementArea {
+		public IEnumerable<Tile> MovementArea {
 			get { return PathFinder.GetTraversalArea(Place, this); }
 		}
 		//public void Command(Object s, TileClickedEventArgs e) {
@@ -198,7 +198,7 @@ namespace srpg {
 		}*/
 
 		public bool Move(Tile destination) {
-			if (movementArea.Any(t => t == destination)
+			if (MovementArea.Any(t => t == destination)
 					&& destination.Inhabitant == null) {
 
 				var path = PathFinder.GetPath(Place, destination, this).ToList();
