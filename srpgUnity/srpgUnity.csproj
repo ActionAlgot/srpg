@@ -86,14 +86,13 @@
     <Compile Include="Assets\BeingSelectable.cs" />
     <Compile Include="Assets\BeingToTextHandler.cs" />
     <Compile Include="Assets\CameraController.cs" />
-    <Compile Include="Assets\CommanMenuHandler.cs" />
     <Compile Include="Assets\ConsoleWriter.cs" />
     <Compile Include="Assets\GBattle.cs" />
     <Compile Include="Assets\GBeingMover.cs" />
     <Compile Include="Assets\GBeingSelection.cs" />
     <Compile Include="Assets\GSkillMenu.cs" />
-    <Compile Include="Assets\GTileS.cs" />
     <Compile Include="Assets\GTileOnClick.cs" />
+    <Compile Include="Assets\GTileS.cs" />
     <Compile Include="Assets\GTileSetShit.cs" />
     <Compile Include="Assets\SkilltreeEditor\SaveSkilltreeS.cs" />
     <Compile Include="Assets\SkilltreeEditor\SkilltreeEditorController.cs" />

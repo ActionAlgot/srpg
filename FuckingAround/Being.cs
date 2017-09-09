@@ -108,23 +108,33 @@ namespace srpg {
 		}
 
 		public event EventHandler TurnFinished;
-		//private event EventHandler<TileClickedEventArgs> _command;
 
 		private int _team;
 		public int Team { get { return _team; } }
 		public Battle Battle { get; private set; }
-		public Skill SelectedAction;
 
 		public Weapon Fist = new Weapon(2);
 		public PersonalInventory Inventory { get; private set; }
 		public Weapon MainHand { get { return Inventory.MainHand; } }
 		public Gear OffHand { get { return Inventory.OffHand; } }
 
-		public bool ActionTaken { get; protected set; }
-		public bool Moved { get; protected set; }
+		private bool _ActionTaken = false;
+		private bool _Moved = false;
+		public bool ActionTaken {
+			get { return _ActionTaken; }
+			protected set {
+				_ActionTaken = value;
+				if (ActionTaken && Moved) EndTurn();
+		}	}
+		public bool Moved {
+			get { return _Moved; }
+			protected set {
+				_Moved = value;
+				if (ActionTaken && Moved) EndTurn();
+			}
+		}
 		public void EndTurn() {
 			Awaited = 0;
-			SelectedAction = null;
 			ActionTaken = false;
 			Moved = false;
 			if(TurnFinished != null) TurnFinished(this, EventArgs.Empty);
@@ -149,9 +159,6 @@ namespace srpg {
 		public IEnumerable<Tile> MovementArea {
 			get { return PathFinder.GetTraversalArea(Place, this); }
 		}
-		//public void Command(Object s, TileClickedEventArgs e) {
-		//	if(_command != null) _command(s, e);
-		//}
 
 		public bool Perform(Skill skill, Tile target) {
 			if (skill.Do(this, target)) {
@@ -160,21 +167,6 @@ namespace srpg {
 			}
 			else return false;
 		}
-		/*
-		public void OnCommand(object sender, TileClickedEventArgs e) {
-			if (!ActionTaken && SelectedAction != null) {
-				if (SelectedAction.Do(this, e.Tile))
-					ActionTaken = true;
-				else ConsoleLoggerHandlerOrWhatever.Log("Skill apply failed");
-				SelectedAction = null;
-			} else if (SelectedAction == null && e.Tile.Inhabitant == null && !Moved)
-				Move(sender, e);
-			else if (!ActionTaken && e.Tile.Inhabitant != null && e.Tile != Place)
-				if (Skills.First().Do(this, e.Tile))
-					ActionTaken = true;
-			if (ActionTaken && Moved)
-				this.EndTurn();
-		}*/
 
 		public class MovedArgs : EventArgs{
 			public List<Tile> Path { get; protected set; }
@@ -183,19 +175,6 @@ namespace srpg {
 			}
 		}
 		public event EventHandler<MovedArgs> MoveStarted;
-		/*
-		public void Move(object sender, TileClickedEventArgs e) {
-			if (movementArea.Any(t => t == e.Tile)
-					&& e.Tile.Inhabitant == null) {
-
-				var path = PathFinder.GetPath(Place, e.Tile, this).ToList();
-				if(MoveStarted != null) MoveStarted(this, new MovedArgs(path));
-
-				Place = e.Tile;
-				Moved = true;
-				Direction = CardinalUtilities.GetMovementCardinal(path[path.Count - 2], path[path.Count - 1]);
-			}
-		}*/
 
 		public bool Move(Tile destination) {
 			if (MovementArea.Any(t => t == destination)
@@ -205,8 +184,8 @@ namespace srpg {
 				if (MoveStarted != null) MoveStarted(this, new MovedArgs(path));
 
 				Place = destination;
-				Moved = true;
 				Direction = CardinalUtilities.GetMovementCardinal(path[path.Count - 2], path[path.Count - 1]);
+				Moved = true;
 
 				return true;
 			}
@@ -273,7 +252,6 @@ namespace srpg {
 
 			Skills = SkillsRepo.Default.ToList();
 			_team = team;
-			//_command += OnCommand;
 
 			HP = MaxHP;
 		}

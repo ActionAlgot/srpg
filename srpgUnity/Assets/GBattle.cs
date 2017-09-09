@@ -11,15 +11,17 @@ public class GBattle : MonoBehaviour {
 	public GameObject GBeing;
 	public GameObject BeingInfoPanel;
 	public GameObject BeingInfoText;
+
 	public GameObject BeingCommandPanel;
-	public CommanMenuHandler CommandMenuHandler;
+	public UnityEngine.UI.Button CommandButton;
+	
 	public GBeingSelection BeingSelector;
 
 	private Battle battle;
 	private UnityCommanderIO commander;
 
 	public void Start () {
-		commander = new UnityCommanderIO(GTileSet);
+		commander = new UnityCommanderIO(GTileSet, BeingCommandPanel, CommandButton);
 		battle = new Battle(commander);
 
 		GTileSet.Build(battle.TileSet);
@@ -46,13 +48,6 @@ public class GBattle : MonoBehaviour {
 		b.TurnStarted += (s, e) => binft.transform.position -= new Vector3(0, 100000, 0);
 		b.TurnFinished += (s, e) => binft.transform.position += new Vector3(0, 100000, 0);
 		binft.transform.SetParent(BeingInfoPanel.transform, false);
-
-		var cmh = Instantiate(CommandMenuHandler);
-		cmh.transform.SetParent(BeingCommandPanel.transform, false);
-		cmh.CreateItems(b);
-		cmh.transform.position -= new Vector3(0, 100000, 0);
-		b.TurnStarted += (s, e) => cmh.transform.position += new Vector3(0, 100000, 0);
-		b.TurnFinished += (s, e) => cmh.transform.position -= new Vector3(0, 100000, 0);
 	}
 	
 	public GameObject DrawBeing(Being b) {
