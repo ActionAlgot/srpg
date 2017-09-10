@@ -9,9 +9,11 @@ namespace srpg {
 		private Action<Being> _unAffect;
 
 		protected virtual void Affect() {
-			_affect(Target);	}
+			_affect(Target);
+			Target.AddStatusEffect(this);	}
 		public virtual void UnAffect() {
 			_unAffect(Target);
+			Target.RemoveStatusEffect(this);
 		}
 		
 		private StatusEffect(Being target, Action<Being> affect, Action<Being> unAffect, StatSet ss) {
@@ -20,7 +22,6 @@ namespace srpg {
 			_unAffect = unAffect;
 
 			Affect();
-			Target.AddStatusEffect(this);
 		}
 
 		public StatusEffect(Being target, IEnumerable<Mod> mods, StatSet ss)
@@ -57,7 +58,7 @@ namespace srpg {
 
 		protected override void Affect(){
 			base.Affect();
-			TurnStarted += (s, e) => Target.RemoveStatusEffect(this);
+			TurnStarted += (s, e) => UnAffect();
 		}
 
 		public TimedStatusEffect(Battle battle, Being target, Mod mod, StatSet ss, int EffectTime) : this(battle, target, new Mod[] { mod }, ss, EffectTime) { }

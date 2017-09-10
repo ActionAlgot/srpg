@@ -25,7 +25,7 @@ namespace srpg {
 		private void _TurnFinished(object s, EventArgs e) {
 			if (TurnFinished != null) TurnFinished(s, e); }
 		public event EventHandler TurnStarted;
-		public static event EventHandler TurnFinished;
+		public event EventHandler TurnFinished;
 
 		private List<ITurnHaver> TurnHavers = new List<ITurnHaver>();
 
@@ -69,7 +69,7 @@ namespace srpg {
 			if (!enumerating) {
 				TurnHavers.Remove(fuck);
 				fuck.TurnStarted -= _TurnStarted;
-				fuck.TurnFinished -= TurnFinished;
+				fuck.TurnFinished -= _TurnFinished;
 			}
 			else doAfterEnumerating.Enqueue(() => Remove(fuck));
 		}
