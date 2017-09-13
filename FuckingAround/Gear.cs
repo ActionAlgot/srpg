@@ -53,7 +53,7 @@ namespace srpg {
 		private Mod BaseDamage;
 		public override IEnumerable<Mod> LocalBaseMods { get { yield return BaseDamage; } }
 		public override IEnumerable<Mod> GlobalBaseMods { get { yield break; } }
-		public virtual void AffectEffect(object key, SkillUser su, Tile target, Action<object, SkillUser, Tile> effect) {
+		public virtual void AffectEffect(object key, SkillUser su, Tile target, GameEvent ge, Action<object, SkillUser, Tile, GameEvent> effect) {
 			var nKey = new {s = key, w = this};
 			if (!su.SkillUsageStats.ContainsKey(nKey)) {
 				su.SkillUsageStats[nKey] = new StatSet();
@@ -61,7 +61,7 @@ namespace srpg {
 				foreach (var m in PrivMods)
 					m.Affect(su.SkillUsageStats[nKey]);
 			}
-			effect(nKey, su, target);
+			effect(nKey, su, target, ge);
 		}
 		public IEnumerable<Mod> LocalMods { get { return LocalBaseMods.Concat(LocalEnchantments); } }
 		public override IEnumerable<Mod> GlobalMods { get {
@@ -152,7 +152,7 @@ namespace srpg {
 		}
 
 		private MultiplierMod SecondaryTargetMod = new MultiplierMod(StatType.Damage, 0.5);
-		public override void AffectEffect(object key, SkillUser su, Tile target, Action<object, SkillUser, Tile> effect) {
+		public override void AffectEffect(object key, SkillUser su, Tile target, GameEvent ge, Action<object, SkillUser, Tile, GameEvent> effect) {
 			if (target.Inhabitant != null) {
 				int dif = su.Place.X - target.X;
 				if (dif == 0) dif = su.Place.Y - target.Y;
@@ -168,7 +168,7 @@ namespace srpg {
 						SecondaryTargetMod.Affect(su.SkillUsageStats[nKey]);
 				}
 
-				effect(nKey, su, target);
+				effect(nKey, su, target, ge);
 			}
 		} 
 	}

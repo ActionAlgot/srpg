@@ -4,39 +4,52 @@ using System.Collections.Generic;
 namespace srpg {
 	public class StatusEffect {
 		protected Being Target;
-
-		private Action<Being> _affect;
-		private Action<Being> _unAffect;
-
-		protected virtual void Affect() {
-			_affect(Target);
-			Target.AddStatusEffect(this);	}
-		public virtual void UnAffect() {
-			_unAffect(Target);
-			Target.RemoveStatusEffect(this);
-		}
+		private bool DESTROY = false;
+		private bool ADDED = false;
 		
-		private StatusEffect(Being target, Action<Being> affect, Action<Being> unAffect, StatSet ss) {
-			Target = target;
-			_affect = affect;
-			_unAffect = unAffect;
+		private List<Mod> _mods = new List<Mod>();
+		private List<DamageOverTime> _dots = new List<DamageOverTime>();
 
-			Affect();
+		public virtual void Affect() {
+			if (!ADDED) {
+				ADDED = true;
+				foreach (var m in _mods)
+					m.Affect(Target.Stats);
+				foreach (var dot in _dots)
+					Target.AddDoT(dot);
+				Target.AddStatusEffect(this);
+			}
+		}
+		public virtual void UnAffect() {
+			if (!DESTROY) {
+				DESTROY = true;
+				foreach (var m in _mods)
+					m.Unaffect(Target.Stats);
+				foreach (var dot in _dots)
+					Target.RemoveDoT(dot);
+				Target.RemoveStatusEffect(this);
+			}
+		}
+
+		public StatusEffect(Being target, IEnumerable<Mod> mods, IEnumerable<DamageOverTime> dots, StatSet ss) {
+			Target = target;
+			_mods.AddRange(mods);
+			_dots.AddRange(dots);
 		}
 
 		public StatusEffect(Being target, IEnumerable<Mod> mods, StatSet ss)
 			: this(
 				target,
-				b => { foreach (var m in mods) m.Affect(b.Stats); },
-				b => { foreach (var m in mods) m.Unaffect(b.Stats); },
+				mods,
+				new List<DamageOverTime>(),
 				ss
 			) { }
 
 		public StatusEffect(Being target, DamageOverTime DoT, StatSet ss)
 			: this(
 				target,
-				b => b.AddDoT(DoT),
-				b => b.RemoveDoT(DoT),
+				new List<Mod>(),
+				new List<DamageOverTime>() { DoT },
 				ss
 			) { }
 	}
@@ -47,7 +60,6 @@ namespace srpg {
 		private void initStuff(int EffectTime) {
 			Speed = 100.0 / EffectTime;
 			Awaited = 0;
-			_Battle.Add(this);
 		}
 
 		public override void UnAffect() {
@@ -56,9 +68,10 @@ namespace srpg {
 			_Battle.Remove(this);
 		}
 
-		protected override void Affect(){
+		public override void Affect(){
 			base.Affect();
 			TurnStarted += (s, e) => UnAffect();
+			_Battle.Add(this);
 		}
 
 		public TimedStatusEffect(Battle battle, Being target, Mod mod, StatSet ss, int EffectTime) : this(battle, target, new Mod[] { mod }, ss, EffectTime) { }

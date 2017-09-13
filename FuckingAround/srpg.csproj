@@ -52,6 +52,7 @@
     <Compile Include="Battle.cs" />
     <Compile Include="CommanderIO.cs" />
     <Compile Include="Cardinal.cs" />
+    <Compile Include="Damage.cs" />
     <Compile Include="OverTimeStuff.cs" />
     <Compile Include="PathFinder.cs" />
     <Compile Include="SkillTreeThingies.cs" />

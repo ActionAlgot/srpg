@@ -17,6 +17,7 @@ namespace srpg {
 			StatusEffects.Add(se);
 		}
 		public void RemoveStatusEffect(StatusEffect se) {
+			se.UnAffect();
 			StatusEffects.Remove(se);
 		}
 
@@ -161,7 +162,9 @@ namespace srpg {
 		}
 
 		public bool Perform(Skill skill, Tile target) {
-			if (skill.Do(this, target)) {
+			var ge = skill.Do(this, target);
+			if (ge != null) {
+				ge.Apply();
 				ActionTaken = true;
 				return true;
 			}

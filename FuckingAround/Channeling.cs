@@ -35,7 +35,9 @@ namespace srpg {
 		protected Func<Tile> TargetSelector;
 
 		public void OnTurnStarted(object s, EventArgs e) {
-			if (!Skill.Do(this, TargetSelector()))
+			var ge = Skill.Do(this, TargetSelector());
+			if (ge != null)
+				ge.Apply();
 				ConsoleLoggerHandlerOrWhatever.Log(this.ToString() + " cast " + Skill.Name + " and hit nothing.");
 			_awaited = 0;	//should just kill self
 			if (TurnFinished != null) TurnFinished(this, EventArgs.Empty);

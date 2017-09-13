@@ -9,7 +9,7 @@ namespace srpg {
 		protected Func<Skill, SkillUser, Tile, bool> _ValidTarget;
 		protected Func<object, SkillUser, IEnumerable<Tile>> _Range;
 		protected Func<object, SkillUser, Tile, IEnumerable<Tile>> _GetAreaOfEffect;
-		protected Action<object, SkillUser, Tile> _Effect;
+		protected Action<object, SkillUser, Tile, GameEvent> _Effect;
 
 		public bool ValidTarget(SkillUser su, Tile target) { return _ValidTarget(this, su, target); }
 		public IEnumerable<Tile> Range(SkillUser su) {
@@ -23,32 +23,35 @@ namespace srpg {
 			return _Range(this, su);
 		}
 		public IEnumerable<Tile> AoE(SkillUser su, Tile target) { return _GetAreaOfEffect(this, su, target); }
-		public void Effect(SkillUser su, Tile target) { _Effect(this, su, target); }
+		protected void Effect(SkillUser su, Tile target, GameEvent ge) { _Effect(this, su, target, ge); }
 
 		public IEnumerable<Mod> Mods { get; protected set; }
 
-		public virtual bool Do(SkillUser doer, Tile target) {
+		public virtual GameEvent Do(SkillUser doer, Tile target) {
 			if(ValidTarget(doer, target) && Range(doer).Any(t => t == target)){
-				foreach (Tile t in AoE(doer, target))
-					Effect(doer, t);
+				var ge = new GameEvent();
+				foreach (Tile t in AoE(doer, target)) {
+					ge.Targets.Add(t.Inhabitant);
+					Effect(doer, t, ge);
+				}
 				//GameEventLogger.Log(new GameEvent(stuff))
-				return true;
+				return ge;
 			}
-			else return false;
+			else return null;
 		}
 
 		public Skill(string name,
 			Func<Skill, SkillUser, Tile, bool> targetValidator,
 			Func<object, SkillUser, IEnumerable<Tile>> rangeGetter,
 			Func<object, SkillUser, Tile, IEnumerable<Tile>> aoeGetter,
-			Action<object, SkillUser, Tile> effect)
+			Action<object, SkillUser, Tile, GameEvent> effect)
 			: this(name, targetValidator, rangeGetter, aoeGetter, effect, new Mod[0]) { }
 
 		public Skill(string name,
 			Func<Skill, SkillUser, Tile, bool> targetValidator,
 			Func<object, SkillUser, IEnumerable<Tile>> rangeGetter,
 			Func<object, SkillUser, Tile, IEnumerable<Tile>> aoeGetter,
-			Action<object, SkillUser, Tile> effect,
+			Action<object, SkillUser, Tile, GameEvent> effect,
 			IEnumerable<Mod> mods) {
 				Name = name;
 				_ValidTarget = targetValidator;
@@ -97,44 +100,45 @@ namespace srpg {
 			}
 		}
 		private static class Effect {
-			public static void Damage(object key, SkillUser su, Tile target) {
-				if(target.Inhabitant != null) target.Inhabitant.TakeDamage(su.SkillUsageStats[key]);
+			public static void Damage(object key, SkillUser su, Tile target, GameEvent ge) {
+				if (target.Inhabitant != null)
+					ge.AddDamageApplication(target.Inhabitant, new Damage(target.Inhabitant, su.SkillUsageStats[key]));//target.Inhabitant.TakeDamage(su.SkillUsageStats[key]);
 			}
 
-			public static Action<object, SkillUser, Tile> Channel(Skill skill) {
-				return (k, su, t) => {
-					if (t.ChannelingInstance == null) {
-						t.ChannelingInstance = new ChannelingInstance(su.Battle, su.GetChannelingMods(), skill, t);
-					} else throw new Exception("bullshit");
-				};
-			}
-			public static Action<object, SkillUser, Tile> AddModsToChannel(IEnumerable<Mod> mods) {
-				return (k, su, t) => {
-					if (t.ChannelingInstance != null) {
-						foreach (var m in mods)
-							m.Affect(t.ChannelingInstance.Stats);
-					} else throw new Exception("bullshit");
-				};
-			}
-			public static Action<object, SkillUser, Tile> AddStatusEffect(Func<Battle, Being, StatSet, StatusEffect> statEffConstr) {
-				return (k, su, t) => {
+			//public static Func<object, SkillUser, Tile, GameEvent> Channel(Skill skill) {
+			//	return (k, su, t) => {
+			//		if (t.ChannelingInstance == null) {
+			//			t.ChannelingInstance = new ChannelingInstance(su.Battle, su.GetChannelingMods(), skill, t);
+			//		} else throw new Exception("bullshit");
+			//	};
+			//}
+			//public static Func<object, SkillUser, Tile, GameEvent> AddModsToChannel(IEnumerable<Mod> mods) {
+			//	return (k, su, t) => {
+			//		if (t.ChannelingInstance != null) {
+			//			foreach (var m in mods)
+			//				m.Affect(t.ChannelingInstance.Stats);
+			//		} else throw new Exception("bullshit");
+			//	};
+			//}
+			public static Action<object, SkillUser, Tile, GameEvent> AddStatusEffect(Func<Battle, Being, StatSet, StatusEffect> statEffConstr) {
+				return (k, su, t, ge) => {
 					var target = t.Inhabitant;
-					if (target != null) target.AddStatusEffect(statEffConstr(su.Battle, target, su.Stats));
+					if (target != null) ge.AddStatusEffect(target, statEffConstr(su.Battle, target, su.Stats));//target.AddStatusEffect(statEffConstr(su.Battle, target, su.Stats));
 					else throw new Exception("bullshit");
 				};
 			}
 
-			public static Action<object, SkillUser, Tile> DoWithWeapon(Action<object, SkillUser, Tile> effect) {
-				return (k, su, t) => {
+			public static Action<object, SkillUser, Tile, GameEvent> DoWithWeapon(Action<object, SkillUser, Tile, GameEvent> effect) {
+				return (k, su, t, ge) => {
 					var b = su as Being;
-					b.MainHand.AffectEffect(k, su, t, effect);
+					b.MainHand.AffectEffect(k, su, t, ge, effect);
 				};
 			}
-			public static Action<object, SkillUser, Tile> DoWithWeapons(Action<object, SkillUser, Tile> effect) {
-				return (k, su, t) => {
+			public static Action<object, SkillUser, Tile, GameEvent> DoWithWeapons(Action<object, SkillUser, Tile, GameEvent> effect) {
+				return (k, su, t, ge) => {
 					var b = su as Being;
-					b.MainHand.AffectEffect(k, su, t, effect);
-					if(b.OffHand is Weapon) ((Weapon)b.OffHand).AffectEffect(k, su, t, effect);
+					b.MainHand.AffectEffect(k, su, t, ge, effect);
+					if(b.OffHand is Weapon) ((Weapon)b.OffHand).AffectEffect(k, su, t, ge, effect);
 				};
 			}
 		}
@@ -145,14 +149,14 @@ namespace srpg {
 			Range.UseWeaponRange,
 			AoE.UseWeapon,
 			Effect.DoWithWeapon(Effect.Damage));
-		public static Skill ChannelSpeedUp = new Skill("Channel speedup",
-			Validation.AnyChannelingInstanceInArea,
-			Range.GetFromMods,
-			AoE.TargetOnly,
-			Effect.AddModsToChannel(new Mod[] { new AdditionMod(StatType.ChannelingSpeed, 3) }),
-			new Mod[] { 
-				new AdditionMod(StatType.Range, 6)
-			});
+		//public static Skill ChannelSpeedUp = new Skill("Channel speedup",
+		//	Validation.AnyChannelingInstanceInArea,
+		//	Range.GetFromMods,
+		//	AoE.TargetOnly,
+		//	Effect.AddModsToChannel(new Mod[] { new AdditionMod(StatType.ChannelingSpeed, 3) }),
+		//	new Mod[] { 
+		//		new AdditionMod(StatType.Range, 6)
+		//	});
 		public static Skill GrantPhysResistance = new Skill("Physical resistance",
 			Validation.AnyAliveBeingInArea,
 			Range.GetFromMods,
@@ -165,14 +169,14 @@ namespace srpg {
 			Validation.AnyAliveBeingInArea,
 			Range.GetFromMods,
 			AoE.TargetOnly,
-			Effect.AddStatusEffect((b, t, ss) => new TimedStatusEffect(b, t, new DamageOverTime(ss, 50, StatType.PhysicalDamage|StatType.DamageOverTime), ss, 100)),
+			Effect.AddStatusEffect((b, t, ss) => new TimedStatusEffect(b, t, new DamageOverTime(ss, 50, StatType.PhysicalDamage | StatType.DamageOverTime), ss, 100)),
 			new Mod[]{
 				new AdditionMod(StatType.Range, 6)
 			});
 
 		public static IEnumerable<Skill> Default = new Skill[]{
 			StandardAttack,
-			ChannelSpeedUp,
+			//ChannelSpeedUp,
 			GrantPhysResistance,
 			Bleed
 		};

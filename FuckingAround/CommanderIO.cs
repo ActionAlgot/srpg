@@ -58,7 +58,7 @@ namespace srpg {
 		public abstract void UndisplayMovementArea();
 		private void _UnDisplayMovementArea() { if (subject != null) UndisplayMovementArea(); }
 		public abstract void DisplayAvailableSkills();
-		private void _DisplayAvailableSkills() { if (subject != null); DisplayAvailableSkills(); }
+		private void _DisplayAvailableSkills() { if (subject != null) DisplayAvailableSkills(); }
 		public abstract void UndisplayAvailableSkills();
 		private void _UndisplayAvailableSkills() { if (subject != null) UndisplayAvailableSkills(); }
 
