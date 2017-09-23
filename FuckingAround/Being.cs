@@ -123,7 +123,7 @@ namespace srpg {
 		private bool _Moved = false;
 		public bool ActionTaken {
 			get { return _ActionTaken; }
-			protected set {
+			/*protected*/ set { //TODO make Actiontaken private
 				_ActionTaken = value;
 				if (ActionTaken && Moved) EndTurn();
 		}	}
@@ -206,24 +206,24 @@ namespace srpg {
 				se.UnAffect();
 			//StatusEffects.Clear();
 		}
-		public void TakeDamage(StatSet damages) {
-			int preHP = HP;
-			double total = 0.0;
-			foreach (StatType dmgType in StatTypeStuff.DirectDamageTypeApplicationTypes) {
-				double dmg = damages.GetStat(dmgType).Value;
-				if (dmg != 0) {
-					double resist = this[dmgType.AsResistance()].Value;
-					double penetration = damages[dmgType.AsPenetration()];
-					double threshold = this[dmgType.AsThreshold()].Value;
-					dmg *= (1 - (resist - penetration));
-					if (Math.Abs(dmg) < threshold) dmg = 0;	//don't negate more than absolute damage
-					else dmg -= (dmg < 0 ? -1 : 1) * threshold;	//negate flat amount regardless of negative or positive damage
-					ConsoleLoggerHandlerOrWhatever.Log(dmg + " " + dmgType);
-					total += dmg;	//apply all at once later to avoid potentially annoying stuff when multitype damage with >100% res which may damage and heal at once
-			}	}
-			HP -= (int)total;
-			ConsoleLoggerHandlerOrWhatever.Log(preHP + " => " + HP);
-		}
+		//public void TakeDamage(StatSet damages) {
+		//	int preHP = HP;
+		//	double total = 0.0;
+		//	foreach (StatType dmgType in StatTypeStuff.DirectDamageTypeApplicationTypes) {
+		//		double dmg = damages.GetStat(dmgType).Value;
+		//		if (dmg != 0) {
+		//			double resist = this[dmgType.AsResistance()].Value;
+		//			double penetration = damages[dmgType.AsPenetration()];
+		//			double threshold = this[dmgType.AsThreshold()].Value;
+		//			dmg *= (1 - (resist - penetration));
+		//			if (Math.Abs(dmg) < threshold) dmg = 0;	//don't negate more than absolute damage
+		//			else dmg -= (dmg < 0 ? -1 : 1) * threshold;	//negate flat amount regardless of negative or positive damage
+		//			ConsoleLoggerHandlerOrWhatever.Log(dmg + " " + dmgType);
+		//			total += dmg;	//apply all at once later to avoid potentially annoying stuff when multitype damage with >100% res which may damage and heal at once
+		//	}	}
+		//	HP -= (int)total;
+		//	ConsoleLoggerHandlerOrWhatever.Log(preHP + " => " + HP);
+		//}
 
 		public void TakeRawDamage(int dmg) {
 			int preHP = HP;

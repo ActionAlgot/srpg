@@ -11,6 +11,7 @@ public class GBattle : MonoBehaviour {
 	public GameObject GBeing;
 	public GameObject BeingInfoPanel;
 	public GameObject BeingInfoText;
+	public GameEventDisplayS GEDS;
 
 	public GameObject BeingCommandPanel;
 	public UnityEngine.UI.Button CommandButton;
@@ -21,7 +22,7 @@ public class GBattle : MonoBehaviour {
 	private UnityCommanderIO commander;
 
 	public void Start () {
-		commander = new UnityCommanderIO(GTileSet, BeingCommandPanel, CommandButton);
+		commander = new UnityCommanderIO(GTileSet, BeingCommandPanel, CommandButton, GEDS);
 		battle = new Battle(commander);
 
 		GTileSet.Build(battle.TileSet);

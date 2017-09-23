@@ -7,7 +7,7 @@ namespace srpg {
 	public class GameEvent {
 		public SkillUser Source;
 		public Tile Target;
-		public List<Being> Targets = new List<Being>();
+		public List<Being> BeingTargets = new List<Being>();
 		public Skill skill;
 		public class Applications {
 			public List<Damage> damages = new List<Damage>();
@@ -27,7 +27,7 @@ namespace srpg {
 		}
 
 		public void Apply() {
-			foreach (var b in Targets) {
+			foreach (var b in BeingTargets) {
 				var a = applications[b];
 				foreach (var dmg in a.damages)
 					b.TakeRawDamage(dmg.Value);
@@ -37,7 +37,7 @@ namespace srpg {
 		}
 
 		public override string ToString() {
-			return Source.ToString() + " used " + skill.Name + " on Tile:" + Target.ToString() + (Targets.Any() ? " affecting " + string.Join(", ", Targets.Select(t => t.ToString()).ToArray()) : "");
+			return Source.ToString() + " used " + skill.Name + " on Tile:" + Target.ToString() + (BeingTargets.Any() ? " affecting " + string.Join(", ", BeingTargets.Select(t => t.ToString()).ToArray()) : "");
 		}
 	}
 

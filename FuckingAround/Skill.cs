@@ -28,10 +28,10 @@ namespace srpg {
 		public IEnumerable<Mod> Mods { get; protected set; }
 
 		public virtual GameEvent Do(SkillUser doer, Tile target) {
-			if(ValidTarget(doer, target) && Range(doer).Any(t => t == target)){
+			if(Range(doer).Any(t => t == target) && ValidTarget(doer, target)){
 				var ge = new GameEvent();
 				foreach (Tile t in AoE(doer, target)) {
-					ge.Targets.Add(t.Inhabitant);
+					if(t.Inhabitant != null) ge.BeingTargets.Add(t.Inhabitant);
 					Effect(doer, t, ge);
 				}
 				//GameEventLogger.Log(new GameEvent(stuff))
@@ -173,11 +173,23 @@ namespace srpg {
 			new Mod[]{
 				new AdditionMod(StatType.Range, 6)
 			});
+		public static Skill Explosion = new Skill("Explosion",
+			Validation.AnyAliveBeingInArea,
+			Range.GetFromMods,
+			AoE.FromMods,
+			Effect.Damage,
+			new Mod[] {
+				new AdditionMod(StatType.Range, 6),
+				new AdditionMod(StatType.AreaOfEffect, 2),
+				new AdditionMod(StatType.FireDamage|StatType.Spell, 8)
+			}
+		);
 
 		public static IEnumerable<Skill> Default = new Skill[]{
 			StandardAttack,
 			//ChannelSpeedUp,
 			GrantPhysResistance,
+			Explosion,
 			Bleed
 		};
 	}

@@ -59,7 +59,7 @@ namespace srpg {
 		private void _UnDisplayMovementArea() { if (subject != null) UndisplayMovementArea(); }
 		public abstract void DisplayAvailableSkills();
 		private void _DisplayAvailableSkills() { if (subject != null) DisplayAvailableSkills(); }
-		public abstract void UndisplayAvailableSkills();
+		public abstract  void UndisplayAvailableSkills();
 		private void _UndisplayAvailableSkills() { if (subject != null) UndisplayAvailableSkills(); }
 
 		public event EventHandler PreSkillChanged;
@@ -69,6 +69,9 @@ namespace srpg {
 			if (SelectedSkill != null) _UnDisplayMovementArea();
 			else if (newTurnStarted == false) _DisplayMovementArea();
 		}
+
+		protected GameEvent PendingGameEvent;
+		protected abstract void DisplayGameEvent();
 
 		private Skill _selectedSkill;
 		protected Skill SelectedSkill {
@@ -80,38 +83,56 @@ namespace srpg {
 			}
 		}
 
+		protected virtual void CancelGameEvent() {
+			PendingGameEvent = null;
+		}
+		protected virtual void ConfirmGameEvent() {
+			PendingGameEvent.Apply();
+			PendingGameEvent = null;
+			SelectedSkill = null;
+
+			newTurnStarted = false;
+			subject.ActionTaken = true; //TODO make Actiontaken private
+			if (!newTurnStarted) {
+				_UndisplayAvailableSkills();
+				_DisplayMovementArea();
+			}
+		}
+
 		//TODO properly tell subclass to show endturn option
 		protected void EndTurn() {
 			subject.EndTurn();
 		}
 
+		protected bool TryUseSkill(Skill skill, Tile target) {
+			var ge = skill.Do(subject, target);
+			if (ge != null) {
+				PendingGameEvent = ge;
+				DisplayGameEvent();
+				return true;
+			}
+			return false;
+		}
+
 		public bool Do(Tile t) {
-			newTurnStarted = false;
-			bool returnValue = false;
+
+			if (PendingGameEvent != null) return false;
+
 			if (subject != null) {
-				if (!subject.ActionTaken && SelectedSkill != null) {
-					if (subject.Perform(SelectedSkill, t)) {
-						SelectedSkill = null;
-						returnValue = true;
-						if (!newTurnStarted)
-							_UndisplayAvailableSkills();
-					}
-					
-				}
+				if (!subject.ActionTaken && SelectedSkill != null)
+					return TryUseSkill(SelectedSkill, t);
+				else if (!subject.ActionTaken && t.Inhabitant != null && t != subject.Place)
+					return TryUseSkill(subject.Skills.First(), t); //standard attack
 				else if (SelectedSkill == null && t.Inhabitant == null && !subject.Moved) {
+					newTurnStarted = false;
 					if (subject.Move(t)) {
 						if (!newTurnStarted)
 							_UnDisplayMovementArea();
-						returnValue = true;
+						return true;
 					}
 				}
-				else if (!subject.ActionTaken && t.Inhabitant != null && t != subject.Place)
-					if (subject.Perform(subject.Skills.First(), t)) {  //standard attack
-						if (!newTurnStarted) _UndisplayAvailableSkills();
-						returnValue = true;
-					}
 			}
-			return returnValue;
+			return false;
 		}
 	}
 }

@@ -13,10 +13,11 @@ class UnityCommanderIO : CommanderIO {
 	protected Button ButtonPrototype;
 	private Dictionary<Skill, GameObject> SkillButtons = new Dictionary<Skill, GameObject>();
 	private Transform EndTurnButton;
+	private GameEventDisplayS GEDS;
 	
 	private List<GTileS> ActiveMovementArea;
 
-	public UnityCommanderIO(GTileSetShit ts, GameObject commandPanel, Button button){
+	public UnityCommanderIO(GTileSetShit ts, GameObject commandPanel, Button button, GameEventDisplayS geds){
 		tileset = ts;
 		CommandsPanel = commandPanel;
 		ButtonPrototype = button;
@@ -27,6 +28,29 @@ class UnityCommanderIO : CommanderIO {
 		butt.transform.SetParent(CommandsPanel.transform);
 		EndTurnButton = butt.transform;
 
+		GEDS = geds;
+		initGEDS();
+	}
+
+	protected override void ConfirmGameEvent() {
+		base.ConfirmGameEvent();
+		GEDS.gameObject.SetActive(false);
+	}
+
+	protected override void CancelGameEvent() {
+		base.CancelGameEvent();
+		GEDS.gameObject.SetActive(false);
+
+	}
+
+	private void initGEDS() {
+		GEDS.Confirm.onClick.AddListener(ConfirmGameEvent);
+		GEDS.Cancel.onClick.AddListener(CancelGameEvent);
+	}
+
+	protected override void DisplayGameEvent() {
+		GEDS.gameObject.SetActive(true);
+		GEDS.SetGameEvent(PendingGameEvent);
 	}
 
 	public override void DisplayMovementArea() {
