@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 
 namespace srpg {
-	public abstract class CommanderIO {
+	public abstract class BattleIO {
 
-		protected CommanderIO() {
+		protected BattleIO() {
 			PreSubjectChanged += OnPreSubjectChanged;
 			PostSubjectChanged += OnPostSubjectChanged;
 			PostSkillChanged += OnPostSkillChanged;

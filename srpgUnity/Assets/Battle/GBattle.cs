@@ -19,11 +19,15 @@ public class GBattle : MonoBehaviour {
 	public GBeingSelection BeingSelector;
 
 	private Battle battle;
-	private UnityCommanderIO commander;
+	private UnityBattleIO BIO;
 
-	public void Start () {
-		commander = new UnityCommanderIO(GTileSet, BeingCommandPanel, CommandButton, GEDS);
-		battle = new Battle(commander);
+	private void Start () {
+		battle = GameObject.Find("GameControl")
+				.GetComponent<Assets.GameControl>()
+				.GETBATTLE();
+
+		BIO = new UnityBattleIO(GTileSet, BeingCommandPanel, CommandButton, GEDS);
+		battle.SetIO(BIO);
 
 		GTileSet.Build(battle.TileSet);
 		GTileSet.Clicked += TileClickHandler;
@@ -66,7 +70,7 @@ public class GBattle : MonoBehaviour {
 			TileCLickHappening(s, e);
 		}
 		else
-			commander.Do(e.Tile);
+			BIO.Do(e.Tile);
 	}
 
 	public void StartBattle() {

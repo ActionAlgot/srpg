@@ -5,7 +5,7 @@ using System.Linq;
 namespace srpg {
 	public class Battle {
 		public TileSet TileSet { get; private set; }
-		public CommanderIO Commander { get; private set; }
+		public BattleIO IO { get; private set; }
 		private TurnTracker _TurnTracker = new TurnTracker();
 		private ITurnHaver CurrentTurnHaver { get { return _TurnTracker.CurrentTurnHaver; } }
 		public Being activeBeing { get { return CurrentTurnHaver as Being; } } //return null if current turn does not belong to a being
@@ -18,7 +18,7 @@ namespace srpg {
 
 		private void TryStartBeing(object s, EventArgs e) {	//TODO rename this
 			if (activeBeing != null)
-				Commander.SetSubject(activeBeing);
+				IO.SetSubject(activeBeing);
 		}
 
 		public event EventHandler<Being.MovedArgs> BeingMoved;
@@ -59,8 +59,10 @@ namespace srpg {
 			_TurnTracker.Remove(ci);
 		}
 
-		public Battle(CommanderIO commander) {
-			Commander = commander;
+		public void SetIO(BattleIO io) {
+			IO = io;
+		}
+		public Battle() {
 			TileSet = new TileSet(30, 30, 8);
 			
 			_TurnTracker.TurnStarted += TryStartBeing;

@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 
 namespace srpg {
-	public class Tile {
+	[Serializable]
+	public class Tile{
+		[NonSerialized]
 		private Being _inhabitant;
 		public Being Inhabitant {
 			get { return _inhabitant; }
@@ -14,6 +16,7 @@ namespace srpg {
 				if(value != null) value.Place = this;
 			}
 		}
+		[NonSerialized]
 		private ChannelingInstance _channelingInstance;
 		public ChannelingInstance ChannelingInstance {
 			get { return _channelingInstance; }
@@ -30,7 +33,15 @@ namespace srpg {
 		public int Y;
 		public int Height { get; protected set; }
 		public int TraverseCost;
+		[NonSerialized]
 		private TileSet Owner;
+		public bool SetOwner(TileSet owner) {
+			if(Owner == null) {
+				Owner = owner;
+				return true;
+			}
+			return false;
+		}
 		public IEnumerable<Tile> GetArea(int range) {
 			return Owner.GetArea(this, range);
 		}

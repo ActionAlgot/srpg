@@ -6,7 +6,7 @@ using UnityEngine.UI;
 using System.Linq;
 using System.Text;
 
-class UnityCommanderIO : CommanderIO {
+class UnityBattleIO : BattleIO {
 
 	protected GTileSetShit tileset;
 	protected GameObject CommandsPanel;
@@ -17,7 +17,7 @@ class UnityCommanderIO : CommanderIO {
 	
 	private List<GTileS> ActiveMovementArea;
 
-	public UnityCommanderIO(GTileSetShit ts, GameObject commandPanel, Button button, GameEventDisplayS geds){
+	public UnityBattleIO(GTileSetShit ts, GameObject commandPanel, Button button, GameEventDisplayS geds){
 		tileset = ts;
 		CommandsPanel = commandPanel;
 		ButtonPrototype = button;

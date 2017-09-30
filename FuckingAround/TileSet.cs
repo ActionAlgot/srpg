@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace srpg {
 	public class TileClickedEventArgs : EventArgs {
@@ -8,8 +9,8 @@ namespace srpg {
 			Tile = tile;
 		}
 	}
-
-	public class TileSet {
+	[Serializable]
+	public class TileSet : IDeserializationCallback {
 		private Tile[,] Tiles;
 		public Tile this[int x, int y]{
 			get { return Tiles[x, y]; }
@@ -58,6 +59,11 @@ namespace srpg {
 
 		public IEnumerable<Tile> AsEnumerable() {
 			foreach (var t in Tiles) yield return t;
+		}
+
+		public void OnDeserialization(object sender) {
+			foreach (var t in Tiles)
+				t.SetOwner(this);
 		}
 	}
 }
