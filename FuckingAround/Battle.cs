@@ -4,8 +4,13 @@ using System.Linq;
 
 namespace srpg {
 	public class Battle {
+
+		private Game Game;
+		public IEnumerable<MetaBeing> GetRoster() {
+			return Game.Roster;
+		}
+
 		public TileSet TileSet { get; private set; }
-		public BattleIO IO { get; private set; }
 		private TurnTracker _TurnTracker = new TurnTracker();
 		private ITurnHaver CurrentTurnHaver { get { return _TurnTracker.CurrentTurnHaver; } }
 		public Being activeBeing { get { return CurrentTurnHaver as Being; } } //return null if current turn does not belong to a being
@@ -16,14 +21,19 @@ namespace srpg {
 		private List<ChannelingInstance> _ChannelingInstances = new List<ChannelingInstance>();
 		public IEnumerable<ChannelingInstance> ChannelingInstances { get { return _ChannelingInstances.AsEnumerable(); } }
 
-		private void TryStartBeing(object s, EventArgs e) {	//TODO rename this
-			if (activeBeing != null)
-				IO.SetSubject(activeBeing);
+		public event EventHandler<Being.MovedArgs> BeingMoved;
+		private void OnBeingMoved(object s, Being.MovedArgs e) {
+			if (BeingMoved != null) BeingMoved(s, e);
 		}
 
-		public event EventHandler<Being.MovedArgs> BeingMoved;
-		private void InvokeBeingMoved(object s, Being.MovedArgs e) {
-			if (BeingMoved != null) BeingMoved(s, e);
+		public event EventHandler<EventArgs> BeingTurnStarted;
+		private void OnBeingTurnStarted(object s, EventArgs e) {
+			if (s is Being && BeingTurnStarted != null) BeingTurnStarted(s, e);
+		}
+
+		public event EventHandler<EventArgs> BeingTurnFinished;
+		private void OnBeingTurnFinished(object s, EventArgs e) {
+			if (s is Being && BeingTurnFinished != null) BeingTurnFinished(s, e);
 		}
 
 		public void Add(ITurnHaver ith) {
@@ -34,6 +44,7 @@ namespace srpg {
 		}
 		public void Remove(ITurnHaver ith) {
 			if (ith is ChannelingInstance) RemoveCI(ith as ChannelingInstance);
+			else if (ith is Being) RemoveB(ith as Being);
 
 			_TurnTracker.Remove(ith);
 		}
@@ -47,8 +58,15 @@ namespace srpg {
 		public event EventHandler<BeingAddedArgs> BeingAdded;
 		private void AddB(Being being) {
 			_Beings.Add(being);
-			being.MoveStarted += InvokeBeingMoved;
+			being.MoveStarted += OnBeingMoved;
+			being.TurnStarted += OnBeingTurnStarted;
+			being.TurnFinished += OnBeingTurnFinished;
+
 			if (BeingAdded != null) BeingAdded(this, new BeingAddedArgs(being));
+		}
+		private void RemoveB(Being being) {
+			_Beings.Remove(being);
+			being.MoveStarted -= OnBeingMoved;
 		}
 
 		private void AddCI(ChannelingInstance ci) {
@@ -58,14 +76,20 @@ namespace srpg {
 			_ChannelingInstances.Remove(ci);
 			_TurnTracker.Remove(ci);
 		}
-
-		public void SetIO(BattleIO io) {
-			IO = io;
-		}
-		public Battle() {
+		
+		public Battle(Game game) {
 			TileSet = new TileSet(30, 30, 8);
-			
-			_TurnTracker.TurnStarted += TryStartBeing;
+			Game = game;
+
+			_TurnTracker.TurnStarted += OnBeingTurnStarted;
+			_TurnTracker.TurnFinished += OnBeingTurnFinished;
+		}
+
+		public bool AddMetaBeing(MetaBeing mb, int team, int x, int y) {
+
+			new Being(mb, team, this, x, y);
+
+			return true;
 		}
 
 		public bool Paused {

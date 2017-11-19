@@ -50,10 +50,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Battle.cs" />
-    <Compile Include="BattleIO.cs" />
     <Compile Include="Cardinal.cs" />
     <Compile Include="Damage.cs" />
     <Compile Include="Game.cs" />
+    <Compile Include="MetaBeing.cs" />
     <Compile Include="OverTimeStuff.cs" />
     <Compile Include="PathFinder.cs" />
     <Compile Include="SkillTreeThingies.cs" />
@@ -75,7 +75,6 @@
     <Compile Include="StatSet.cs" />
     <Compile Include="Tile.cs" />
     <Compile Include="TileSet.cs" />
-    <Compile Include="WorldIO.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

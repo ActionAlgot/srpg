@@ -27,7 +27,7 @@ namespace srpg {
 
 		public IEnumerable<Mod> Mods { get; protected set; }
 
-		public virtual GameEvent Do(SkillUser doer, Tile target) {
+		internal virtual GameEvent Do(SkillUser doer, Tile target) {
 			if(Range(doer).Any(t => t == target) && ValidTarget(doer, target)){
 				var ge = new GameEvent();
 				foreach (Tile t in AoE(doer, target)) {
@@ -102,7 +102,7 @@ namespace srpg {
 		private static class Effect {
 			public static void Damage(object key, SkillUser su, Tile target, GameEvent ge) {
 				if (target.Inhabitant != null)
-					ge.AddDamageApplication(target.Inhabitant, new Damage(target.Inhabitant, su.SkillUsageStats[key]));//target.Inhabitant.TakeDamage(su.SkillUsageStats[key]);
+					ge.AddDamageApplication(target.Inhabitant, new Damage(target.Inhabitant, su.SkillUsageStats[key]));
 			}
 
 			//public static Func<object, SkillUser, Tile, GameEvent> Channel(Skill skill) {
@@ -123,7 +123,7 @@ namespace srpg {
 			public static Action<object, SkillUser, Tile, GameEvent> AddStatusEffect(Func<Battle, Being, StatSet, StatusEffect> statEffConstr) {
 				return (k, su, t, ge) => {
 					var target = t.Inhabitant;
-					if (target != null) ge.AddStatusEffect(target, statEffConstr(su.Battle, target, su.Stats));//target.AddStatusEffect(statEffConstr(su.Battle, target, su.Stats));
+					if (target != null) ge.AddStatusEffect(target, statEffConstr(su.Battle, target, su.Stats));
 					else throw new Exception("bullshit");
 				};
 			}

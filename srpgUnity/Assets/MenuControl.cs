@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace Assets {
 	public class MenuControl : MonoBehaviour {
-		protected UnityWorldIO IO;
+		private srpg.Game game;
 
 		public void StartBattle() {
-			IO.TEMP_ForceEnterBattle();
+			game.TEMP_ForceEnterBattle();
 		}
 
 		private void Start() {
-			IO = new UnityWorldIO();
-			GameObject.Find("GameControl")
-				.GetComponent<GameControl>()
-				.SetIO(IO);
+			game = GameObject.Find("GameControl")
+				.GetComponent<Assets.GameControl>()
+				.game;
 		}
 	}
 }

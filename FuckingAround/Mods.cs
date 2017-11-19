@@ -144,6 +144,11 @@ namespace srpg {
 			TargetStatType = targetStat;
 			Effectiveness = value;
 			SourceType = sourceStat;
+
+			SourceMod = new MultiplierMod(SourceType, 1 - Effectiveness);
+			ResultMod = new MultiplierMod(TargetStatType, Effectiveness);
+
+			Conversion = new Conversion(SourceType, TargetStatType, Converter);
 		}
 		
 		public override void OnDeserialization(object sender) {

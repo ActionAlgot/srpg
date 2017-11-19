@@ -38,18 +38,20 @@ namespace srpg {
 			}
 		}
 
+		private void OnTurnFinished(object s, EventArgs e) {
+			CurrentTurnHaver = null;
+			ForwardTime();
+		}
+
 		public TurnTracker() {
-			TurnFinished += (s, e) => {
-				CurrentTurnHaver = null;
-				ForwardTime();
-			};
+			TurnFinished += OnTurnFinished;
 		}
 
 		public void Add(ITurnHaver fuck){
 			if (!enumerating) {
 				TurnHavers.Add(fuck);
 				fuck.TurnStarted += _TurnStarted;
-				fuck.TurnFinished += TurnFinished;
+				fuck.TurnFinished += _TurnFinished;
 			}
 			else doAfterEnumerating.Enqueue(() => Add(fuck));
 		}
@@ -59,7 +61,7 @@ namespace srpg {
 				TurnHavers.AddRange(fuckers);
 				foreach(var fuck in fuckers) {
 					fuck.TurnStarted += _TurnStarted;
-					fuck.TurnFinished += TurnFinished;
+					fuck.TurnFinished += _TurnFinished;
 				}
 			}
 			else doAfterEnumerating.Enqueue(() => AddRange(fuckers));
@@ -101,7 +103,7 @@ namespace srpg {
 				foreach (var t in TurnHavers)
 					t.Await(dsgfsdf);
 				enumerating = false;
-				while (doAfterEnumerating.Any())
+				while (doAfterEnumerating.Count > 0)
 					doAfterEnumerating.Dequeue()();
 
 				ConsoleLoggerHandlerOrWhatever.Log("_____________");

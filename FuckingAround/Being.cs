@@ -6,6 +6,7 @@ namespace srpg {
 	public class Being : ITurnHaver, SkillUser {
 
 		public string Name { get; private set;}
+		public MetaBeing MetaBeing { get; private set; }
 
 		public Cardinal Direction;
 
@@ -161,14 +162,12 @@ namespace srpg {
 			get { return PathFinder.GetTraversalArea(Place, this); }
 		}
 
-		public bool Perform(Skill skill, Tile target) {
+		public GameEvent Perform(Skill skill, Tile target) {
 			var ge = skill.Do(this, target);
 			if (ge != null) {
-				ge.Apply();
-				ActionTaken = true;
-				return true;
+				ge.PostApplication += (s, e) => ActionTaken = true;
 			}
-			else return false;
+			return ge;
 		}
 
 		public class MovedArgs : EventArgs{
@@ -206,29 +205,11 @@ namespace srpg {
 				se.UnAffect();
 			//StatusEffects.Clear();
 		}
-		//public void TakeDamage(StatSet damages) {
-		//	int preHP = HP;
-		//	double total = 0.0;
-		//	foreach (StatType dmgType in StatTypeStuff.DirectDamageTypeApplicationTypes) {
-		//		double dmg = damages.GetStat(dmgType).Value;
-		//		if (dmg != 0) {
-		//			double resist = this[dmgType.AsResistance()].Value;
-		//			double penetration = damages[dmgType.AsPenetration()];
-		//			double threshold = this[dmgType.AsThreshold()].Value;
-		//			dmg *= (1 - (resist - penetration));
-		//			if (Math.Abs(dmg) < threshold) dmg = 0;	//don't negate more than absolute damage
-		//			else dmg -= (dmg < 0 ? -1 : 1) * threshold;	//negate flat amount regardless of negative or positive damage
-		//			ConsoleLoggerHandlerOrWhatever.Log(dmg + " " + dmgType);
-		//			total += dmg;	//apply all at once later to avoid potentially annoying stuff when multitype damage with >100% res which may damage and heal at once
-		//	}	}
-		//	HP -= (int)total;
-		//	ConsoleLoggerHandlerOrWhatever.Log(preHP + " => " + HP);
-		//}
 
 		public void TakeRawDamage(int dmg) {
 			int preHP = HP;
 			HP -= dmg;
-			ConsoleLoggerHandlerOrWhatever.Log(dmg + " DoT taken");
+			ConsoleLoggerHandlerOrWhatever.Log(dmg + " Damage taken");
 			ConsoleLoggerHandlerOrWhatever.Log(preHP + " => " + HP);
 		}
 
@@ -237,38 +218,26 @@ namespace srpg {
 				throw new ArgumentException("I don't know what the fuck I'm doing");
 			Battle = battle;
 			OverTimeApplier = new OverTimeApplier(Battle, this);
-			HP = MaxHP;
 			Place = Battle.TileSet[x, y];
 			Battle.Add(this);
 		}
 
-		public Being(int team, string name) {
-			Name = name;
+		public Being(MetaBeing meta, int team, Battle battle, int x, int y) {
+			MetaBeing = meta;
+			Name = MetaBeing.Name;
+			SkillTreeFilling = MetaBeing.SkillTreeFilling;
+			Fist = MetaBeing.Fist;
+			Inventory = MetaBeing.Inventory;
 
-			Inventory = new PersonalInventory(this);
+			_team = team;
+			
+			AddToBattle(battle, x, y);
 
-			if (SkillTreeFilling == null)
-				SkillTreeFilling = new SkillTreeFiller(SkillTree);
 			foreach (var m in Mods)
 				m.Affect(Stats);
 
-
-			Skills = SkillsRepo.Default.ToList();
-			_team = team;
-
 			HP = MaxHP;
-		}
-		public Being(int team, string name, SkillTreeFiller stf) 
-			: this(team, name) {
-			SkillTreeFilling = stf;
-		}
-		public Being(Battle battle, int team, string name, int x, int y)
-			:this(team, name) {
-			AddToBattle(battle, x, y);
-		}
-		public Being(Battle battle, int team, string name, int x, int y, SkillTreeFiller stf) 
-			: this(team, name, stf) {
-			AddToBattle(battle, x, y);
+			Skills = MetaBeing.Skills;
 		}
 
 		public event EventHandler TurnStarted;

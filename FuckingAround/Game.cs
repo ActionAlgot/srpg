@@ -5,7 +5,9 @@ using System.Text;
 
 namespace srpg {
 	public class Game {
-		//public List<Being> Roster;
+		public List<MetaBeing> Roster = new List<MetaBeing>() {
+			new MetaBeing("being0"), new MetaBeing("being1"), new MetaBeing("being2")
+		};
 		//public List<Gear> Inventory;
 
 		private Battle _Battle;
@@ -13,20 +15,19 @@ namespace srpg {
 			get { return _Battle; }
 			protected set {
 				_Battle = value;
-				WorldIO.EnterBattle();
-			}
-		}
-		private WorldIO _WorldIO;
-		public WorldIO WorldIO {
-			get { return _WorldIO; }
-			set {
-				_WorldIO = value;
-				_WorldIO.SetGame(this);
+				if (BattleEntered != null) BattleEntered(this, EventArgs.Empty);
 			}
 		}
 
+		public event EventHandler BattleEntered;
+
 		public void TEMP_ForceEnterBattle() {
-			Battle = new Battle();
+			Battle = new Battle(this);
+		}
+
+		public Game() {
+			foreach (var mb in Roster)
+				mb.AddSkills(SkillsRepo.Default);
 		}
 	}
 }

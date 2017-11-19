@@ -9,18 +9,19 @@ namespace srpg {
 		public Tile Target;
 		public List<Being> BeingTargets = new List<Being>();
 		public Skill skill;
+		public event EventHandler<EventArgs> PostApplication;
 		public class Applications {
 			public List<Damage> damages = new List<Damage>();
 			public List<StatusEffect> statusEffects = new List<StatusEffect>();
 		}
 		public Dictionary<Being, Applications> applications = new Dictionary<Being, Applications>();
 
-		public void AddDamageApplication(Being target, Damage da) {
+		internal void AddDamageApplication(Being target, Damage da) {
 			if (!applications.ContainsKey(target))
 				applications[target] = new Applications();
 			applications[target].damages.Add(da);
 		}
-		public void AddStatusEffect(Being target, StatusEffect se) {
+		internal void AddStatusEffect(Being target, StatusEffect se) {
 			if (!applications.ContainsKey(target))
 				applications[target] = new Applications();
 			applications[target].statusEffects.Add(se);
@@ -34,6 +35,8 @@ namespace srpg {
 				foreach (var se in a.statusEffects)
 					se.Affect();
 			}
+			if (PostApplication != null)
+				PostApplication(this, EventArgs.Empty);
 		}
 
 		public override string ToString() {

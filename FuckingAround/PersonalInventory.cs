@@ -3,7 +3,8 @@ using System.Collections.Generic;
 
 namespace srpg{
 	public class PersonalInventory : IEnumerable<Gear> {
-		private Being Owner;
+		//private Being Owner;
+		public Weapon Fist { get; private set; }
 		private Gear[] gear = new Gear[5];
 
 		public class WeaponSetEventArgs : EventArgs {
@@ -19,7 +20,7 @@ namespace srpg{
 
 		private Weapon _mainHand;
 		public Weapon MainHand { //set should never be used outside of Equip/Unequip
-			get { return _mainHand ?? Owner.Fist; }
+			get { return _mainHand ?? Fist; }
 			private set {
 				var pre = MainHand;
 				_mainHand = value;
@@ -28,7 +29,7 @@ namespace srpg{
 		}
 		private Gear _offHand;
 		public Gear OffHand {
-			get { return _offHand ?? (MainHand.TwoH ? null : Owner.Fist); }
+			get { return _offHand ?? (MainHand.TwoH ? null : Fist); }
 			private set {
 				var pre = OffHand;
 				_offHand = value;
@@ -38,16 +39,16 @@ namespace srpg{
 
 		private void EquipS(Shield s) {
 			if (MainHand.TwoH) throw new ArgumentException("Can't shield while TWoH");
-			else if (OffHand != Owner.Fist) throw new ArgumentException("Can't triple wield");
+			else if (OffHand != Fist) throw new ArgumentException("Can't triple wield");
 			else OffHand = s;
 		}
 		private void EquipW(Weapon w) {
 			if (w == null) MainHand = w;
-			else if (MainHand == Owner.Fist) {
-				if (!w.TwoH || OffHand == Owner.Fist) MainHand = w;
+			else if (MainHand == Fist) {
+				if (!w.TwoH || OffHand == Fist) MainHand = w;
 				else throw new ArgumentException("Can't wield 2H in 1H"); }
 			else if (MainHand.TwoH) throw new ArgumentException("Can't shit in offhand while wielding 2H");
-			else if (OffHand != Owner.Fist) throw new ArgumentException("Can't triplewield");
+			else if (OffHand != Fist) throw new ArgumentException("Can't triplewield");
 			else if (w.TwoH) throw new ArgumentException("Can't 2H in 1H");
 			else OffHand = w;
 		}
@@ -59,7 +60,7 @@ namespace srpg{
 		private void Unequip(Gear g) {
 			if (MainHand == g) {
 				MainHand = null;
-				if (OffHand is Weapon && OffHand != Owner.Fist) {
+				if (OffHand is Weapon && OffHand != Fist) {
 					MainHand = (Weapon)OffHand;
 					OffHand = null;
 				}
@@ -82,8 +83,8 @@ namespace srpg{
 				catch (ArgumentException) { }
 			}
 		}
-		public PersonalInventory(Being owner) {
-			Owner = owner;
+		public PersonalInventory(Weapon fist) {
+			Fist = fist;
 		}
 
 		#region IEnumerable
